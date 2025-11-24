@@ -29,9 +29,6 @@
                     <i class="fas fa-boxes mr-2"></i> Inventory
                 </a>
                 
-                <a href="{{ route('cashier.transactions.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
-                    <i class="fas fa-receipt mr-2"></i> My Transactions
-                </a>
             </nav>
             
             <div class="px-4 py-2 mt-auto border-t border-green-700">
@@ -80,7 +77,7 @@
                             <div class="flex flex-col md:flex-row">
                                 <div class="md:w-1/4 flex items-center justify-center mb-4 md:mb-0">
                                     @if($product->image)
-                                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="h-32 w-32 object-cover rounded-lg">
+                                        <img src="{{ \Illuminate\Support\Facades\Storage::url($product->image) }}" alt="{{ $product->name }}" class="h-32 w-32 object-cover rounded-lg">
                                     @else
                                         <div class="h-32 w-32 bg-gray-200 rounded-lg flex items-center justify-center">
                                             <i class="fas fa-box fa-3x text-gray-400"></i>

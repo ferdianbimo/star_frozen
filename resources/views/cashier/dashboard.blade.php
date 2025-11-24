@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cashier Dashboard - Star Frozen POS</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
@@ -14,8 +15,8 @@
                 <h1 class="text-2xl font-bold">Star Frozen POS</h1>
                 <p class="text-sm text-green-200">Cashier Dashboard</p>
             </div>
-            
-            <nav class="flex-1">
+
+                  <nav class="flex-1">
                 <a href="{{ route('cashier.dashboard') }}" class="block py-2 px-4 bg-green-900 text-white">
                     <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
                 </a>
@@ -24,12 +25,8 @@
                     <i class="fas fa-cash-register mr-2"></i> Point of Sale
                 </a>
                 
-                <a href="{{ route('cashier.inventory.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
+                <a href="{{ route('cashier.inventory.index') }}" class="block py-2 px-4  hover:bg-green-700  text-white">
                     <i class="fas fa-boxes mr-2"></i> Inventory
-                </a>
-                
-                <a href="{{ route('cashier.transactions.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
-                    <i class="fas fa-receipt mr-2"></i> My Transactions
                 </a>
             </nav>
             

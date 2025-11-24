@@ -22,6 +22,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 25000,
             'stock' => 50,
             'low_stock_threshold' => 10,
+            'unit' => 'pack',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(9)->toDateString(),
             'barcode' => 'NUGAY500',
             'is_active' => true,
         ]);
@@ -34,6 +37,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 20000,
             'stock' => 45,
             'low_stock_threshold' => 10,
+            'unit' => 'pcs',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(6)->toDateString(),
             'barcode' => 'SOSSP010',
             'is_active' => true,
         ]);
@@ -46,6 +52,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 35000,
             'stock' => 30,
             'low_stock_threshold' => 8,
+            'unit' => 'pcs',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(6)->toDateString(),
             'barcode' => 'BAKSP020',
             'is_active' => true,
         ]);
@@ -58,6 +67,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 24000,
             'stock' => 25,
             'low_stock_threshold' => 7,
+            'unit' => 'pcs',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(6)->toDateString(),
             'barcode' => 'DIMAY015',
             'is_active' => true,
         ]);
@@ -70,6 +82,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 30000,
             'stock' => 40,
             'low_stock_threshold' => 10,
+            'unit' => 'sack',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(12)->toDateString(),
             'barcode' => 'KENGOR1K',
             'is_active' => true,
         ]);
@@ -82,6 +97,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 18000,
             'stock' => 35,
             'low_stock_threshold' => 8,
+            'unit' => 'pcs',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(4)->toDateString(),
             'barcode' => 'OTAIK010',
             'is_active' => true,
         ]);
@@ -94,6 +112,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 30000,
             'stock' => 20,
             'low_stock_threshold' => 5,
+            'unit' => 'pcs',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(5)->toDateString(),
             'barcode' => 'TEMPUD012',
             'is_active' => true,
         ]);
@@ -106,6 +127,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 15000,
             'stock' => 15,
             'low_stock_threshold' => 5,
+            'unit' => 'pcs',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(9)->toDateString(),
             'barcode' => 'ESVAN500',
             'is_active' => true,
         ]);
@@ -118,6 +142,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 15000,
             'stock' => 12,
             'low_stock_threshold' => 5,
+            'unit' => 'pcs',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(9)->toDateString(),
             'barcode' => 'ESCOK500',
             'is_active' => true,
         ]);
@@ -130,6 +157,9 @@ class ProductSeeder extends Seeder
             'purchase_price' => 15000,
             'stock' => 10,
             'low_stock_threshold' => 5,
+            'unit' => 'pcs',
+            'date_in' => now()->toDateString(),
+            'expiration_date' => now()->addMonths(9)->toDateString(),
             'barcode' => 'ESSTR500',
             'is_active' => true,
         ]);
