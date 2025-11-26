@@ -28,6 +28,10 @@
                 <a href="{{ route('cashier.inventory.index') }}" class="block py-2 px-4  hover:bg-green-700  text-white">
                     <i class="fas fa-boxes mr-2"></i> Inventory
                 </a>
+                
+                <a href="{{ route('cashier.transactions.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
+                    <i class="fas fa-history mr-2"></i> Riwayat Transaksi
+                </a>
             </nav>
             
             <div class="px-4 py-2 mt-auto border-t border-green-700">
@@ -56,7 +60,7 @@
 
             <main class="py-6 px-4 sm:px-6 lg:px-8">
                 <!-- Quick Access -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <a href="{{ route('cashier.pos.index') }}" class="block bg-white rounded-lg shadow p-6 hover:bg-green-50 transition">
                         <div class="flex items-center">
                             <div class="bg-green-500 rounded-full p-3 mr-4">

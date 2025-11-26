@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\StockLog;
+use App\Models\Transaction;
+use App\Models\TransactionItem;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class PosController extends Controller
@@ -108,9 +111,12 @@ class PosController extends Controller
 
     public function checkout(Request $request)
     {
+        \Log::info('Checkout started', ['request_data' => $request->all()]);
+        
         $cart = $this->getCart();
 
         if (empty($cart)) {
+            \Log::warning('Checkout failed: Cart is empty');
             return Redirect::back()->with('error', 'Cart is empty');
         }
 
@@ -122,12 +128,14 @@ class PosController extends Controller
         $discountPct = (float) $request->input('discount', 0);
         $taxPct = (float) $request->input('tax', 0);
         $paymentMethod = $request->input('payment_method', 'cash');
+        $paymentAmount = (float) $request->input('paid_amount', 0);
 
         // compute amounts: discount applied on subtotal, tax applied after discount
         $discountAmount = (int) round($subtotal * ($discountPct / 100));
         $taxable = max(0, $subtotal - $discountAmount);
         $taxAmount = (int) round($taxable * ($taxPct / 100));
         $total = (int) round($taxable + $taxAmount);
+        $changeAmount = max(0, $paymentAmount - $total);
 
         // Validate stock availability
         foreach ($cart as $item) {
@@ -137,49 +145,144 @@ class PosController extends Controller
             }
         }
 
-        // Reduce stock and create stock logs
-        foreach ($cart as $item) {
-            $product = Product::find($item['id']);
-            $previous = $product->stock;
-            $product->decrement('stock', $item['quantity']);
-            $product->save();
-
-            StockLog::create([
-                'product_id' => $product->id,
+        DB::beginTransaction();
+        try {
+            // Create transaction in database
+            $invoiceNumber = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+            $totalProfit = 0;
+            
+            // Calculate total profit
+            foreach ($cart as $item) {
+                $product = Product::find($item['id']);
+                if (!$product) {
+                    throw new \Exception("Product not found: {$item['name']}");
+                }
+                $cost = $product->purchase_price ?? 0;
+                $itemProfit = ($item['price'] - $cost) * $item['quantity'];
+                $totalProfit += $itemProfit;
+            }
+            
+            \Log::info('Creating transaction', [
+                'invoice' => $invoiceNumber,
                 'user_id' => Auth::id(),
-                'previous_stock' => $previous,
-                'new_stock' => $product->stock,
-                'change' => -$item['quantity'],
-                'note' => 'Sale via POS'
+                'subtotal' => $subtotal,
+                'total' => $total,
+                'payment_method' => $paymentMethod,
+                'payment_amount' => $paymentAmount
             ]);
+            
+            $transaction = Transaction::create([
+                'transaction_number' => strtoupper(Str::random(10)),
+                'invoice_number' => $invoiceNumber,
+                'user_id' => Auth::id(),
+                'subtotal' => $subtotal,
+                'tax' => $taxAmount,
+                'discount' => $discountAmount,
+                'total' => $total,
+                'profit' => $totalProfit,
+                'payment_method' => $paymentMethod,
+                'payment_amount' => $paymentAmount,
+                'change_amount' => $changeAmount,
+                'total_amount' => $total,
+                'status' => 'completed',
+            ]);
+
+            // Reduce stock and create transaction items
+            foreach ($cart as $item) {
+                $product = Product::find($item['id']);
+                $previous = $product->stock;
+                $product->decrement('stock', $item['quantity']);
+                $product->save();
+
+                // Create transaction item
+                $itemSubtotal = $item['price'] * $item['quantity'];
+                $itemCost = ($product->purchase_price ?? 0) * $item['quantity'];
+                $itemProfit = $itemSubtotal - $itemCost;
+                
+                TransactionItem::create([
+                    'transaction_id' => $transaction->id,
+                    'product_id' => $product->id,
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'cost' => $product->purchase_price ?? 0,
+                    'subtotal' => $itemSubtotal,
+                    'profit' => $itemProfit,
+                ]);
+
+                // Create stock log
+                $unitPrice = $item['price'];
+                $totalValue = $item['quantity'] * $unitPrice;
+
+                StockLog::create([
+                    'product_id' => $product->id,
+                    'user_id' => Auth::id(),
+                    'previous_stock' => $previous,
+                    'new_stock' => $product->stock,
+                    'change' => -$item['quantity'],
+                    'unit_price' => $unitPrice,
+                    'total_value' => $totalValue,
+                    'transaction_type' => 'sale',
+                    'note' => 'Sale via POS - ' . $invoiceNumber
+                ]);
+            }
+
+            DB::commit();
+
+            \Log::info('Transaction completed successfully', [
+                'transaction_id' => $transaction->id,
+                'invoice_number' => $invoiceNumber,
+                'total' => $total
+            ]);
+
+            // Store for receipt
+            $transactionData = [
+                'id' => $transaction->id,
+                'invoice_number' => $invoiceNumber,
+                'cashier_id' => Auth::id(),
+                'items' => $cart,
+                'subtotal' => $subtotal,
+                'discount_pct' => $discountPct,
+                'discount_amount' => $discountAmount,
+                'tax_pct' => $taxPct,
+                'tax_amount' => $taxAmount,
+                'payment_method' => $paymentMethod,
+                'payment_amount' => $paymentAmount,
+                'change_amount' => $changeAmount,
+                'total' => $total,
+                'created_at' => $transaction->created_at->toDateTimeString()
+            ];
+
+            session(['last_transaction' => $transactionData]);
+            session()->forget('cart');
+
+            return redirect()->route('cashier.pos.receipt', ['transaction' => $transaction->id]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Transaction failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return Redirect::back()->with('error', 'Transaction failed: ' . $e->getMessage());
         }
-
-        $transactionId = Str::upper(Str::random(8));
-        $transaction = [
-            'id' => $transactionId,
-            'cashier_id' => Auth::id(),
-            'items' => $cart,
-            'subtotal' => $subtotal,
-            'discount_pct' => $discountPct,
-            'discount_amount' => $discountAmount,
-            'tax_pct' => $taxPct,
-            'tax_amount' => $taxAmount,
-            'payment_method' => $paymentMethod,
-            'total' => $total,
-            'created_at' => Carbon::now()->toDateTimeString()
-        ];
-
-        session(['last_transaction' => $transaction]);
-        session()->forget('cart');
-
-        return redirect()->route('cashier.pos.receipt', ['transaction' => $transactionId]);
     }
 
     public function receipt($transaction)
     {
         $tx = session('last_transaction');
-        if (!$tx || $tx['id'] !== $transaction) {
-            abort(404);
+        
+        \Log::info('Receipt requested', [
+            'transaction_param' => $transaction,
+            'session_id' => $tx['id'] ?? null,
+            'has_session' => !empty($tx)
+        ]);
+        
+        if (!$tx || (int)$tx['id'] !== (int)$transaction) {
+            \Log::warning('Receipt not found', [
+                'requested_id' => $transaction,
+                'session_id' => $tx['id'] ?? null
+            ]);
+            abort(404, 'Receipt not found. Transaction may have expired.');
         }
 
         return view('cashier.receipt', ['transaction' => $tx]);

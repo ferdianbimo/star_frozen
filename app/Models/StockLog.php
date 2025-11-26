@@ -20,7 +20,20 @@ class StockLog extends Model
         'previous_stock',
         'new_stock',
         'change',
+        'unit_price',
+        'total_value',
+        'transaction_type',
         'note'
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'unit_price' => 'decimal:2',
+        'total_value' => 'decimal:2',
     ];
 
     /**

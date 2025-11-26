@@ -29,6 +29,10 @@
                     <i class="fas fa-boxes mr-2"></i> Inventory
                 </a>
                 
+                <a href="{{ route('cashier.transactions.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
+                    <i class="fas fa-history mr-2"></i> Riwayat Transaksi
+                </a>
+                
             </nav>
             
             <div class="px-4 py-2 mt-auto border-t border-green-700">

@@ -7,11 +7,14 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Test auth status
+Route::get('/test-auth', [\App\Http\Controllers\TestAuthController::class, 'check'])->name('test.auth');
+
 Route::get('/dashboard', function () {
     if (auth()->user()->isManager()) {
-        return view('manager.dashboard');
+        return redirect()->route('manager.dashboard');
     } else {
-        return view('cashier.dashboard');
+        return redirect()->route('cashier.dashboard');
     }
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -22,16 +25,24 @@ Route::view('profile', 'profile')
 // Manager Routes
 Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')->group(function () {
     // Dashboard
-    Route::view('/dashboard', 'manager.dashboard')->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\ManagerDashboardController::class, 'index'])->name('dashboard');
     
-    // User Management
+    // Inventory Management (View Only - No CRUD)
+    Route::get('/inventory', [\App\Http\Controllers\ManagerInventoryController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/stock-out', [\App\Http\Controllers\ManagerInventoryController::class, 'stockOut'])->name('inventory.stock-out');
+    
+    // Finance (Keuangan)
+    Route::get('/finance', [\App\Http\Controllers\FinanceController::class, 'index'])->name('finance.index');
+    Route::get('/finance/income', [\App\Http\Controllers\FinanceController::class, 'income'])->name('finance.income');
+    Route::get('/finance/expenses', [\App\Http\Controllers\FinanceController::class, 'expenses'])->name('finance.expenses');
+    Route::post('/finance/expenses', [\App\Http\Controllers\FinanceController::class, 'storeExpense'])->name('finance.expenses.store');
+    Route::put('/finance/expenses/{expense}', [\App\Http\Controllers\FinanceController::class, 'updateExpense'])->name('finance.expenses.update');
+    Route::delete('/finance/expenses/{expense}', [\App\Http\Controllers\FinanceController::class, 'destroyExpense'])->name('finance.expenses.destroy');
+    
+    // Access Control (Hak Akses) - User & Role Management
+    Route::get('/access', [\App\Http\Controllers\AccessController::class, 'index'])->name('access.index');
     Route::resource('users', \App\Http\Controllers\UserController::class);
-    
-    // Reports
-    Route::get('/reports/sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('reports.sales');
-    Route::get('/reports/inventory', [\App\Http\Controllers\ReportController::class, 'inventory'])->name('reports.inventory');
-    Route::get('/reports/profits', [\App\Http\Controllers\ReportController::class, 'profits'])->name('reports.profits');
-    Route::get('/reports/export/{type}', [\App\Http\Controllers\ReportController::class, 'export'])->name('reports.export');
+    Route::resource('roles', \App\Http\Controllers\RoleController::class)->except(['show']);
 });
 
 // Cashier Routes
@@ -49,23 +60,19 @@ Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->
     
     // Transactions
     Route::get('/transactions', [\App\Http\Controllers\CashierTransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/transactions/{id}', [\App\Http\Controllers\CashierTransactionController::class, 'show'])->name('transactions.show');
     
     // Inventory Management
     Route::get('/inventory', [\App\Http\Controllers\CashierInventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/create', [\App\Http\Controllers\CashierInventoryController::class, 'create'])->name('inventory.create');
-    Route::post('/inventory', [\App\Http\Controllers\CashierInventoryController::class, 'store'])->name('inventory.store');
-    Route::put('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'update'])->name('inventory.update');
-    Route::get('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'show'])->name('inventory.show');
-    Route::delete('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'destroy'])->name('inventory.destroy');
-    Route::post('/inventory/update-stock', [\App\Http\Controllers\CashierInventoryController::class, 'updateStock'])->name('inventory.update-stock');
     Route::get('/inventory/low-stock', [\App\Http\Controllers\CashierInventoryController::class, 'lowStock'])->name('inventory.low-stock');
     Route::get('/inventory/stock-out', [\App\Http\Controllers\CashierInventoryController::class, 'stockOut'])->name('inventory.stock-out');
     Route::get('/inventory/stock-out/updates', [\App\Http\Controllers\CashierInventoryController::class, 'stockOutUpdates'])->name('inventory.stock-out.updates');
+    Route::post('/inventory', [\App\Http\Controllers\CashierInventoryController::class, 'store'])->name('inventory.store');
+    Route::post('/inventory/update-stock', [\App\Http\Controllers\CashierInventoryController::class, 'updateStock'])->name('inventory.update-stock');
+    Route::get('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'show'])->name('inventory.show');
+    Route::put('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'update'])->name('inventory.update');
+    Route::delete('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'destroy'])->name('inventory.destroy');
 });
 
 require __DIR__.'/auth.php';
-
-// Temporary debug route to verify routing (no middleware)
-Route::get('/debug-stock-out', function () {
-    return response('debug-stock-out OK', 200);
-});

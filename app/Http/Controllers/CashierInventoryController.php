@@ -169,11 +169,31 @@ class CashierInventoryController extends Controller
         $product->stock += $validated['stock_change'];
         $product->save();
 
-        // Log the stock change
+        // Determine transaction type and calculate value
+        $transactionType = 'manual';
+        $unitPrice = 0;
+        $totalValue = 0;
+        
+        if ($validated['stock_change'] < 0) {
+            // Stock out (penjualan)
+            $transactionType = 'sale';
+            $unitPrice = $product->price; // harga jual
+            $totalValue = abs($validated['stock_change']) * $unitPrice;
+        } elseif ($validated['stock_change'] > 0) {
+            // Stock in (pembelian)
+            $transactionType = 'purchase';
+            $unitPrice = $product->purchase_price ?? $product->price;
+            $totalValue = $validated['stock_change'] * $unitPrice;
+        }
+
+        // Log the stock change with transaction value
         $product->stockLogs()->create([
             'previous_stock' => $oldStock,
             'new_stock' => $product->stock,
             'change' => $validated['stock_change'],
+            'unit_price' => $unitPrice,
+            'total_value' => $totalValue,
+            'transaction_type' => $transactionType,
             'note' => $validated['note'] ?? 'Stock updated by cashier',
             'user_id' => auth()->id(),
         ]);
@@ -196,25 +216,64 @@ class CashierInventoryController extends Controller
 
     /**
      * Display stock-out logs (items removed from stock).
+     * Only show logs for the current logged-in cashier FROM POS transactions.
      */
     public function stockOut(Request $request)
     {
-        $logs = StockLog::with('product', 'user')
+        $search = $request->input('search');
+        $sort = $request->input('sort', 'tanggal_terbaru');
+        
+        $query = StockLog::with('product', 'user')
             ->where('change', '<', 0)
-            ->orderBy('created_at', 'desc')
-            ->paginate(8);
+            ->where('user_id', auth()->id()) // Filter by current user
+            ->where('transaction_type', 'sale'); // Only from POS transactions
+        
+        // Search filter
+        if ($search) {
+            $query->whereHas('product', function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('barcode', 'like', '%' . $search . '%')
+                  ->orWhere('category', 'like', '%' . $search . '%');
+            });
+        }
+        
+        // Sorting
+        $sortMapping = [
+            'tanggal_terbaru' => ['created_at', 'desc'],
+            'tanggal_terlama' => ['created_at', 'asc'],
+            'jumlah_banyak' => ['change', 'asc'], // change is negative, so asc = most items
+            'jumlah_sedikit' => ['change', 'desc'],
+        ];
+        
+        if (isset($sortMapping[$sort])) {
+            $query->orderBy($sortMapping[$sort][0], $sortMapping[$sort][1]);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
 
-        return view('cashier.inventory.stock-out', compact('logs'));
+        $stockLogs = $query->paginate(15)->withQueryString();
+
+        return view('cashier.inventory.stock-out', [
+            'logs' => $stockLogs,
+            'search' => $search,
+            'sort' => $sort
+        ]);
     }
 
     /**
      * Return recent stock-out entries as JSON for polling.
+     * Only POS transactions from current cashier.
      */
     public function stockOutUpdates(Request $request)
     {
         $sinceId = $request->input('since_id');
 
-        $query = StockLog::with('product', 'user')->where('change', '<', 0)->orderBy('created_at', 'desc');
+        $query = StockLog::with('product', 'user')
+            ->where('change', '<', 0)
+            ->where('user_id', auth()->id()) // Filter by current user session
+            ->where('transaction_type', 'sale') // Only from POS transactions
+            ->orderBy('created_at', 'desc');
+            
         if ($sinceId) {
             // fetch logs newer than given id (assuming id grows with time)
             $query->where('id', '>', (int)$sinceId);
@@ -226,6 +285,7 @@ class CashierInventoryController extends Controller
             return [
                 'id' => $l->id,
                 'product' => $l->product ? $l->product->name : '—',
+                'category' => $l->product ? $l->product->category : '-',
                 'image' => $l->product && $l->product->image ? Storage::url($l->product->image) : null,
                 'change' => $l->change,
                 'previous_stock' => $l->previous_stock,
@@ -234,6 +294,8 @@ class CashierInventoryController extends Controller
                 'note' => $l->note,
                 'created_at' => $l->created_at->toDateTimeString(),
                 'created_human' => $l->created_at->diffForHumans(),
+                'date' => $l->created_at->format('d/m/Y'),
+                'time' => $l->created_at->format('H:i'),
             ];
         });
 

@@ -25,12 +25,12 @@
                     <i class="fas fa-cash-register mr-2"></i> Point of Sale
                 </a>
                 
-                <a href="{{ route('cashier.inventory.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
+                <a href="{{ route('cashier.inventory.index') }}" class="block py-2 px-4 bg-green-900 text-white">
                     <i class="fas fa-boxes mr-2"></i> Inventory
                 </a>
                 
-                <a href="{{ route('cashier.inventory.stock-out') }}" class="block py-2 px-4 bg-green-900 text-white">
-                    <i class="fas fa-sign-out-alt mr-2"></i> Stok Keluar
+                <a href="{{ route('cashier.transactions.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
+                    <i class="fas fa-history mr-2"></i> Riwayat Transaksi
                 </a>
             </nav>
             
@@ -53,50 +53,88 @@
         <!-- Main Content -->
         <div class="flex-1 overflow-y-auto">
             <header class="bg-white shadow">
-                <div class="py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <div>
-                        <a href="{{ route('cashier.inventory.index') }}" class="text-green-500 hover:text-green-700">
-                            <i class="fas fa-arrow-left mr-2"></i> Back to Inventory
-                        </a>
-                        <h1 class="text-2xl font-bold text-gray-900 mt-2">Stok Keluar (Stock Out Logs)</h1>
-                    </div>
+                <div class="py-6 px-4 sm:px-6 lg:px-8">
+                    <h1 class="text-2xl font-bold text-gray-900">Inventory Management</h1>
                 </div>
             </header>
 
             <main class="py-6 px-4 sm:px-6 lg:px-8">
-                <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <!-- Tabs -->
+                    <div class="mb-4 border-b">
+                        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                            <a href="{{ route('cashier.inventory.index') }}" class="py-4 px-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700">Stok Masuk</a>
+                            <a href="{{ route('cashier.inventory.stock-out') }}" class="py-4 px-1 border-b-2 border-blue-600 text-sm font-medium text-blue-600">Stok Keluar</a>
+                        </nav>
+                    </div>
+                    
+                    <!-- Filter & Search -->
+                    <form method="GET" action="{{ route('cashier.inventory.stock-out') }}" class="flex items-center gap-4 mb-6">
+                        <div class="flex-1">
+                            <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari produk, barcode, kategori..." class="w-full border rounded-lg p-3 shadow-sm">
+                        </div>
+                        <select name="sort" class="border rounded-lg p-3 shadow-sm" onchange="this.form.submit()">
+                            <option value="tanggal_terbaru" {{ ($sort ?? '') == 'tanggal_terbaru' ? 'selected' : '' }}>Tanggal Terbaru</option>
+                            <option value="tanggal_terlama" {{ ($sort ?? '') == 'tanggal_terlama' ? 'selected' : '' }}>Tanggal Terlama</option>
+                            <option value="jumlah_banyak" {{ ($sort ?? '') == 'jumlah_banyak' ? 'selected' : '' }}>Jumlah Terbanyak</option>
+                            <option value="jumlah_sedikit" {{ ($sort ?? '') == 'jumlah_sedikit' ? 'selected' : '' }}>Jumlah Tersedikit</option>
+                        </select>
+                        <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-search mr-2"></i> Cari
+                        </button>
+                    </form>
+                    
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200" id="logsTable">
+                        <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prev Stock</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">New Stock</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jam</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produk</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stok Sebelum</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qty Keluar</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stok Sekarang</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200" id="logsTbody">
-                                @forelse($logs as $log)
-                                <tr data-log-id="{{ $log->id }}">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $log->created_at->diffForHumans() }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap flex items-center">
-                                        @if($log->product && $log->product->image)
-                                            <img src="{{ \Illuminate\Support\Facades\Storage::url($log->product->image) }}" alt="{{ $log->product->name }}" class="h-8 w-8 rounded object-cover mr-3">
-                                        @endif
-                                        <div class="text-sm font-medium text-gray-900">{{ $log->product ? $log->product->name : '—' }}</div>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @forelse($logs as $index => $log)
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $logs->firstItem() + $index }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $log->created_at->format('d/m/Y') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $log->created_at->format('H:i:s') }}</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            @if($log->product && $log->product->image)
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::url($log->product->image) }}" alt="{{ $log->product->name }}" class="h-10 w-10 rounded object-cover mr-3">
+                                            @else
+                                                <div class="h-10 w-10 rounded bg-gray-200 mr-3 flex items-center justify-center">
+                                                    <i class="fas fa-box text-gray-400"></i>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <div class="text-sm font-medium text-gray-900">{{ $log->product ? $log->product->name : '—' }}</div>
+                                                <div class="text-xs text-gray-500">{{ $log->product ? $log->product->category : '-' }}</div>
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ abs($log->change) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $log->previous_stock }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $log->new_stock }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $log->user ? $log->user->name : 'system' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $log->note }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $log->previous_stock }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            {{ abs($log->change) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $log->new_stock }}</td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">No stock-out logs found.</td>
+                                    <td colspan="7" class="px-6 py-12 text-center">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <i class="fas fa-receipt text-gray-300 text-6xl mb-4"></i>
+                                            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Stok Keluar</h3>
+                                            <p class="text-sm text-gray-500">Stok keluar dari transaksi POS akan muncul di sini</p>
+                                        </div>
+                                    </td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -110,73 +148,5 @@
             </main>
         </div>
     </div>
-
-    <script>
-        (function(){
-            const pollInterval = 5000; // 5s
-            let lastId = null;
-            const tbody = document.getElementById('logsTbody');
-
-            function updateLastIdFromDOM(){
-                const first = tbody.querySelector('tr[data-log-id]');
-                if(first) lastId = parseInt(first.getAttribute('data-log-id'));
-            }
-
-            function renderRow(item){
-                const tr = document.createElement('tr');
-                tr.setAttribute('data-log-id', item.id);
-                const productCellContent = item.image ?
-                    `<div class="flex items-center"><img src="${escapeHtml(item.image)}" class="h-8 w-8 rounded object-cover mr-3"> <div class="text-sm font-medium text-gray-900">${escapeHtml(item.product)}</div></div>` :
-                    `<div class="text-sm font-medium text-gray-900">${escapeHtml(item.product)}</div>`;
-
-                tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${item.created_human}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${productCellContent}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${Math.abs(item.change)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${item.previous_stock}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${item.new_stock}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${escapeHtml(item.user)}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${escapeHtml(item.note || '')}</td>
-                `;
-                return tr;
-            }
-
-            function escapeHtml(str){
-                return String(str)
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#039;');
-            }
-
-            async function poll(){
-                try{
-                    const url = new URL('{{ route('cashier.inventory.stock-out.updates') }}', window.location.origin);
-                    if(lastId) url.searchParams.set('since_id', lastId);
-                    const res = await fetch(url.toString(), {cache: 'no-store'});
-                    if(!res.ok) return;
-                    const json = await res.json();
-                    if(json.logs && json.logs.length){
-                        // prepend newest first
-                        json.logs.reverse().forEach(item =>{
-                            const row = renderRow(item);
-                            tbody.insertBefore(row, tbody.firstChild);
-                        });
-                        updateLastIdFromDOM();
-                        // keep table to reasonable size
-                        while(tbody.children.length > 200){ tbody.removeChild(tbody.lastChild); }
-                    }
-                }catch(e){
-                    console.error('Polling error', e);
-                }
-            }
-
-            // Initialize lastId based on current DOM
-            updateLastIdFromDOM();
-            // Start polling loop
-            setInterval(poll, pollInterval);
-        })();
-    </script>
 </body>
 </html>

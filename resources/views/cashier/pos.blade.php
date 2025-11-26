@@ -28,6 +28,10 @@
                 <a href="{{ route('cashier.inventory.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
                     <i class="fas fa-boxes mr-2"></i> Inventory
                 </a>
+                
+                <a href="{{ route('cashier.transactions.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
+                    <i class="fas fa-history mr-2"></i> Riwayat Transaksi
+                </a>
             </nav>
             <div class="px-4 py-2 mt-auto border-t border-green-700">
                 <div class="flex items-center mb-2">
@@ -49,6 +53,28 @@
             </header>
 
             <main class="p-6 h-full">
+                @if(session('success'))
+                    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        <ul>
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <div class="mb-4">
                             <input id="search" type="text" placeholder="Search products..." class="w-full border rounded p-3" oninput="filterProducts()">
                         </div>
@@ -105,11 +131,15 @@
                                     <div class="text-gray-500">No items in cart</div>
                                 @else
                                     @foreach($cart as $item)
-                                        @php $line = $item['price'] * $item['quantity']; $subtotal += $line; @endphp
+                                        @php 
+                                            $line = $item['price'] * $item['quantity']; 
+                                            $subtotal += $line;
+                                            $cartProduct = \App\Models\Product::find($item['id']);
+                                            $cartImage = $cartProduct ? $cartProduct->image : null;
+                                        @endphp
                                         <div class="flex items-center justify-between border rounded p-2">
                                             <div class="flex items-start">
                                                 <div class="w-12 h-12 bg-gray-100 rounded mr-3 flex items-center justify-center">
-                                                    @php $cartImage = $item['image'] ?? null; @endphp
                                                     @if($cartImage)
                                                         <img src="{{ \Illuminate\Support\Facades\Storage::url($cartImage) }}" alt="" class="max-h-10">
                                                     @else
@@ -174,7 +204,7 @@
                                     <input type="hidden" name="paid_amount" id="paidAmountInput" value="0">
 
                                     <div class="mt-4">
-                                        <button id="openCheckoutModal" type="button" class="w-full py-3 bg-blue-600 text-white rounded">Checkout</button>
+                                        <button id="openCheckoutModal" type="button" class="w-full py-3 bg-blue-600 text-white rounded" {{ empty($cart) ? 'disabled' : '' }}>Checkout</button>
                                     </div>
                                 </form>
                             </div>
@@ -274,6 +304,8 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function(){
+            console.log('Checkout modal script loaded');
+            
             const openBtn = document.getElementById('openCheckoutModal');
             const modal = document.getElementById('checkoutModal');
             const closeBtn = document.getElementById('checkoutModalClose');
@@ -284,6 +316,15 @@
             const discountInput = document.getElementById('discountInput');
             const taxInput = document.getElementById('taxInput');
             const subtotal = Number(@json($subtotal ?? 0));
+
+            console.log('Subtotal:', subtotal);
+            console.log('Elements found:', {
+                openBtn: !!openBtn,
+                modal: !!modal,
+                confirmBtn: !!confirmBtn,
+                paidInput: !!paidInput,
+                paidHidden: !!paidHidden
+            });
 
             function formatRp(n){
                 const v = Math.round(n || 0);
@@ -313,12 +354,14 @@
                 // payment method handling
                 const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'cash';
                 if(paymentMethod !== 'cash'){
-                    // hide paid input and auto-enable confirm
+                    // hide paid input and auto-enable confirm for non-cash payments
                     paidInput.closest('div.mb-3').style.display = 'none';
+                    document.getElementById('modalChange').parentElement.style.display = 'none';
                     confirmBtn.disabled = false;
-                    paidInput.value = '';
+                    paidInput.value = vals.total;
                 } else {
                     paidInput.closest('div.mb-3').style.display = '';
+                    document.getElementById('modalChange').parentElement.style.display = 'flex';
                     paidInput.value = vals.total; // pre-fill with total amount
                     // compute change immediately
                     updateChange();
@@ -342,15 +385,35 @@
             if(paidInput) paidInput.addEventListener('input', updateChange);
 
             if(confirmBtn){
-                confirmBtn.addEventListener('click', function(){
+                confirmBtn.addEventListener('click', function(e){
+                    e.preventDefault(); // Prevent any default button behavior
+                    
                     const vals = computeTotals();
                     const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'cash';
                     let paid = vals.total;
+                    
                     if(paymentMethod === 'cash'){
                         paid = parseFloat(paidInput.value) || 0;
+                        if(paid < vals.total){
+                            alert('Jumlah pembayaran kurang dari total!');
+                            return;
+                        }
                     }
+                    
                     // set hidden field then submit
                     paidHidden.value = paid;
+                    console.log('Form data before submit:', {
+                        paid_amount: paid,
+                        payment_method: paymentMethod,
+                        discount: discountInput.value,
+                        tax: taxInput.value
+                    });
+                    
+                    // Disable button to prevent double submission
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = 'Processing...';
+                    
+                    // Submit the form
                     document.getElementById('checkoutForm').submit();
                 });
             }
