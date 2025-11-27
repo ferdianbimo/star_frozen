@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Manager') - Star Frozen POS</title>
+    <title>@yield('title', 'Cashier') - Star Frozen POS</title>
      <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,43 +22,43 @@
                     </div>
                     <div>
                         <div class="text-sm font-semibold">Star Frozen</div>
-                        <div class="text-xs text-gray-500">Manager Panel</div>
+                        <div class="text-xs text-gray-500">Cashier Panel</div>
                     </div>
                 </div>
             </div>
 
             <!-- Navigation -->
             <nav class="flex-1 px-2 overflow-y-auto">
-                <a href="{{ route('manager.dashboard') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.dashboard') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                <a href="{{ route('cashier.dashboard') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('cashier.dashboard') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
                     <span class="text-sm">Dashboard</span>
                 </a>
 
-                <a href="{{ route('manager.inventory.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.inventory.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                <a href="{{ route('cashier.pos.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('cashier.pos.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                    <span class="text-sm">Point of Sale</span>
+                </a>
+
+                <a href="{{ route('cashier.inventory.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('cashier.inventory.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                     </svg>
                     <span class="text-sm">Inventory</span>
                 </a>
 
-                <a href="{{ route('manager.finance.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.finance.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                <a href="{{ route('cashier.transactions.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('cashier.transactions.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span class="text-sm">Keuangan</span>
-                </a>
-
-                <a href="{{ route('manager.access.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.access.*') || request()->routeIs('manager.users.*') || request()->routeIs('manager.roles.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
-                    <span class="text-sm">Hak Akses</span>
+                    <span class="text-sm">Riwayat Transaksi</span>
                 </a>
             </nav>
 
-            <div class="mt-auto px-4 pb-6 pt-9">
+            <div class="mt-auto px-4 pb-6 pt-4">
                 <div class="flex items-center mb-3">
                     <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center mr-3 text-gray-700">{{ substr(auth()->user()->name, 0, 1) }}</div>
                     <div>
@@ -89,11 +89,7 @@
 
             <!-- Content -->
             <div class="p-6">
-                @if(session('success'))
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                        {{ session('success') }}
-                    </div>
-                @endif
+                {{-- layout-level success flash removed as requested --}}
 
                 @if(session('error'))
                     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">

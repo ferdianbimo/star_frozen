@@ -62,7 +62,7 @@ class PosController extends Controller
             return response()->json(['cart' => $cart]);
         }
 
-        return Redirect::back()->with('success', 'Product added to cart');
+        return Redirect::back()->with('success', 'Berhasil ditambahkan');
     }
 
     public function removeFromCart(Request $request)
@@ -90,13 +90,35 @@ class PosController extends Controller
 
         $cart = $this->getCart();
 
-        if ($data['quantity'] <= 0) {
-            if (isset($cart[$data['product_id']])) {
-                unset($cart[$data['product_id']]);
+        $productId = $data['product_id'];
+        $newQty = (int) $data['quantity'];
+        $oldQty = isset($cart[$productId]) ? (int) $cart[$productId]['quantity'] : 0;
+
+        if ($newQty <= 0) {
+            if (isset($cart[$productId])) {
+                unset($cart[$productId]);
             }
+            $message = 'Berhasil dihapus';
         } else {
-            if (isset($cart[$data['product_id']])) {
-                $cart[$data['product_id']]['quantity'] = $data['quantity'];
+            if (isset($cart[$productId])) {
+                $cart[$productId]['quantity'] = $newQty;
+            } else {
+                // If it wasn't present, we add minimal info—backend will recalculated on next render
+                $product = Product::find($productId);
+                $cart[$productId] = [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'quantity' => $newQty
+                ];
+            }
+
+            if ($newQty > $oldQty) {
+                $message = 'Produk Berhasil ditambahkan';
+            } elseif ($newQty < $oldQty) {
+                $message = 'Produk Berhasil dikurangi';
+            } else {
+                $message = 'Produk Berhasil diperbarui';
             }
         }
 
@@ -106,7 +128,7 @@ class PosController extends Controller
             return response()->json(['cart' => $cart]);
         }
 
-        return Redirect::back();
+        return Redirect::back()->with('success', $message);
     }
 
     public function checkout(Request $request)
@@ -171,10 +193,14 @@ class PosController extends Controller
                 'payment_amount' => $paymentAmount
             ]);
             
+            // Determine checkout_time (device-provided) or fallback to server now
+            $checkoutTime = $request->input('checkout_time') ?? now()->toDateTimeString();
+
             $transaction = Transaction::create([
                 'transaction_number' => strtoupper(Str::random(10)),
                 'invoice_number' => $invoiceNumber,
                 'user_id' => Auth::id(),
+                'checkout_time' => $checkoutTime,
                 'subtotal' => $subtotal,
                 'tax' => $taxAmount,
                 'discount' => $discountAmount,
@@ -185,6 +211,9 @@ class PosController extends Controller
                 'change_amount' => $changeAmount,
                 'total_amount' => $total,
                 'status' => 'completed',
+                // set DB timestamps to the same checkout time so transaction.created_at matches device time
+                'created_at' => $checkoutTime,
+                'updated_at' => $checkoutTime,
             ]);
 
             // Reduce stock and create transaction items
@@ -249,7 +278,9 @@ class PosController extends Controller
                 'payment_amount' => $paymentAmount,
                 'change_amount' => $changeAmount,
                 'total' => $total,
-                'created_at' => $transaction->created_at->toDateTimeString()
+                'created_at' => $transaction->created_at->toDateTimeString(),
+                // Keep the client-provided checkout_time (device time) as-is so the receipt displays exactly what the device sent
+                'checkout_time' => $request->input('checkout_time')
             ];
 
             session(['last_transaction' => $transactionData]);
@@ -286,5 +317,15 @@ class PosController extends Controller
         }
 
         return view('cashier.receipt', ['transaction' => $tx]);
+    }
+
+    /**
+     * Start a new transaction: clear last transaction and cart from session.
+     */
+    public function newTransaction()
+    {
+        session()->forget('last_transaction');
+        session()->forget('cart');
+        return redirect()->route('cashier.pos.index');
     }
 }

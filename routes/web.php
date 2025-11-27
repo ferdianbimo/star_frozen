@@ -48,7 +48,7 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')
 // Cashier Routes
 Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->group(function () {
     // Dashboard
-    Route::view('/dashboard', 'cashier.dashboard')->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\CashierDashboardController::class, 'index'])->name('dashboard');
     
     // Point of Sale
     Route::get('/pos', [\App\Http\Controllers\PosController::class, 'index'])->name('pos.index');
@@ -57,6 +57,8 @@ Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->
     Route::post('/pos/update', [\App\Http\Controllers\PosController::class, 'updateCart'])->name('pos.update');
     Route::post('/pos/checkout', [\App\Http\Controllers\PosController::class, 'checkout'])->name('pos.checkout');
     Route::get('/pos/receipt/{transaction}', [\App\Http\Controllers\PosController::class, 'receipt'])->name('pos.receipt');
+    // New transaction: clear last transaction and cart, redirect to POS
+    Route::get('/pos/new', [\App\Http\Controllers\PosController::class, 'newTransaction'])->name('pos.new');
     
     // Transactions
     Route::get('/transactions', [\App\Http\Controllers\CashierTransactionController::class, 'index'])->name('transactions.index');

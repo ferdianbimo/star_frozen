@@ -14,53 +14,12 @@
                 <h1 class="text-2xl font-bold">Star Frozen POS</h1>
                 <p class="text-sm text-blue-200">Manager Dashboard</p>
             </div>
-            
-            <nav class="flex-1">
-                <a href="{{ route('manager.dashboard') }}" class="block py-2 px-4 hover:bg-blue-700 text-white">
-                    <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                </a>
-                
-                <a href="{{ route('manager.inventory.index') }}" class="block py-2 px-4 hover:bg-blue-700 text-white">
-                    <i class="fas fa-boxes mr-2"></i> Inventory
-                </a>
-                
-                <a href="{{ route('manager.finance.index') }}" class="block py-2 px-4 hover:bg-blue-700 text-white">
-                    <i class="fas fa-dollar-sign mr-2"></i> Keuangan
-                </a>
-                
-                <a href="{{ route('manager.access.index') }}" class="block py-2 px-4 bg-blue-900 text-white">
-                    <i class="fas fa-user-lock mr-2"></i> Hak Akses
-                </a>
-            </nav>
-            
-            <div class="px-4 py-2 mt-auto border-t border-blue-700">
-                <div class="flex items-center mb-2">
-                    <span class="rounded-full bg-blue-600 w-8 h-8 flex items-center justify-center mr-2">
-                        {{ substr(auth()->user()->name, 0, 1) }}
-                    </span>
-                    <span>{{ auth()->user()->name }}</span>
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full text-sm text-blue-300 hover:text-white">
-                        Log Out
-                    </button>
-                </form>
-            </div>
-        </div>
+            @extends('layouts.manager')
 
-        <!-- Main Content -->
-        <div class="flex-1 overflow-y-auto">
-            <div class="p-8">
-                <div class="mb-6">
-                    <div class="flex items-center mb-2">
-                        <a href="{{ route('manager.access.index') }}" class="text-blue-600 hover:underline mr-2">← Back</a>
-                    </div>
-                    <h2 class="text-3xl font-bold text-gray-800">Edit Role</h2>
-                    <p class="text-gray-600">Update role information</p>
-                </div>
+            @section('title','Edit Role')
 
-                @if(in_array($role->name, ['manager', 'kasir']))
+            @section('content')
+                <div class="p-8">
                 <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
                     <strong>Warning:</strong> This is a default system role. Changing it may affect system functionality.
                 </div>
@@ -130,5 +89,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+@endsection

@@ -1,64 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management - Star Frozen POS</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
-<body class="bg-gray-100">
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="bg-green-800 text-white w-64 py-4 flex flex-col">
-            <div class="px-4 mb-6">
-                <h1 class="text-2xl font-bold">Star Frozen POS</h1>
-                <p class="text-sm text-green-200">Cashier Dashboard</p>
-            </div>
-            
-            <nav class="flex-1">
-                <a href="{{ route('cashier.dashboard') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
-                    <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                </a>
-                
-                <a href="{{ route('cashier.pos.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
-                    <i class="fas fa-cash-register mr-2"></i> Point of Sale
-                </a>
-                
-                <a href="{{ route('cashier.inventory.index') }}" class="block py-2 px-4 bg-green-900 text-white">
-                    <i class="fas fa-boxes mr-2"></i> Inventory
-                </a>
-                
-                <a href="{{ route('cashier.transactions.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
-                    <i class="fas fa-history mr-2"></i> Riwayat Transaksi
-                </a>
-            </nav>
-            
-            <div class="px-4 py-2 mt-auto border-t border-green-700">
-                <div class="flex items-center mb-2">
-                    <span class="rounded-full bg-green-600 w-8 h-8 flex items-center justify-center mr-2">
-                        {{ substr(auth()->user()->name, 0, 1) }}
-                    </span>
-                    <span>{{ auth()->user()->name }}</span>
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full text-sm text-green-300 hover:text-white">
-                        Log Out
-                    </button>
-                </form>
-            </div>
-        </div>
+@extends('layouts.cashier')
 
-        <!-- Main Content -->
-        <div class="flex-1">
-            <header class="bg-white shadow">
-                <div class="py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                    <h1 class="text-2xl font-bold text-gray-900">Inventory Management</h1>
-                </div>
-            </header>
+@section('title','Inventory')
 
-            <main class="py-6 px-4 sm:px-6 lg:px-8" style = "height: 60vh">
+@section('content')
           
                 <!-- Products Table -->
                                 <div class="bg-white rounded-lg shadow p-6">
@@ -531,24 +475,25 @@
                                     if(pInput){ pInput.addEventListener('change', function(){ previewFile(pInput, '#p_image_preview', '#p_image_name', '#p_image_button'); }); }
                                 })();
 
-                                // Live search + filter: debounce input, immediate select
+                                // Search + filter: submit only when Enter is pressed for text search.
                                 (function(){
                                     const filterForm = document.getElementById('filterForm');
                                     if(!filterForm) return;
                                     const qInput = document.getElementById('qInput');
                                     const categorySelect = document.getElementById('categorySelect');
                                     const sortSelect = document.getElementById('sortSelect');
-                                    let debounceTimer = null;
 
+                                    // Only submit search when user presses Enter (avoid live debounce searches)
                                     if(qInput){
-                                        qInput.addEventListener('input', function(){
-                                            clearTimeout(debounceTimer);
-                                            debounceTimer = setTimeout(()=> filterForm.submit(), 500);
+                                        qInput.addEventListener('keydown', function(e){
+                                            if(e.key === 'Enter'){
+                                                e.preventDefault();
+                                                filterForm.submit();
+                                            }
                                         });
-                                        // prevent full page reload on Enter; submit once
-                                        qInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); filterForm.submit(); } });
                                     }
 
+                                    // Keep automatic submit for select changes
                                     if(categorySelect){
                                         categorySelect.addEventListener('change', function(){ filterForm.submit(); });
                                     }
@@ -561,4 +506,6 @@
             })();
         </script>
 
-                    
+@endsection
+
+
