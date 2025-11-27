@@ -9,128 +9,136 @@
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen flex items-start justify-center p-6">
-        <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-2xl">
-            <!-- Header -->
-            <div class="text-center mb-6 pb-4 border-b-2 border-green-600">
-                <h1 class="text-3xl font-bold text-green-800">Star Frozen</h1>
-                <p class="text-sm text-gray-600 mt-1">Point of Sale System</p>
+        <div class="bg-white shadow-sm p-4" style="width:320px; font-family: 'Courier New', Courier, monospace; font-size:12px;">
+            <div style="text-align:center;">
+                <div style="font-size:18px; font-weight:700;">Star Frozen</div>
+                <div>Jl. Abdul Fatah Barat, RT.02/RW.02, Dusun Bungur, Bungur, Kec. Karangrejo, Kabupaten Tulungagung, Jawa Timur 66253</div>
+                <div>NO.TELP: 0812-3456-7890</div>
+                <div style="margin-top:6px; border-top:1px dashed #000; padding-top:6px;"></div>
             </div>
 
-            <!-- Transaction Info -->
-            <div class="mb-6 bg-gray-50 p-4 rounded">
-                <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <p class="text-gray-600">Invoice Number:</p>
-                        <p class="font-semibold">{{ $transaction['invoice_number'] }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-gray-600">Transaction ID:</p>
-                        <p class="font-semibold">#{{ $transaction['id'] }}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-600">Cashier:</p>
-                        <p class="font-semibold">{{ optional(auth()->user())->name }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-gray-600">Date & Time:</p>
-                        <p class="font-semibold">{{ \Carbon\Carbon::parse($transaction['created_at'])->format('d/m/Y H:i:s') }}</p>
-                    </div>
-                    <div class="col-span-2">
-                        <p class="text-gray-600">Payment Method:</p>
-                        <p class="font-semibold uppercase">{{ $transaction['payment_method'] ?? 'Cash' }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Items Table -->
-            <table class="w-full text-sm mb-6">
-                <thead>
-                    <tr class="border-b-2 border-gray-300 text-gray-700">
-                        <th class="text-left py-2">Product</th>
-                        <th class="text-center py-2">Qty</th>
-                        <th class="text-right py-2">Price</th>
-                        <th class="text-right py-2">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <tbody>
-                    @php $grand = 0; @endphp
-                    @foreach($transaction['items'] as $item)
-                        @php $line = $item['price'] * $item['quantity']; $grand += $line; @endphp
-                        <tr class="border-b border-gray-200">
-                            <td class="py-3">{{ $item['name'] }}</td>
-                            <td class="py-3 text-center">{{ $item['quantity'] }}</td>
-                            <td class="py-3 text-right">Rp {{ number_format($item['price'],0,',','.') }}</td>
-                            <td class="py-3 text-right font-semibold">Rp {{ number_format($line,0,',','.') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <!-- Summary -->
-            <div class="border-t-2 border-gray-300 pt-4 mb-6">
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Subtotal:</span>
-                        <span class="font-semibold">Rp {{ number_format($transaction['subtotal'] ?? $grand,0,',','.') }}</span>
-                    </div>
-                    @if(($transaction['discount_amount'] ?? 0) > 0)
-                    <div class="flex justify-between text-red-600">
-                        <span>Discount ({{ $transaction['discount_pct'] ?? 0 }}%):</span>
-                        <span class="font-semibold">- Rp {{ number_format($transaction['discount_amount'] ?? 0,0,',','.') }}</span>
-                    </div>
-                    @endif
-                    @if(($transaction['tax_amount'] ?? 0) > 0)
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Tax ({{ $transaction['tax_pct'] ?? 0 }}%):</span>
-                        <span class="font-semibold">Rp {{ number_format($transaction['tax_amount'] ?? 0,0,',','.') }}</span>
-                    </div>
+            <div style="margin-top:6px;">
+                <div>INVOICE: {{ $transaction['invoice_number'] }}</div>
+                <div>
+                    TANGGAL: 
+                    @if(!empty($transaction['checkout_time']))
+                        @php
+                            // Expecting format 'YYYY-MM-DD HH:MM:SS' from device; format to 'd/m/Y H:i' without timezone conversion
+                            $ct = $transaction['checkout_time'];
+                            $formattedDate = $transaction['created_at'];
+                            try {
+                                if(strpos($ct, ' ') !== false){
+                                    [$d, $t] = explode(' ', $ct);
+                                    [$y, $m, $day] = explode('-', $d);
+                                    $hhmm = substr($t,0,5);
+                                    $formattedDate = $day . '/' . $m . '/' . $y . ' ' . $hhmm;
+                                } else {
+                                    $formattedDate = $ct;
+                                }
+                            } catch (\Exception $e) {
+                                $formattedDate = $ct;
+                            }
+                        @endphp
+                        {{ $formattedDate }}
+                    @else
+                        {{ \Carbon\Carbon::parse($transaction['created_at'])->format('d/m/Y H:i') }}
                     @endif
                 </div>
-                
-                <div class="flex justify-between mt-4 pt-4 border-t-2 border-green-600 text-lg">
-                    <span class="font-bold text-gray-800">TOTAL:</span>
-                    <span class="font-bold text-green-600">Rp {{ number_format($transaction['total'],0,',','.') }}</span>
+                @if(!empty($transaction['table_number']))
+                    <div>Table: {{ $transaction['table_number'] }}</div>
+                @endif
+            </div>
+
+            <div style="margin-top:6px; border-top:1px dashed #000; padding-top:6px;"></div>
+
+            <div style="margin-top:6px;">
+                @php $grand = 0; @endphp
+                @foreach($transaction['items'] as $item)
+                    @php $line = $item['price'] * $item['quantity']; $grand += $line; @endphp
+                    <div style="display:flex; justify-content:space-between;">
+                        <div style="width:60%;">{{ Str::limit($item['name'], 28) }}</div>
+                        <div style="width:10%; text-align:right;">{{ $item['quantity'] }}</div>
+                        <div style="width:30%; text-align:right;">{{ number_format($line,0,',','.') }}</div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div style="margin-top:6px; border-top:1px dashed #000; padding-top:6px;"></div>
+
+            <div style="margin-top:6px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <div>HARGA JUAL</div>
+                    <div style="text-align:right;">Rp {{ number_format($transaction['subtotal'] ?? $grand,0,',','.') }}</div>
+                </div>
+                @if(($transaction['discount_amount'] ?? 0) > 0)
+                <div style="display:flex; justify-content:space-between;">
+                    <div>DISKON</div>
+                    <div style="text-align:right;">- Rp {{ number_format($transaction['discount_amount'],0,',','.') }}</div>
+                </div>
+                @endif
+                @if(($transaction['tax_amount'] ?? 0) > 0)
+                <div style="display:flex; justify-content:space-between;">
+                    <div>PAJAK</div>
+                    <div style="text-align:right;">Rp {{ number_format($transaction['tax_amount'],0,',','.') }}</div>
+                </div>
+                @endif
+                @if(($transaction['service_amount'] ?? 0) > 0)
+                <div style="display:flex; justify-content:space-between;">
+                    <div>KEMBALI</div>
+                    <div style="text-align:right;">Rp {{ number_format($transaction['service_amount'],0,',','.') }}</div>
+                </div>
+                @endif
+
+                <div style="display:flex; justify-content:space-between; font-weight:700; margin-top:6px;">
+                    <div>TOTAL</div>
+                    <div style="text-align:right;">Rp {{ number_format($transaction['total'],0,',','.') }}</div>
                 </div>
             </div>
 
-            <!-- Payment Info -->
-            <div class="bg-green-50 p-4 rounded mb-6 text-sm">
-                <div class="flex justify-between mb-2">
-                    <span class="text-gray-700">Payment Amount:</span>
-                    <span class="font-semibold">Rp {{ number_format($transaction['payment_amount'] ?? $transaction['total'],0,',','.') }}</span>
+            <div style="margin-top:8px; border-top:1px dashed #000; padding-top:6px;"></div>
+
+            <div style="margin-top:6px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <div>BAYAR ({{ strtoupper($transaction['payment_method'] ?? 'CASH') }})</div>
+                    <div style="text-align:right;">Rp {{ number_format($transaction['payment_amount'] ?? $transaction['total'],0,',','.') }}</div>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-700">Change:</span>
-                    <span class="font-semibold">Rp {{ number_format(($transaction['payment_amount'] ?? $transaction['total']) - $transaction['total'],0,',','.') }}</span>
+                <div style="display:flex; justify-content:space-between;">
+                    <div>KEMBALI</div>
+                    <div style="text-align:right;">Rp {{ number_format( (($transaction['payment_amount'] ?? $transaction['total']) - $transaction['total']),0,',','.') }}</div>
                 </div>
             </div>
 
-            <!-- Footer -->
-            <div class="text-center mb-6">
-                <p class="text-gray-600 text-sm mb-2">Thank you for your purchase!</p>
-                <p class="text-gray-500 text-xs">Please keep this receipt for your records</p>
+            <div style="margin-top:10px; text-align:center;">
+                <div>TERIMAKASIH TELAH BERBELANJA</div>
+                <div style="margin-top:8px; font-size:10px;">Printed by Star Frozen POS</div>
             </div>
 
-            <!-- Actions -->
-            <div class="flex gap-3 justify-center">
-                <button onclick="window.print()" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2">
-                    <i class="fas fa-print"></i>
-                    Print Receipt
+            <div style="margin-top:12px; display:flex; gap:12px; justify-content:center;" class="no-print">
+                <button onclick="window.print()" class="no-print px-4 py-2 bg-black text-white rounded-md shadow hover:bg-gray-900 flex items-center gap-2" title="Print receipt">
+                    <i class="fas fa-print" aria-hidden="true"></i>
+                    <span style="font-weight:600;">Print</span>
                 </button>
-                <a href="{{ route('cashier.pos.index') }}" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2">
-                    <i class="fas fa-cash-register"></i>
-                    New Transaction
+
+                <a href="{{ route('cashier.pos.new') }}" class="no-print px-4 py-2 bg-white border border-gray-300 text-gray-800 rounded-md shadow hover:bg-gray-100 flex items-center gap-2" title="Start a new transaction">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    <span style="font-weight:600;">New Transaction</span>
                 </a>
             </div>
         </div>
     </div>
 
     <style>
+        .receipt { font-family: Arial, Helvetica, sans-serif; color: #111; }
+        /* Try to minimize browser-added headers/footers by resetting page margins.
+           Note: many browsers still add their own header/footer (date/title) that
+           cannot be removed via page CSS — see instructions below to disable
+           "Headers and footers" in the print dialog. */
+        @page { size: auto; margin: 0; }
         @media print {
+            html, body { margin: 0; padding: 0; }
             body { background: white; }
-            .no-print { display: none; }
-            button, a { display: none; }
+            /* Ensure action controls are excluded from print */
+            .no-print { display: none !important; }
         }
     </style>
 </body>

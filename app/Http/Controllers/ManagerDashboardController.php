@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class ManagerDashboardController extends Controller
 {
@@ -35,25 +37,62 @@ class ManagerDashboardController extends Controller
             ? round((($monthlySales - $lastMonthSales) / $lastMonthSales) * 100, 2)
             : 0;
         
-        // Low Stock Products
-        $lowStockCount = Product::whereRaw('stock <= low_stock_threshold')
-            ->where('stock', '>', 0)
-            ->count();
-        
-        $lowStockProducts = Product::whereRaw('stock <= low_stock_threshold')
-            ->where('stock', '>', 0)
+        // Low Stock Products - use per-product low_stock_threshold when available, fallback to 10
+        $lowStockQuery = Product::where('stock', '>', 0)
+            ->where(function($q) {
+                $q->whereColumn('stock', '<=', 'low_stock_threshold')
+                  ->orWhereRaw('stock <= ?', [10]);
+            });
+
+        $lowStockCount = (clone $lowStockQuery)->count();
+
+        $lowStockProducts = (clone $lowStockQuery)
             ->orderBy('stock', 'asc')
             ->limit(5)
             ->get();
         
-        // Expiring Soon (products created more than 5 months 23 days ago - assuming 6 months shelf life)
-        $expiringCount = Product::where('created_at', '<=', now()->subMonths(5)->subDays(23))
-            ->count();
-        
-        $expiringProducts = Product::where('created_at', '<=', now()->subMonths(5)->subDays(23))
-            ->orderBy('created_at', 'asc')
-            ->limit(5)
-            ->get();
+        // Expiring Soon: prefer `expiration_date` when available, otherwise fallback to created_at + 6 months
+        $now = now();
+        $oneWeek = now()->addDays(7);
+        $hasExpirationColumn = Schema::hasColumn('products', 'expiration_date');
+
+        if ($hasExpirationColumn) {
+            $expiringCount = Product::whereBetween('expiration_date', [
+                $now->toDateString(),
+                $oneWeek->toDateString()
+            ])->count();
+
+            $expiringProducts = Product::whereBetween('expiration_date', [
+                $now->toDateString(),
+                $oneWeek->toDateString()
+            ])->orderBy('expiration_date', 'asc')
+                ->limit(5)
+                ->get()
+                ->map(function($p) use ($now) {
+                    $expiryDate = $p->expiration_date ? Carbon::parse($p->expiration_date) : $p->created_at->copy()->addMonths(6);
+                    $p->expiry_date = $expiryDate;
+                    $p->remaining_days = $now->diffInDays($expiryDate, false);
+                    return $p;
+                });
+        } else {
+            $expiringCount = Product::whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) BETWEEN ? AND ?", [
+                $now->toDateString(),
+                $oneWeek->toDateString()
+            ])->count();
+
+            $expiringProducts = Product::whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) BETWEEN ? AND ?", [
+                $now->toDateString(),
+                $oneWeek->toDateString()
+            ])->orderByRaw('DATE_ADD(created_at, INTERVAL 6 MONTH) ASC')
+                ->limit(5)
+                ->get()
+                ->map(function($p) use ($now) {
+                    $expiryDate = $p->created_at->copy()->addMonths(6);
+                    $p->expiry_date = $expiryDate;
+                    $p->remaining_days = $now->diffInDays($expiryDate, false);
+                    return $p;
+                });
+        }
         
         // Sales Trend (Last 7 days)
         $salesTrend = [];

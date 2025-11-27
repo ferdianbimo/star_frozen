@@ -53,13 +53,29 @@ class CashierTransactionController extends Controller
 
         $transactions = $query->paginate(20)->withQueryString();
         
-        // Calculate statistics
-        $stats = Transaction::where('user_id', auth()->id())
-            ->selectRaw('
+        // Calculate statistics: scope to same date range as filters.
+        // If no date range provided, default to current month so stats "reset" each month.
+        $statsQuery = Transaction::where('user_id', auth()->id());
+
+        if ($dateFrom) {
+            $statsQuery->whereDate('created_at', '>=', $dateFrom);
+        } else {
+            $dateFrom = now()->startOfMonth()->toDateString();
+            $statsQuery->whereDate('created_at', '>=', $dateFrom);
+        }
+
+        if ($dateTo) {
+            $statsQuery->whereDate('created_at', '<=', $dateTo);
+        } else {
+            $dateTo = now()->endOfMonth()->toDateString();
+            $statsQuery->whereDate('created_at', '<=', $dateTo);
+        }
+
+        $stats = $statsQuery->selectRaw('
                 COUNT(*) as total_transactions,
-                SUM(total) as total_sales,
-                SUM(total - discount) as net_sales,
-                AVG(total) as average_transaction
+                COALESCE(SUM(total), 0) as total_sales,
+                COALESCE(SUM(total - discount), 0) as net_sales,
+                COALESCE(AVG(total), 0) as average_transaction
             ')
             ->first();
 

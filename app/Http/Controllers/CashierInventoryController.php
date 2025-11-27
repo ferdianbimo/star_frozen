@@ -251,7 +251,7 @@ class CashierInventoryController extends Controller
             $query->orderBy('created_at', 'desc');
         }
 
-        $stockLogs = $query->paginate(15)->withQueryString();
+        $stockLogs = $query->paginate(8)->withQueryString();
 
         return view('cashier.inventory.stock-out', [
             'logs' => $stockLogs,

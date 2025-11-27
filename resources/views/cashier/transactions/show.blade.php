@@ -1,75 +1,8 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detail Transaksi {{ $transaction->id }} - Star Frozen POS</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-</head>
-<body class="bg-gray-100">
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="bg-green-800 text-white w-64 py-4 flex flex-col">
-            <div class="px-4 mb-6">
-                <h1 class="text-2xl font-bold">Star Frozen POS</h1>
-                <p class="text-sm text-green-200">{{ auth()->user()->name }}</p>
-            </div>
-            
-            <nav class="flex-1">
-                <a href="{{ route('cashier.dashboard') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
-                    <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                </a>
-                
-                <a href="{{ route('cashier.pos.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
-                    <i class="fas fa-cash-register mr-2"></i> Point of Sale
-                </a>
-                
-                <a href="{{ route('cashier.inventory.index') }}" class="block py-2 px-4 hover:bg-green-700 text-white">
-                    <i class="fas fa-boxes mr-2"></i> Inventory
-                </a>
-                
-                <a href="{{ route('cashier.transactions.index') }}" class="block py-2 px-4 bg-green-900 text-white">
-                    <i class="fas fa-history mr-2"></i> Riwayat Transaksi
-                </a>
-            </nav>
-            
-            <div class="px-4 py-2 mt-auto border-t border-green-700">
-                <div class="flex items-center mb-2">
-                    <span class="rounded-full bg-green-600 w-8 h-8 flex items-center justify-center mr-2">
-                        {{ substr(auth()->user()->name, 0, 1) }}
-                    </span>
-                    <span class="text-sm">{{ auth()->user()->name }}</span>
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full text-sm text-green-300 hover:text-white">
-                        Log Out
-                    </button>
-                </form>
-            </div>
-        </div>
+@extends('layouts.cashier')
 
-        <!-- Main Content -->
-        <div class="flex-1 overflow-y-auto">
-            <header class="bg-white shadow">
-                <div class="py-6 px-4 sm:px-6 lg:px-8">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <a href="{{ route('cashier.transactions.index') }}" class="text-green-600 hover:text-green-700 text-sm">
-                                <i class="fas fa-arrow-left mr-2"></i> Kembali ke Riwayat
-                            </a>
-                            <h1 class="text-3xl font-bold text-gray-900 mt-2">Detail Transaksi</h1>
-                            <p class="text-sm text-gray-500 mt-1">ID: <span class="font-mono font-medium">{{ $transaction->id }}</span></p>
-                        </div>
-                        <button onclick="window.print()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
-                            <i class="fas fa-print mr-2"></i> Cetak
-                        </button>
-                    </div>
-                </div>
-            </header>
+@section('title', 'Detail Transaksi')
 
-            <main class="py-6 px-4 sm:px-6 lg:px-8">
+@section('content')
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Transaction Info -->
                     <div class="lg:col-span-2">
@@ -199,10 +132,123 @@
                             </div>
 
                             <div class="mt-6 pt-6 border-t border-gray-200">
-                                <a href="{{ route('cashier.pos.receipt', $transaction->id) }}" target="_blank" 
+                                <button id="showReceiptBtn" type="button"
                                    class="block w-full text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition">
                                     <i class="fas fa-receipt mr-2"></i> Lihat Struk
-                                </a>
+                                </button>
+                            </div>
+                            <!-- Receipt Modal -->
+                            <div id="receiptModal" class="fixed inset-0 z-50 hidden items-start justify-center bg-black bg-opacity-40">
+                                <div class="bg-white shadow-sm p-4 m-6" style="width:320px; font-family: 'Courier New', Courier, monospace; font-size:12px;">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-sm font-medium">Struk Transaksi</h3>
+                                        <button id="receiptClose" class="text-gray-600">&times;</button>
+                                    </div>
+
+                                    <div style="text-align:center; margin-top:6px;">
+                                        <div style="font-size:18px; font-weight:700;">Star Frozen</div>
+                                        <div>Jl. Abdul Fatah Barat, RT.02/RW.02, Dusun Bungur, Bungur, Kec. Karangrejo, Kabupaten Tulungagung, Jawa Timur 66253</div>
+                                        <div>NO.TELP: 0812-3456-7890</div>
+                                        <div style="margin-top:6px; border-top:1px dashed #000; padding-top:6px;"></div>
+                                    </div>
+
+                                    <div style="margin-top:6px;">
+                                        <div>INVOICE: {{ $transaction->invoice_number }}</div>
+                                        <div>
+                                            TANGGAL:
+                                            @if(!empty($transaction->checkout_time))
+                                                @php
+                                                    $ct = $transaction->checkout_time;
+                                                    $formattedDate = $transaction->created_at->toDateTimeString();
+                                                    try {
+                                                        if(strpos($ct, ' ') !== false){
+                                                            [$d, $t] = explode(' ', $ct);
+                                                            [$y, $m, $day] = explode('-', $d);
+                                                            $hhmm = substr($t,0,5);
+                                                            $formattedDate = $day . '/' . $m . '/' . $y . ' ' . $hhmm;
+                                                        } else {
+                                                            $formattedDate = $ct;
+                                                        }
+                                                    } catch (\Exception $e) {
+                                                        $formattedDate = $ct;
+                                                    }
+                                                @endphp
+                                                {{ $formattedDate }}
+                                            @else
+                                                {{ $transaction->created_at->format('d/m/Y H:i') }}
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-top:6px; border-top:1px dashed #000; padding-top:6px;"></div>
+
+                                    <div style="margin-top:6px;">
+                                        @php $grand = 0; @endphp
+                                        @foreach($transaction->items as $item)
+                                            @php $line = $item->price * $item->quantity; $grand += $line; @endphp
+                                            <div style="display:flex; justify-content:space-between;">
+                                                <div style="width:60%;">{{ \Illuminate\Support\Str::limit($item->product->name ?? 'Product #'.$item->product_id, 28) }}</div>
+                                                <div style="width:10%; text-align:right;">{{ $item->quantity }}</div>
+                                                <div style="width:30%; text-align:right;">{{ number_format($line,0,',','.') }}</div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                    <div style="margin-top:6px; border-top:1px dashed #000; padding-top:6px;"></div>
+
+                                    <div style="margin-top:6px;">
+                                        <div style="display:flex; justify-content:space-between;">
+                                            <div>HARGA JUAL</div>
+                                            <div style="text-align:right;">Rp {{ number_format($transaction->subtotal ?? $grand,0,',','.') }}</div>
+                                        </div>
+                                        @if(($transaction->discount ?? 0) > 0)
+                                        <div style="display:flex; justify-content:space-between;">
+                                            <div>DISKON</div>
+                                            <div style="text-align:right;">- Rp {{ number_format($transaction->discount,0,',','.') }}</div>
+                                        </div>
+                                        @endif
+                                        @if(($transaction->tax ?? 0) > 0)
+                                        <div style="display:flex; justify-content:space-between;">
+                                            <div>PAJAK</div>
+                                            <div style="text-align:right;">Rp {{ number_format($transaction->tax,0,',','.') }}</div>
+                                        </div>
+                                        @endif
+
+                                        <div style="display:flex; justify-content:space-between; font-weight:700; margin-top:6px;">
+                                            <div>TOTAL</div>
+                                            <div style="text-align:right;">Rp {{ number_format($transaction->total,0,',','.') }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-top:8px; border-top:1px dashed #000; padding-top:6px;"></div>
+
+                                    <div style="margin-top:6px;">
+                                        <div style="display:flex; justify-content:space-between;">
+                                            <div>BAYAR ({{ strtoupper($transaction->payment_method ?? 'CASH') }})</div>
+                                            <div style="text-align:right;">Rp {{ number_format($transaction->payment_amount ?? $transaction->total,0,',','.') }}</div>
+                                        </div>
+                                        <div style="display:flex; justify-content:space-between;">
+                                            <div>KEMBALI</div>
+                                            <div style="text-align:right;">Rp {{ number_format((($transaction->payment_amount ?? $transaction->total) - $transaction->total),0,',','.') }}</div>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-top:10px; text-align:center;">
+                                        <div>TERIMAKASIH TELAH BERBELANJA</div>
+                                        <div style="margin-top:8px; font-size:10px;">Printed by Star Frozen POS</div>
+                                    </div>
+
+                                    <div style="margin-top:12px; display:flex; gap:12px; justify-content:center;" class="no-print">
+                                        <button id="printReceiptBtn" class="no-print px-4 py-2 bg-black text-white rounded-md shadow hover:bg-gray-900 flex items-center gap-2" title="Print receipt">
+                                            <i class="fas fa-print" aria-hidden="true"></i>
+                                            <span style="font-weight:600;">Print</span>
+                                        </button>
+                                        <button id="closeReceiptBtn" class="no-print px-4 py-2 bg-white border border-gray-300 text-gray-800 rounded-md shadow hover:bg-gray-100 flex items-center gap-2" title="Close">
+                                            <i class="fas fa-times" aria-hidden="true"></i>
+                                            <span style="font-weight:600;">Close</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -211,12 +257,32 @@
         </div>
     </div>
 
-    <style>
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-        }
-    </style>
-</body>
-</html>
+@push('styles')
+<style>
+    @media print {
+        .no-print { display: none !important; }
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        const showBtn = document.getElementById('showReceiptBtn');
+        const modal = document.getElementById('receiptModal');
+        const close = document.getElementById('receiptClose');
+        const closeBtn = document.getElementById('closeReceiptBtn');
+        const printBtn = document.getElementById('printReceiptBtn');
+
+        function openModal(){ if(modal){ modal.classList.remove('hidden'); modal.classList.add('flex'); } }
+        function hideModal(){ if(modal){ modal.classList.add('hidden'); modal.classList.remove('flex'); } }
+
+        if(showBtn) showBtn.addEventListener('click', openModal);
+        if(close) close.addEventListener('click', hideModal);
+        if(closeBtn) closeBtn.addEventListener('click', hideModal);
+        if(printBtn) printBtn.addEventListener('click', function(){ window.print(); });
+    });
+</script>
+@endpush
+
+@endsection
