@@ -79,7 +79,14 @@ class CashierTransactionController extends Controller
             ')
             ->first();
 
-        return view('cashier.transactions.index', compact('transactions', 'stats'));
+        // Calculate monthly totals for grouping headers
+        $monthlyTotals = Transaction::where('user_id', auth()->id())
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month_key, COUNT(*) as count, COALESCE(SUM(total), 0) as total')
+            ->groupByRaw('DATE_FORMAT(created_at, "%Y-%m")')
+            ->get()
+            ->keyBy('month_key');
+
+        return view('cashier.transactions.index', compact('transactions', 'stats', 'monthlyTotals'));
     }
     
     /**

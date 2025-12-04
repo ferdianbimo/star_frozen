@@ -76,7 +76,7 @@
 
                     <!-- Right: current order -->
                     <div class="lg:col-span-4">
-                        <div class="bg-white rounded shadow p-4 top-6" style="height:80vh;">
+                        <div class="bg-white rounded shadow p-4 top-6 mx-auto" style="height:80vh; max-width: 80vh;">
                             <h2 class="text-lg font-semibold mb-4">Pesanan</h2>
 
                             <div class="space-y-3" style="height:30vh; overflow:auto;">
@@ -132,12 +132,12 @@
                                     @csrf
                                     <div class="mb-3">
                                         <label class="block text-sm text-gray-600">Diskon (%)</label>
-                                        <input id="discountInput" type="number" name="discount" value="0" min="0" class="w-full border rounded p-2">
+                                        <input id="discountInput" type="number" name="discount" value="0" min="0" max="100" class="w-full border rounded p-2">
                                     </div>
 
                                     <div class="mb-3">
                                         <label class="block text-sm text-gray-600">Pajak (%)</label>
-                                        <input id="taxInput" type="number" name="tax" value="0" min="0" class="w-full border rounded p-2">
+                                        <input id="taxInput" type="number" name="tax" value="0" min="0" max="100" class="w-full border rounded p-2">
                                     </div>
 
                                     <div class="mb-3">
@@ -249,15 +249,28 @@
                 setVal(v);
             });
 
+            let isSubmitting = false;
+
             input.addEventListener('keydown', function(e){
                 if(e.key === 'Enter'){
                     e.preventDefault();
-                    submitQtyFromInput(this);
+                    if(!isSubmitting){
+                        isSubmitting = true;
+                        submitQtyFromInput(this);
+                        // Reset flag after a short delay
+                        setTimeout(() => { isSubmitting = false; }, 100);
+                    }
+                    this.blur(); // Remove focus to prevent blur event
                 }
             });
 
             input.addEventListener('blur', function(){
-                submitQtyFromInput(this);
+                if(!isSubmitting){
+                    isSubmitting = true;
+                    submitQtyFromInput(this);
+                    // Reset flag after a short delay
+                    setTimeout(() => { isSubmitting = false; }, 100);
+                }
             });
         });
     }

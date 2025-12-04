@@ -11,8 +11,12 @@ use Illuminate\Support\Facades\Schema;
 
 class CashierDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Get period from request (default: 7 days)
+        $period = $request->input('period', 7);
+        $period = in_array($period, [7, 30]) ? (int)$period : 7;
+
         // Daily Sales (Today)
         $dailySales = Transaction::whereDate('created_at', now()->toDateString())->sum('total_amount');
 
@@ -40,14 +44,20 @@ class CashierDashboardController extends Controller
         // Expiring Soon (approx 6 months shelf-life heuristic)
         $expiringProducts = Product::where('created_at', '<=', now()->subMonths(5)->subDays(23))
             ->orderBy('created_at', 'asc')
-            ->limit(5)
+            ->limit(10)
             ->get();
 
-        // Sales Trend (Last 7 days)
+        // Sales Trend (Last X days based on period)
         $salesTrend = [];
-        for ($i = 6; $i >= 0; $i--) {
+        for ($i = $period - 1; $i >= 0; $i--) {
             $date = now()->subDays($i);
-            $dayName = $date->locale('id')->isoFormat('ddd');
+            // For 7 days: show day name (Sen, Sel, etc)
+            // For 30 days: show date (01 Des, 02 Des, etc)
+            if ($period == 7) {
+                $dayName = $date->locale('id')->isoFormat('ddd');
+            } else {
+                $dayName = $date->locale('id')->isoFormat('DD MMM');
+            }
             $sales = Transaction::whereDate('created_at', $date->format('Y-m-d'))
                 ->sum('total_amount');
 
@@ -149,11 +159,10 @@ class CashierDashboardController extends Controller
                 });
         }
 
-        // Stock almost out list (<=10) for quick view
-        $stockAlmostOut = Product::where('stock', '>', 0)
+        // Stock almost out list (<=10) for quick view - include stock 0
+        $stockAlmostOut = Product::where('stock', '>=', 0)
             ->where('stock', '<=', 10)
             ->orderBy('stock', 'asc')
-            ->limit(5)
             ->get();
 
         // Recent Transactions (latest 5)
@@ -175,7 +184,8 @@ class CashierDashboardController extends Controller
             'dailyPercentage',
             'lowStockCount',
             'expiringCount',
-            'stockAlmostOut'
+            'stockAlmostOut',
+            'period'
         ));
     }
 }
