@@ -88,9 +88,48 @@
                         </table>
                     </div>
 
-                    <div class="px-6 py-4 bg-white border-t border-gray-200">
-                        {{ $logs->links() }}
-                    </div>
+                    <!-- Custom Pagination -->
+                    @if($logs->hasPages())
+                        <div class="px-6 py-4 bg-white border-t border-gray-200 flex items-center justify-between">
+                            <div class="text-sm text-gray-600">
+                                Menampilkan {{ $logs->firstItem() }} - {{ $logs->lastItem() }} dari {{ $logs->total() }} log
+                            </div>
+                            <div class="flex items-center gap-2">
+                                {{-- Previous Button --}}
+                                @if ($logs->onFirstPage())
+                                    <span class="px-3 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed">
+                                        <i class="fas fa-chevron-left text-xs"></i>
+                                    </span>
+                                @else
+                                    <a href="{{ $logs->previousPageUrl() }}" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                        <i class="fas fa-chevron-left text-xs"></i>
+                                    </a>
+                                @endif
+
+                                {{-- Page Numbers --}}
+                                @foreach(range(1, $logs->lastPage()) as $page)
+                                    @if($page == $logs->currentPage())
+                                        <span class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">{{ $page }}</span>
+                                    @elseif($page == 1 || $page == $logs->lastPage() || abs($page - $logs->currentPage()) <= 2)
+                                        <a href="{{ $logs->url($page) }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">{{ $page }}</a>
+                                    @elseif(abs($page - $logs->currentPage()) == 3)
+                                        <span class="px-2 py-2 text-gray-400">...</span>
+                                    @endif
+                                @endforeach
+
+                                {{-- Next Button --}}
+                                @if ($logs->hasMorePages())
+                                    <a href="{{ $logs->nextPageUrl() }}" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                        <i class="fas fa-chevron-right text-xs"></i>
+                                    </a>
+                                @else
+                                    <span class="px-3 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed">
+                                        <i class="fas fa-chevron-right text-xs"></i>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </main>
 @endsection

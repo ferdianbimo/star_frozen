@@ -11,8 +11,12 @@ use Illuminate\Support\Facades\DB;
 
 class ManagerDashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Get period from request (default: 7 days)
+        $period = $request->input('period', 7);
+        $period = in_array($period, [7, 30]) ? (int)$period : 7;
+
         // Daily Sales (Today)
         $dailySales = Transaction::whereDate('created_at', today())->sum('total_amount');
         
@@ -94,11 +98,17 @@ class ManagerDashboardController extends Controller
                 });
         }
         
-        // Sales Trend (Last 7 days)
+        // Sales Trend (Last X days based on period)
         $salesTrend = [];
-        for ($i = 6; $i >= 0; $i--) {
+        for ($i = $period - 1; $i >= 0; $i--) {
             $date = now()->subDays($i);
-            $dayName = $date->locale('id')->isoFormat('ddd'); // Short day name in Indonesian
+            // For 7 days: show day name (Sen, Sel, etc)
+            // For 30 days: show date (01 Des, 02 Des, etc)
+            if ($period == 7) {
+                $dayName = $date->locale('id')->isoFormat('ddd');
+            } else {
+                $dayName = $date->locale('id')->isoFormat('DD MMM');
+            }
             $sales = Transaction::whereDate('created_at', $date->format('Y-m-d'))
                 ->sum('total_amount');
             
@@ -108,11 +118,10 @@ class ManagerDashboardController extends Controller
             ];
         }
         
-        // Stock Almost Out (Stok Hampir Habis)
-        $stockAlmostOut = Product::where('stock', '>', 0)
+        // Stock Almost Out (Stok Hampir Habis) - include stock 0
+        $stockAlmostOut = Product::where('stock', '>=', 0)
             ->where('stock', '<=', 10)
             ->orderBy('stock', 'asc')
-            ->limit(5)
             ->get();
         
         return view('manager.dashboard', compact(
@@ -125,7 +134,8 @@ class ManagerDashboardController extends Controller
             'expiringCount',
             'expiringProducts',
             'salesTrend',
-            'stockAlmostOut'
+            'stockAlmostOut',
+            'period'
         ));
     }
 }

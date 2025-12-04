@@ -12,7 +12,7 @@
         <div class="bg-blue-800 text-white w-64 py-4 flex flex-col">
             <div class="px-4 mb-6">
                 <h1 class="text-2xl font-bold">Star Frozen POS</h1>
-                <p class="text-sm text-blue-200">Manager Dashboard</p>
+                <p class="text-sm text-blue-200">Manager Panel</p>
             </div>
             @extends('layouts.manager')
 

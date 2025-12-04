@@ -119,12 +119,49 @@
                                         </table>
                                     </div>
 
-                                                                        <div class="mt-4">
-                                                                                {{ $products->links() }}
-                                                                        </div>
-                                                                </div>
-                                                        </div>
-                                                </div>
+                                    <!-- Custom Pagination -->
+                                    @if($products->hasPages())
+                                        <div class="mt-6 flex items-center justify-between border-t pt-4">
+                                            <div class="text-sm text-gray-600">
+                                                Menampilkan {{ $products->firstItem() }} - {{ $products->lastItem() }} dari {{ $products->total() }} produk
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                {{-- Previous Button --}}
+                                                @if ($products->onFirstPage())
+                                                    <span class="px-3 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed">
+                                                        <i class="fas fa-chevron-left text-xs"></i>
+                                                    </span>
+                                                @else
+                                                    <a href="{{ $products->previousPageUrl() }}" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                                        <i class="fas fa-chevron-left text-xs"></i>
+                                                    </a>
+                                                @endif
+
+                                                {{-- Page Numbers --}}
+                                                @foreach(range(1, $products->lastPage()) as $page)
+                                                    @if($page == $products->currentPage())
+                                                        <span class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">{{ $page }}</span>
+                                                    @elseif($page == 1 || $page == $products->lastPage() || abs($page - $products->currentPage()) <= 2)
+                                                        <a href="{{ $products->url($page) }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">{{ $page }}</a>
+                                                    @elseif(abs($page - $products->currentPage()) == 3)
+                                                        <span class="px-2 py-2 text-gray-400">...</span>
+                                                    @endif
+                                                @endforeach
+
+                                                {{-- Next Button --}}
+                                                @if ($products->hasMorePages())
+                                                    <a href="{{ $products->nextPageUrl() }}" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                                        <i class="fas fa-chevron-right text-xs"></i>
+                                                    </a>
+                                                @else
+                                                    <span class="px-3 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed">
+                                                        <i class="fas fa-chevron-right text-xs"></i>
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
 
         <!-- Add Product Modal -->
         <div id="addModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">

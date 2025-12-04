@@ -138,7 +138,7 @@
                                 </button>
                             </div>
                             <!-- Receipt Modal -->
-                            <div id="receiptModal" class="fixed inset-0 z-50 hidden items-start justify-center bg-black bg-opacity-40">
+                            <div id="receiptModal" class="fixed inset-0 z-50 hidden items-start justify-center bg-black bg-opacity-40" style="padding-top: 120px;">
                                 <div class="bg-white shadow-sm p-4 m-6" style="width:320px; font-family: 'Courier New', Courier, monospace; font-size:12px;">
                                     <div class="flex items-center justify-between">
                                         <h3 class="text-sm font-medium">Struk Transaksi</h3>

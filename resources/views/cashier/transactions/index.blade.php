@@ -1,6 +1,6 @@
 @extends('layouts.cashier')
 
-@section('title','Riwayat Transaksi')
+@section('title','Transaction History')
 
 @section('content')
                 <!-- Statistics Cards -->
@@ -137,17 +137,30 @@
                                     }
                                 @endphp
                                 @if($groupKey !== $currentGroup)
-                                    @php $currentGroup = $groupKey; @endphp
+                                    @php 
+                                        $currentGroup = $groupKey;
+                                        $monthData = $monthlyTotals[$groupKey] ?? null;
+                                        $monthTotal = $monthData ? $monthData->total : 0;
+                                        $monthCount = $monthData ? $monthData->count : 0;
+                                    @endphp
                                     <tr>
-                                        <td colspan="9" class="px-6 py-2 bg-gray-50 text-sm font-medium text-gray-700">
-                                            @php
-                                                try {
-                                                    $label = \Carbon\Carbon::createFromFormat('Y-m', $groupKey)->locale('id')->isoFormat('MMMM YYYY');
-                                                } catch (\Exception $e) {
-                                                    $label = $groupKey;
-                                                }
-                                            @endphp
-                                            {{ $label }}
+                                        <td colspan="9" class="px-6 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 border-l-4 border-indigo-500">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    @php
+                                                        try {
+                                                            $label = \Carbon\Carbon::createFromFormat('Y-m', $groupKey)->locale('id')->isoFormat('MMMM YYYY');
+                                                        } catch (\Exception $e) {
+                                                            $label = $groupKey;
+                                                        }
+                                                    @endphp
+                                                    <span class="text-sm font-bold text-gray-800">{{ $label }}</span>
+                                                </div>
+                                                <div class="text-right">
+                                                    <div class="text-lg font-bold text-indigo-700">Rp {{ number_format($monthTotal, 0, ',', '.') }}</div>
+                                                    <div class="text-xs text-gray-600">{{ $monthCount }} transaksi</div>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endif
@@ -231,8 +244,47 @@
                         </table>
                     </div>
 
-                    <div class="px-6 py-4 bg-white border-t border-gray-200">
-                        {{ $transactions->links() }}
-                    </div>
+                    <!-- Custom Pagination -->
+                    @if($transactions->hasPages())
+                        <div class="px-6 py-4 bg-white border-t border-gray-200 flex items-center justify-between">
+                            <div class="text-sm text-gray-600">
+                                Menampilkan {{ $transactions->firstItem() }} - {{ $transactions->lastItem() }} dari {{ $transactions->total() }} transaksi
+                            </div>
+                            <div class="flex items-center gap-2">
+                                {{-- Previous Button --}}
+                                @if ($transactions->onFirstPage())
+                                    <span class="px-3 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed">
+                                        <i class="fas fa-chevron-left text-xs"></i>
+                                    </span>
+                                @else
+                                    <a href="{{ $transactions->previousPageUrl() }}" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                        <i class="fas fa-chevron-left text-xs"></i>
+                                    </a>
+                                @endif
+
+                                {{-- Page Numbers --}}
+                                @foreach(range(1, $transactions->lastPage()) as $page)
+                                    @if($page == $transactions->currentPage())
+                                        <span class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">{{ $page }}</span>
+                                    @elseif($page == 1 || $page == $transactions->lastPage() || abs($page - $transactions->currentPage()) <= 2)
+                                        <a href="{{ $transactions->url($page) }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">{{ $page }}</a>
+                                    @elseif(abs($page - $transactions->currentPage()) == 3)
+                                        <span class="px-2 py-2 text-gray-400">...</span>
+                                    @endif
+                                @endforeach
+
+                                {{-- Next Button --}}
+                                @if ($transactions->hasMorePages())
+                                    <a href="{{ $transactions->nextPageUrl() }}" class="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                        <i class="fas fa-chevron-right text-xs"></i>
+                                    </a>
+                                @else
+                                    <span class="px-3 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed">
+                                        <i class="fas fa-chevron-right text-xs"></i>
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 </div>
 @endsection
