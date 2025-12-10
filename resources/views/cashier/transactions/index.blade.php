@@ -288,3 +288,16 @@
                     @endif
                 </div>
 @endsection
+
+@push('scripts')
+<script>
+    // Auto-refresh setiap 30 detik untuk update data transaksi otomatis
+    // Hanya refresh pada page 1 untuk menghindari gangguan saat navigasi pagination
+    @if(request()->input('page', 1) == 1)
+    setInterval(function() {
+        console.log('Auto-refreshing transaction history...');
+        location.reload();
+    }, 30000); // 30 detik
+    @endif
+</script>
+@endpush

@@ -16,37 +16,47 @@ class FinanceController extends Controller
 {
     public function index(Request $request)
     {
-        $startDate = $request->get('start_date', now()->startOfMonth()->format('Y-m-d'));
-        $endDate = $request->get('end_date', now()->endOfMonth()->format('Y-m-d'));
+        // Default periode: 1 bulan terakhir (bukan startOfMonth)
+        // Ini memastikan data transaksi bulan November termasuk
+        $startDate = $request->get('start_date', now()->subMonth()->format('Y-m-d'));
+        $endDate = $request->get('end_date', now()->format('Y-m-d'));
         
-        // Calculate income from sales (stock out with transaction_type = 'sale')
+        // Debug: Log untuk melihat periode yang digunakan
+        \Log::info('Finance Index - Period', [
+            'start_date' => $startDate,
+            'end_date' => $endDate
+        ]);
+        
+        // Calculate income from sales in stock_logs (transaction_type = 'sale')
+        // Menggunakan whereDate untuk memastikan tanggal dibandingkan dengan benar
         $totalIncome = StockLog::where('transaction_type', 'sale')
-            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
             ->sum('total_value');
         
-        // If no sales data in stock_logs, fallback to transactions table
-        if ($totalIncome == 0) {
-            $totalIncome = Transaction::whereBetween('created_at', [$startDate, $endDate])
-                ->sum('total_amount');
-        }
+        // Debug: Log total income
+        \Log::info('Total Income', [
+            'total' => $totalIncome,
+            'count' => StockLog::where('transaction_type', 'sale')
+                ->whereDate('created_at', '>=', $startDate)
+                ->whereDate('created_at', '<=', $endDate)
+                ->count()
+        ]);
         
         $daysDiff = Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate)) + 1;
         $prevStartDate = Carbon::parse($startDate)->subDays($daysDiff);
         $prevEndDate = Carbon::parse($endDate)->subDays($daysDiff);
         
-        // Previous period income
+        // Previous period income - juga dari stock_logs
         $prevIncome = StockLog::where('transaction_type', 'sale')
-            ->whereBetween('created_at', [$prevStartDate . ' 00:00:00', $prevEndDate . ' 23:59:59'])
+            ->whereDate('created_at', '>=', $prevStartDate)
+            ->whereDate('created_at', '<=', $prevEndDate)
             ->sum('total_value');
         
-        if ($prevIncome == 0) {
-            $prevIncome = Transaction::whereBetween('created_at', [$prevStartDate, $prevEndDate])
-                ->sum('total_amount');
-        }
-        
+        // Calculate percentage change
         $incomePercentage = $prevIncome > 0 
             ? round((($totalIncome - $prevIncome) / $prevIncome) * 100, 2)
-            : 0;
+            : ($totalIncome > 0 ? 100 : 0);
         
         $totalExpenses = Expense::whereBetween('expense_date', [$startDate, $endDate])
             ->sum('amount');
@@ -56,51 +66,40 @@ class FinanceController extends Controller
         
         $expensePercentage = $prevExpenses > 0
             ? round((($totalExpenses - $prevExpenses) / $prevExpenses) * 100, 2)
-            : 0;
+            : ($totalExpenses > 0 ? 100 : 0);
         
         $netProfit = $totalIncome - $totalExpenses;
-        $profitPercentage = $totalIncome > 0
-            ? round(($netProfit / $totalIncome) * 100, 2)
-            : 0;
         
-        // Top products by sales value from stock_logs
+        // Calculate profit change percentage
+        $prevProfit = $prevIncome - $prevExpenses;
+        $profitPercentage = $prevProfit != 0
+            ? round((($netProfit - $prevProfit) / abs($prevProfit)) * 100, 2)
+            : ($netProfit > 0 ? 100 : ($netProfit < 0 ? -100 : 0));
+        
+        // Top products by sales value from stock_logs - OTOMATIS TERUPDATE
         $incomeByProduct = DB::table('stock_logs')
             ->join('products', 'stock_logs.product_id', '=', 'products.id')
             ->where('stock_logs.transaction_type', 'sale')
-            ->whereBetween('stock_logs.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->select('products.name', DB::raw('SUM(stock_logs.total_value) as total_sales'))
+            ->whereDate('stock_logs.created_at', '>=', $startDate)
+            ->whereDate('stock_logs.created_at', '<=', $endDate)
+            ->select('products.name', 
+                     DB::raw('SUM(ABS(stock_logs.change)) as total_quantity'),
+                     DB::raw('SUM(stock_logs.total_value) as total_sales'))
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('total_sales')
             ->limit(5)
             ->get();
         
-        // If no data in stock_logs, try transaction_items
-        if ($incomeByProduct->isEmpty()) {
-            $incomeByProduct = DB::table('transaction_items')
-                ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
-                ->join('products', 'transaction_items.product_id', '=', 'products.id')
-                ->whereBetween('transactions.created_at', [$startDate, $endDate])
-                ->select('products.name', DB::raw('SUM(transaction_items.subtotal) as total_sales'))
-                ->groupBy('products.id', 'products.name')
-                ->orderByDesc('total_sales')
-                ->limit(5)
-                ->get();
-        }
-        
+        // Chart data - 7 hari terakhir dari stock_logs
         $chartData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $dayName = $date->locale('id')->isoFormat('ddd');
             
-            // Income from sales
+            // Income from sales - langsung dari stock_logs
             $income = StockLog::where('transaction_type', 'sale')
                 ->whereDate('created_at', $date->format('Y-m-d'))
                 ->sum('total_value');
-            
-            if ($income == 0) {
-                $income = Transaction::whereDate('created_at', $date->format('Y-m-d'))
-                    ->sum('total_amount');
-            }
             
             $expense = Expense::whereDate('expense_date', $date->format('Y-m-d'))
                 ->sum('amount');
@@ -112,6 +111,15 @@ class FinanceController extends Controller
             ];
         }
         
+        // Recent Sales - 10 transaksi terbaru dari stock_logs (OTOMATIS TERUPDATE)
+        $recentSales = StockLog::with(['product', 'user'])
+            ->where('transaction_type', 'sale')
+            ->whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+        
         return view('manager.finance.index', compact(
             'totalIncome',
             'incomePercentage',
@@ -121,6 +129,7 @@ class FinanceController extends Controller
             'profitPercentage',
             'incomeByProduct',
             'chartData',
+            'recentSales',
             'startDate',
             'endDate'
         ));

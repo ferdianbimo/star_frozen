@@ -84,9 +84,6 @@
                     <div class="bg-white rounded-lg shadow p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-xl font-bold">Roles</h3>
-                            <button type="button" onclick="openModal('addRoleModal')" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                                + Add Role
-                            </button>
                         </div>
                         <div class="space-y-3">
                             @foreach($roles as $role)
@@ -232,39 +229,6 @@
     </div>
 </div>
     @endforeach
-
-    <!-- Add Role Modal -->
-    <div id="addRoleModal" class="modal-overlay hidden fixed inset-0 bg-black bg-opacity-50 z-50" onclick="if(event.target === this) closeModal('addRoleModal')">
-        <div class="flex items-center justify-center w-full min-h-screen">
-            <div class="bg-white rounded-lg w-full max-w-md p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold">Add Role</h3>
-                <button type="button" onclick="closeModal('addRoleModal')" class="text-gray-600">&times;</button>
-            </div>
-            <form action="{{ route('manager.roles.store') }}" method="POST">
-                @csrf
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-sm">Name (slug)</label>
-                        <input name="name" type="text" class="w-full border rounded px-3 py-2" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm">Display Name</label>
-                        <input name="display_name" type="text" class="w-full border rounded px-3 py-2">
-                    </div>
-                    <div>
-                        <label class="block text-sm">Description</label>
-                        <textarea name="description" class="w-full border rounded px-3 py-2" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="mt-4 flex justify-end space-x-2">
-                    <button type="button" onclick="closeModal('addRoleModal')" class="px-4 py-2 rounded border">Cancel</button>
-                    <button type="submit" class="px-4 py-2 rounded bg-green-600 text-white">Create</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
     <!-- Edit Role Modals -->
     @foreach($roles as $role)

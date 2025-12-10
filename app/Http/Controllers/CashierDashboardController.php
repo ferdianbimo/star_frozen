@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
+use App\Models\StockLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 class CashierDashboardController extends Controller
 {
@@ -17,49 +19,95 @@ class CashierDashboardController extends Controller
         $period = $request->input('period', 7);
         $period = in_array($period, [7, 30]) ? (int)$period : 7;
 
-        // Daily Sales (Today)
-        $dailySales = Transaction::whereDate('created_at', now()->toDateString())->sum('total_amount');
+        // Daily Sales (Today) - dari stock_logs
+        $dailySales = StockLog::where('transaction_type', 'sale')
+            ->whereDate('created_at', today())
+            ->sum('total_value');
+        
+        // Fallback ke transactions jika stock_logs kosong
+        if ($dailySales == 0) {
+            $dailySales = Transaction::whereDate('created_at', today())->sum('total_amount');
+        }
 
         // Yesterday sales for comparison
-        $yesterdaySales = Transaction::whereRaw('DATE(COALESCE(checkout_time, created_at)) = ?', [now()->subDay()->toDateString()])->sum('total_amount');
+        $yesterdaySales = StockLog::where('transaction_type', 'sale')
+            ->whereDate('created_at', now()->subDay()->toDateString())
+            ->sum('total_value');
+        
+        if ($yesterdaySales == 0) {
+            $yesterdaySales = Transaction::whereDate('created_at', now()->subDay()->toDateString())
+                ->sum('total_amount');
+        }
 
         $dailyPercentage = $yesterdaySales > 0
             ? round((($dailySales - $yesterdaySales) / $yesterdaySales) * 100, 2)
-            : 0;
+            : ($dailySales > 0 ? 100 : 0);
 
         // Transactions count today
-        $transactionsCount = Transaction::whereDate('created_at', now()->toDateString())->count();
+        $transactionsCount = Transaction::whereDate('created_at', today())->count();
 
-        // Items sold today (sum of quantities)
-        $itemsSold = TransactionItem::whereHas('transaction', function ($q) {
-            $q->whereDate('created_at', now()->toDateString());
-        })->sum('quantity');
+        // Items sold today (sum of quantities from stock_logs)
+        $itemsSold = StockLog::where('transaction_type', 'sale')
+            ->whereDate('created_at', today())
+            ->selectRaw('SUM(ABS(`change`)) as total')
+            ->value('total') ?? 0;
+        
+        if ($itemsSold == 0) {
+            $itemsSold = TransactionItem::whereHas('transaction', function ($q) {
+                $q->whereDate('created_at', today());
+            })->sum('quantity');
+        }
 
-        // Low Stock Products (small list) - items with stock <= 10
-        $lowStockProducts = Product::where('stock', '<=', 10)
-            ->orderBy('stock', 'asc')
-            ->limit(10)
-            ->get();
+        // Monthly Sales - PERIODE 30 HARI TERAKHIR (bukan bulan kalender)
+        $monthlySales = StockLog::where('transaction_type', 'sale')
+            ->whereDate('created_at', '>=', now()->subDays(30)->toDateString())
+            ->whereDate('created_at', '<=', now()->toDateString())
+            ->sum('total_value');
+        
+        // Fallback ke transactions jika stock_logs kosong
+        if ($monthlySales == 0) {
+            $monthlySales = Transaction::whereDate('created_at', '>=', now()->subDays(30))
+                ->whereDate('created_at', '<=', now())
+                ->sum('total_amount');
+        }
 
-        // Expiring Soon (approx 6 months shelf-life heuristic)
-        $expiringProducts = Product::where('created_at', '<=', now()->subMonths(5)->subDays(23))
-            ->orderBy('created_at', 'asc')
-            ->limit(10)
-            ->get();
+        // Last 30 days (untuk comparison) - periode 31-60 hari yang lalu
+        $lastMonthSales = StockLog::where('transaction_type', 'sale')
+            ->whereDate('created_at', '>=', now()->subDays(60)->toDateString())
+            ->whereDate('created_at', '<', now()->subDays(30)->toDateString())
+            ->sum('total_value');
+        
+        if ($lastMonthSales == 0) {
+            $lastMonthSales = Transaction::whereDate('created_at', '>=', now()->subDays(60))
+                ->whereDate('created_at', '<', now()->subDays(30))
+                ->sum('total_amount');
+        }
 
-        // Sales Trend (Last X days based on period)
+        $monthlyPercentage = $lastMonthSales > 0
+            ? round((($monthlySales - $lastMonthSales) / $lastMonthSales) * 100, 2)
+            : ($monthlySales > 0 ? 100 : 0);
+
+        // Sales Trend (Last X days) - dari stock_logs dengan fallback
         $salesTrend = [];
         for ($i = $period - 1; $i >= 0; $i--) {
             $date = now()->subDays($i);
-            // For 7 days: show day name (Sen, Sel, etc)
-            // For 30 days: show date (01 Des, 02 Des, etc)
+            
             if ($period == 7) {
                 $dayName = $date->locale('id')->isoFormat('ddd');
             } else {
                 $dayName = $date->locale('id')->isoFormat('DD MMM');
             }
-            $sales = Transaction::whereDate('created_at', $date->format('Y-m-d'))
-                ->sum('total_amount');
+            
+            // Coba dari stock_logs dulu
+            $sales = StockLog::where('transaction_type', 'sale')
+                ->whereDate('created_at', $date->format('Y-m-d'))
+                ->sum('total_value');
+            
+            // Fallback ke transactions jika kosong
+            if ($sales == 0) {
+                $sales = Transaction::whereDate('created_at', $date->format('Y-m-d'))
+                    ->sum('total_amount');
+            }
 
             $salesTrend[] = [
                 'day' => $dayName,
@@ -67,27 +115,82 @@ class CashierDashboardController extends Controller
             ];
         }
 
-        // Monthly Sales (This Month) and comparison to last month
-        // This value is the total for the current calendar month and will naturally reset when month changes.
-        $monthlySales = Transaction::whereYear('created_at', now()->year)
-            ->whereMonth('created_at', now()->month)
-            ->sum('total_amount');
+        // Low Stock Products
+        $lowStockCount = Product::where('stock', '>', 0)
+            ->where(function($q) {
+                $q->whereColumn('stock', '<=', 'low_stock_threshold')
+                  ->orWhereRaw('stock <= ?', [10]);
+            })->count();
 
-        $lastMonthSales = Transaction::whereYear('created_at', now()->subMonth()->year)
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->sum('total_amount');
+        $lowStockProducts = Product::where('stock', '>', 0)
+            ->where(function($q) {
+                $q->whereColumn('stock', '<=', 'low_stock_threshold')
+                  ->orWhereRaw('stock <= ?', [10]);
+            })
+            ->orderBy('stock', 'asc')
+            ->limit(5)
+            ->get();
 
-        $monthlyPercentage = $lastMonthSales > 0
-            ? round((($monthlySales - $lastMonthSales) / $lastMonthSales) * 100, 2)
-            : 0;
+        // Expiring Soon - produk yang kadaluarsa dalam 7 hari
+        $now = now();
+        $oneWeekFromNow = now()->addDays(7);
+        $hasExpirationColumn = Schema::hasColumn('products', 'expiration_date');
 
-        // Monthly totals for the current year (use checkout_time if present, else created_at)
+        if ($hasExpirationColumn) {
+            $expiringCount = Product::whereNotNull('expiration_date')
+                ->where('expiration_date', '>=', $now->toDateString())
+                ->where('expiration_date', '<=', $oneWeekFromNow->toDateString())
+                ->count();
+
+            $expiringProducts = Product::whereNotNull('expiration_date')
+                ->where('expiration_date', '>=', $now->toDateString())
+                ->where('expiration_date', '<=', $oneWeekFromNow->toDateString())
+                ->orderBy('expiration_date', 'asc')
+                ->limit(5)
+                ->get()
+                ->map(function($p) {
+                    $now = now();
+                    $expiryDate = Carbon::parse($p->expiration_date);
+                    $p->expiry_date = $expiryDate;
+                    $p->remaining_days = $now->diffInDays($expiryDate, false);
+                    return $p;
+                });
+        } else {
+            $expiringCount = Product::whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) >= ?", [$now->toDateString()])
+                ->whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) <= ?", [$oneWeekFromNow->toDateString()])
+                ->count();
+
+            $expiringProducts = Product::whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) >= ?", [$now->toDateString()])
+                ->whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) <= ?", [$oneWeekFromNow->toDateString()])
+                ->orderByRaw('DATE_ADD(created_at, INTERVAL 6 MONTH) ASC')
+                ->limit(5)
+                ->get()
+                ->map(function($p) {
+                    $now = now();
+                    $expiryDate = $p->created_at->copy()->addMonths(6);
+                    $p->expiry_date = $expiryDate;
+                    $p->remaining_days = $now->diffInDays($expiryDate, false);
+                    return $p;
+                });
+        }
+
+        // Stock almost out list
+        $stockAlmostOut = Product::where('stock', '>=', 0)
+            ->where('stock', '<=', 10)
+            ->orderBy('stock', 'asc')
+            ->get();
+
+        // Recent Transactions
+        $recentTransactions = Transaction::withCount(['items as items_count' => function ($q) {
+            $q->select(DB::raw('coalesce(sum(quantity),0)'));
+        }])->orderBy('created_at', 'desc')->limit(5)->get();
+
+        // Monthly totals for chart (optional)
         $year = now()->year;
-
-        // Build monthly totals as an array [1=>totalJan, 2=>totalFeb, ...]
-        $rows = Transaction::selectRaw("MONTH(COALESCE(checkout_time, created_at)) as month, SUM(total_amount) as total")
-            ->whereRaw('YEAR(COALESCE(checkout_time, created_at)) = ?', [$year])
-            ->groupByRaw('MONTH(COALESCE(checkout_time, created_at))')
+        $rows = StockLog::where('transaction_type', 'sale')
+            ->selectRaw("MONTH(created_at) as month, SUM(total_value) as total")
+            ->whereYear('created_at', $year)
+            ->groupByRaw('MONTH(created_at)')
             ->get()
             ->pluck('total', 'month')
             ->toArray();
@@ -97,7 +200,6 @@ class CashierDashboardController extends Controller
             $monthlyTotals[$m] = isset($rows[$m]) ? (float) $rows[$m] : 0.0;
         }
 
-        // Cumulative totals up to each month (useful if you want running accumulation)
         $cumulative = [];
         $running = 0;
         for ($m = 1; $m <= 12; $m++) {
@@ -105,70 +207,7 @@ class CashierDashboardController extends Controller
             $cumulative[$m] = $running;
         }
 
-        // Attach both arrays so the view can choose monthly or cumulative display
         $monthlyTotals = ['monthly' => $monthlyTotals, 'cumulative' => $cumulative];
-
-        // Low stock counts: number of distinct products with stock <= 10
-        $lowStockCount = Product::where('stock', '<=', 10)
-            ->count();
-
-        // Expiring Soon: use `expiration_date` when available. Find products whose
-        // `expiration_date` falls within the next 7 days from now.
-        $now = now();
-        $oneWeek = now()->addDays(7);
-
-        // If the products table has an `expiration_date`, use it; otherwise fall back
-        // to the old heuristic (created_at + 6 months).
-        $hasExpirationColumn = Schema::hasColumn('products', 'expiration_date');
-
-        if ($hasExpirationColumn) {
-            $expiringCount = Product::whereBetween('expiration_date', [
-                $now->toDateString(),
-                $oneWeek->toDateString()
-            ])->count();
-
-            $expiringProducts = Product::whereBetween('expiration_date', [
-                $now->toDateString(),
-                $oneWeek->toDateString()
-            ])->orderBy('expiration_date', 'asc')
-                ->limit(5)
-                ->get()
-                ->map(function($p) use ($now) {
-                    $expiryDate = $p->expiration_date ? \Carbon\Carbon::parse($p->expiration_date) : $p->created_at->copy()->addMonths(6);
-                    $p->expiry_date = $expiryDate;
-                    $p->remaining_days = $now->diffInDays($expiryDate, false);
-                    return $p;
-                });
-        } else {
-            $expiringCount = Product::whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) BETWEEN ? AND ?", [
-                $now->toDateString(),
-                $oneWeek->toDateString()
-            ])->count();
-
-            $expiringProducts = Product::whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) BETWEEN ? AND ?", [
-                $now->toDateString(),
-                $oneWeek->toDateString()
-            ])->orderByRaw('DATE_ADD(created_at, INTERVAL 6 MONTH) ASC')
-                ->limit(5)
-                ->get()
-                ->map(function($p) use ($now) {
-                    $expiryDate = $p->created_at->copy()->addMonths(6);
-                    $p->expiry_date = $expiryDate;
-                    $p->remaining_days = $now->diffInDays($expiryDate, false);
-                    return $p;
-                });
-        }
-
-        // Stock almost out list (<=10) for quick view - include stock 0
-        $stockAlmostOut = Product::where('stock', '>=', 0)
-            ->where('stock', '<=', 10)
-            ->orderBy('stock', 'asc')
-            ->get();
-
-        // Recent Transactions (latest 5)
-        $recentTransactions = Transaction::withCount(['items as items_count' => function ($q) {
-            $q->select(\DB::raw('coalesce(sum(quantity),0)'));
-        }])->orderBy('created_at', 'desc')->limit(5)->get();
 
         return view('cashier.dashboard', compact(
             'dailySales',

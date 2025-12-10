@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CashierTransactionController extends Controller
 {
@@ -53,21 +54,15 @@ class CashierTransactionController extends Controller
 
         $transactions = $query->paginate(20)->withQueryString();
         
-        // Calculate statistics: scope to same date range as filters.
-        // If no date range provided, default to current month so stats "reset" each month.
+        // Calculate statistics berdasarkan filter aktif
+        // Jika tidak ada filter tanggal, tampilkan semua data kasir (tidak dibatasi bulan)
         $statsQuery = Transaction::where('user_id', auth()->id());
 
         if ($dateFrom) {
             $statsQuery->whereDate('created_at', '>=', $dateFrom);
-        } else {
-            $dateFrom = now()->startOfMonth()->toDateString();
-            $statsQuery->whereDate('created_at', '>=', $dateFrom);
         }
 
         if ($dateTo) {
-            $statsQuery->whereDate('created_at', '<=', $dateTo);
-        } else {
-            $dateTo = now()->endOfMonth()->toDateString();
             $statsQuery->whereDate('created_at', '<=', $dateTo);
         }
 
@@ -79,8 +74,18 @@ class CashierTransactionController extends Controller
             ')
             ->first();
 
-        // Calculate monthly totals for grouping headers
-        $monthlyTotals = Transaction::where('user_id', auth()->id())
+        // Calculate monthly totals for grouping headers (semua data kasir)
+        $monthlyQuery = Transaction::where('user_id', auth()->id());
+        
+        // Apply same filters to monthly totals
+        if ($dateFrom) {
+            $monthlyQuery->whereDate('created_at', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $monthlyQuery->whereDate('created_at', '<=', $dateTo);
+        }
+        
+        $monthlyTotals = $monthlyQuery
             ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month_key, COUNT(*) as count, COALESCE(SUM(total), 0) as total')
             ->groupByRaw('DATE_FORMAT(created_at, "%Y-%m")')
             ->get()

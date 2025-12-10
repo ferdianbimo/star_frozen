@@ -3,7 +3,7 @@
 @section('title','History Pemasukan')
 
 @section('content')
-    <main class="flex-1 overflow-auto">
+    <main class="flex-1 overflow-auto bg-gray-50">
             <!-- Header -->
             <header class="bg-white shadow-sm sticky top-0 z-10">
                 <div class="px-8 py-6 flex justify-between items-center">
@@ -12,7 +12,7 @@
                         <p class="text-sm text-gray-500 mt-1">Log penjualan dan stok keluar</p>
                     </div>
                     <div class="flex gap-3">
-                        <a href="{{ route('manager.finance.index') }}" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition">
+                        <a href="{{ route('manager.dashboard') }}" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition">
                             Kembali ke Dashboard
                         </a>
                         <a href="{{ route('manager.finance.expenses') }}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
@@ -164,3 +164,23 @@
     </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    // Auto-refresh untuk update data otomatis setiap 30 detik
+    setInterval(function() {
+        // Reload halaman dengan parameter yang sama
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentPage = urlParams.get('page');
+        
+        // Jika tidak di halaman pertama, jangan auto refresh untuk menghindari gangguan
+        if (!currentPage || currentPage === '1') {
+            console.log('Memeriksa update data pemasukan...');
+            // Reload halaman untuk mendapatkan data terbaru
+            location.reload();
+        }
+    }, 30000); // 30 detik
+    
+    console.log('Auto-refresh aktif: Data akan diperbarui setiap 30 detik');
+</script>
+@endpush

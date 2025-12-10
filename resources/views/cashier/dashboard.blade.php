@@ -29,9 +29,18 @@
 
                         <div class="bg-white rounded-lg shadow p-4 md:p-5 flex items-start h-24 md:h-24">
                             <div class="flex-1 min-w-0">
-                                <p class="text-xs text-gray-500">Monthly Sales</p>
+                                <p class="text-xs text-gray-500">30 Hari Terakhir</p>
                                 <h3 class="text-lg md:text-xl font-bold mt-1 truncate">{{ 'Rp ' . number_format($monthlySales ?? 0, 0, ',', '.') }}</h3>
-                                <p class="text-xs text-green-500 mt-1">@if(isset($monthlyPercentage)) {{ ($monthlyPercentage >= 0 ? '↑ ' : '↓ ') . abs($monthlyPercentage) . '%' }} @endif</p>
+                                <p class="text-xs mt-1">
+                                    @php $mp = $monthlyPercentage ?? 0; @endphp
+                                    @if($mp > 0)
+                                        <span class="text-green-600">↑ {{ abs($mp) }}%</span>
+                                    @elseif($mp < 0)
+                                        <span class="text-red-600">↓ {{ abs($mp) }}%</span>
+                                    @else
+                                        <span class="text-gray-500">0%</span>
+                                    @endif
+                                </p>
                             </div>
                             <div class="ml-2 md:ml-4 bg-yellow-50 rounded p-2 flex-shrink-0">
                                 <i class="fas fa-chart-line text-yellow-500 text-sm md:text-base"></i>
@@ -211,6 +220,12 @@
             }
         });
     })();
+
+    // Auto-refresh setiap 30 detik untuk update data otomatis
+    setInterval(function() {
+        console.log('Auto-refreshing cashier dashboard...');
+        location.reload();
+    }, 30000); // 30 detik
 </script>
 <style>
     /* Custom scrollbar styling */

@@ -42,7 +42,7 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')
     // Access Control (Hak Akses) - User & Role Management
     Route::get('/access', [\App\Http\Controllers\AccessController::class, 'index'])->name('access.index');
     Route::resource('users', \App\Http\Controllers\UserController::class);
-    Route::resource('roles', \App\Http\Controllers\RoleController::class)->except(['show']);
+    Route::resource('roles', \App\Http\Controllers\RoleController::class)->only(['edit', 'update', 'destroy']);
 });
 
 // Cashier Routes
