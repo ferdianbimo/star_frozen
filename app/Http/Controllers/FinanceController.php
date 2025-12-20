@@ -7,6 +7,7 @@ use App\Models\Expense;
 use App\Models\Product;
 use App\Models\StockLog;
 use App\Models\User;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -162,6 +163,13 @@ class FinanceController extends Controller
             $expensesList = $query->get();
             $totalExpenses = $expensesList->sum('amount');
             
+            // Log export activity
+            ActivityLogService::logExport('finance', "Export laporan pengeluaran ke PDF", [
+                'format' => 'PDF',
+                'total_records' => $expensesList->count(),
+                'total_amount' => $totalExpenses,
+            ]);
+            
             $pdf = Pdf::loadView('manager.finance.expenses-pdf', compact('expensesList', 'totalExpenses'));
             return $pdf->download('laporan-pengeluaran-' . date('Y-m-d') . '.pdf');
         }
@@ -170,6 +178,13 @@ class FinanceController extends Controller
         if ($request->has('export') && $request->export === 'excel') {
             $expensesList = $query->get();
             $totalExpenses = $expensesList->sum('amount');
+            
+            // Log export activity
+            ActivityLogService::logExport('finance', "Export laporan pengeluaran ke Excel", [
+                'format' => 'Excel/CSV',
+                'total_records' => $expensesList->count(),
+                'total_amount' => $totalExpenses,
+            ]);
             
             $filename = 'laporan-pengeluaran-' . date('Y-m-d') . '.csv';
             $headers = [
@@ -228,7 +243,15 @@ class FinanceController extends Controller
         
         $validated['user_id'] = auth()->id();
         
-        Expense::create($validated);
+        $expense = Expense::create($validated);
+
+        // Log activity
+        ActivityLogService::logCreate(
+            'finance',
+            "Menambahkan pengeluaran: {$expense->category} - Rp " . number_format($expense->amount, 0, ',', '.'),
+            $expense,
+            ['category' => $expense->category, 'amount' => $expense->amount, 'description' => $expense->description]
+        );
         
         return redirect()->route('manager.finance.expenses')
             ->with('success', 'Pengeluaran berhasil ditambahkan!');
@@ -242,8 +265,23 @@ class FinanceController extends Controller
             'amount' => 'required|numeric|min:0',
             'expense_date' => 'required|date'
         ]);
+
+        $oldValues = [
+            'category' => $expense->category,
+            'amount' => $expense->amount,
+            'description' => $expense->description,
+        ];
         
         $expense->update($validated);
+
+        // Log activity
+        ActivityLogService::logUpdate(
+            'finance',
+            "Mengubah pengeluaran: {$expense->category}",
+            $expense,
+            $oldValues,
+            ['category' => $expense->category, 'amount' => $expense->amount, 'description' => $expense->description]
+        );
         
         return redirect()->route('manager.finance.expenses')
             ->with('success', 'Pengeluaran berhasil diupdate!');
@@ -251,6 +289,17 @@ class FinanceController extends Controller
 
     public function destroyExpense(Expense $expense)
     {
+        $expenseCategory = $expense->category;
+        $expenseAmount = $expense->amount;
+
+        // Log activity before delete
+        ActivityLogService::logDelete(
+            'finance',
+            "Menghapus pengeluaran: {$expenseCategory} - Rp " . number_format($expenseAmount, 0, ',', '.'),
+            null,
+            ['category' => $expenseCategory, 'amount' => $expenseAmount, 'description' => $expense->description]
+        );
+
         $expense->delete();
         
         return redirect()->route('manager.finance.expenses')
@@ -289,6 +338,13 @@ class FinanceController extends Controller
             $totalFilteredValue = $incomeLogs->sum('total_value');
             $users = User::where('role_id', 2)->orderBy('name')->get();
             
+            // Log export activity
+            ActivityLogService::logExport('finance', "Export laporan pemasukan ke PDF", [
+                'format' => 'PDF',
+                'total_records' => $incomeLogs->count(),
+                'total_amount' => $totalFilteredValue,
+            ]);
+            
             $pdf = Pdf::loadView('manager.finance.income-pdf', compact('incomeLogs', 'totalFilteredValue', 'users'));
             return $pdf->download('laporan-pemasukan-' . date('Y-m-d') . '.pdf');
         }
@@ -297,6 +353,13 @@ class FinanceController extends Controller
         if ($request->has('export') && $request->export === 'excel') {
             $incomeLogs = $query->get();
             $totalFilteredValue = $incomeLogs->sum('total_value');
+            
+            // Log export activity
+            ActivityLogService::logExport('finance', "Export laporan pemasukan ke Excel", [
+                'format' => 'Excel/CSV',
+                'total_records' => $incomeLogs->count(),
+                'total_amount' => $totalFilteredValue,
+            ]);
             
             $filename = 'laporan-pemasukan-' . date('Y-m-d') . '.csv';
             $headers = [

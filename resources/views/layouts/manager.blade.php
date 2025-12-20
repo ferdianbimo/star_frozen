@@ -56,6 +56,13 @@
                     </svg>
                     <span class="text-sm">Hak Akses</span>
                 </a>
+
+                <a href="{{ route('manager.activity-logs.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.activity-logs.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                    </svg>
+                    <span class="text-sm">Log Aktivitas</span>
+                </a>
             </nav>
 
             <div class="mt-auto px-4 pb-6 pt-9">

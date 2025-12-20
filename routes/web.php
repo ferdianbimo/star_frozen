@@ -30,6 +30,10 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')
     // Inventory Management (View Only - No CRUD)
     Route::get('/inventory', [\App\Http\Controllers\ManagerInventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/stock-out', [\App\Http\Controllers\ManagerInventoryController::class, 'stockOut'])->name('inventory.stock-out');
+    Route::get('/inventory/batches', [\App\Http\Controllers\ManagerInventoryController::class, 'batches'])->name('inventory.batches');
+    
+    // Activity Logs (separate feature)
+    Route::get('/activity-logs', [\App\Http\Controllers\ManagerInventoryController::class, 'activityLogs'])->name('activity-logs.index');
     
     // Finance (Keuangan)
     Route::get('/finance', [\App\Http\Controllers\FinanceController::class, 'index'])->name('finance.index');
@@ -75,6 +79,14 @@ Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->
     Route::get('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'show'])->name('inventory.show');
     Route::put('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'update'])->name('inventory.update');
     Route::delete('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'destroy'])->name('inventory.destroy');
+    
+    // Batch Management (Stock In)
+    Route::get('/inventory/batch/stock-in', [\App\Http\Controllers\CashierInventoryController::class, 'stockIn'])->name('inventory.batch.stock-in');
+    Route::post('/inventory/batch/store', [\App\Http\Controllers\CashierInventoryController::class, 'storeBatch'])->name('inventory.batch.store');
+    Route::get('/inventory/{product}/batches', [\App\Http\Controllers\CashierInventoryController::class, 'productBatches'])->name('inventory.batches');
+    
+    // API for POS batch selection
+    Route::get('/api/products/{product}/batches', [\App\Http\Controllers\CashierInventoryController::class, 'getProductBatches'])->name('api.product.batches');
 });
 
 require __DIR__.'/auth.php';

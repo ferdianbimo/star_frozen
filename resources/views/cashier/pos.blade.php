@@ -35,7 +35,7 @@
 
                         <div id="products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
                             @foreach($products as $product)
-                                <div class="bg-gray-50 border rounded-lg p-3 product-card" data-name="{{ strtolower($product->name) }}">
+                                <div class="bg-gray-50 border rounded-lg p-3 product-card" data-name="{{ strtolower($product->name) }}" data-product-id="{{ $product->id }}">
                                     <div class="flex flex-col items-center">
                                         <div class="w-28 h-28 bg-white rounded-md flex items-center justify-center mb-3">
                                             @if($product->image)
@@ -48,18 +48,22 @@
                                             <h3 class="font-semibold text-sm mb-1">{{ $product->name }}</h3>
                                             <div class="text-blue-600 font-semibold">Rp {{ number_format($product->price,0,',','.') }}</div>
                                             <div class="text-xs text-gray-500">Stock: {{ $product->stock }}</div>
+                                            @if($product->batches()->available()->count() > 0)
+                                                <div class="text-xs text-green-600">{{ $product->batches()->available()->count() }} batch tersedia</div>
+                                            @endif
                                         </div>
 
                                         <div class="w-full mt-3 flex items-center justify-between">
                                             <form id="addForm-{{ $product->id }}" method="POST" action="{{ route('cashier.pos.add') }}" class="inline-flex items-center">
                                                 @csrf
                                                 <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                <input type="hidden" name="batch_id" id="batch-input-{{ $product->id }}" value="">
 
                                                 <button type="button" class="qty-decrease inline-flex items-center justify-center w-8 h-8 bg-gray-200 text-gray-700 rounded-l" data-target="qty-input-{{ $product->id }}">-</button>
 
                                                 <input type="number" name="quantity" id="qty-input-{{ $product->id }}" value="1" min="1" max="{{ $product->stock }}" class="w-12 text-center border-t border-b py-1 text-sm" />
 
-                                                <button type="submit" class="inline-flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-r">+
+                                                <button type="button" onclick="openBatchModal({{ $product->id }}, '{{ $product->name }}')" class="inline-flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-r" title="Pilih Batch">+
                                                 </button>
                                             </form>
 
@@ -84,12 +88,13 @@
                                 @if(empty($cart))
                                     <div class="text-gray-500">No items in cart</div>
                                 @else
-                                    @foreach($cart as $item)
+                                    @foreach($cart as $cartKey => $item)
                                         @php 
                                             $line = $item['price'] * $item['quantity']; 
                                             $subtotal += $line;
                                             $cartProduct = \App\Models\Product::find($item['id']);
                                             $cartImage = $cartProduct ? $cartProduct->image : null;
+                                            $cartBatch = isset($item['batch_id']) ? \App\Models\ProductBatch::find($item['batch_id']) : null;
                                         @endphp
                                         <div class="flex items-center justify-between border rounded p-2">
                                             <div class="flex items-start">
@@ -103,12 +108,22 @@
                                                 <div>
                                                     <div class="font-medium text-sm">{{ $item['name'] }}</div>
                                                     <div class="text-xs text-gray-500">Rp {{ number_format($item['price'],0,',','.') }}</div>
+                                                    @if($cartBatch)
+                                                        <div class="text-xs text-green-600">
+                                                            Batch: {{ $cartBatch->batch_code }}
+                                                            @if($cartBatch->expiration_date)
+                                                                (Exp: {{ $cartBatch->expiration_date->format('d/m/Y') }})
+                                                            @endif
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </div>
                                             <div class="flex items-center">
                                                 <form method="POST" action="{{ route('cashier.pos.update') }}" class="inline-flex">
                                                     @csrf
+                                                    <input type="hidden" name="cart_key" value="{{ $cartKey }}">
                                                     <input type="hidden" name="product_id" value="{{ $item['id'] }}">
+                                                    <input type="hidden" name="batch_id" value="{{ $item['batch_id'] ?? '' }}">
                                                     <input type="hidden" name="quantity" value="{{ max(0, $item['quantity'] - 1) }}">
                                                     <button class="px-2 py-1 bg-gray-200 rounded-l">-</button>
                                                 </form>
@@ -118,6 +133,7 @@
                                                 <form method="POST" action="{{ route('cashier.pos.add') }}" class="inline-block">
                                                     @csrf
                                                     <input type="hidden" name="product_id" value="{{ $item['id'] }}">
+                                                    <input type="hidden" name="batch_id" value="{{ $item['batch_id'] ?? '' }}">
                                                     <input type="hidden" name="quantity" value="1">
                                                     <button class="px-2 py-1 bg-blue-600 text-white rounded-r">+</button>
                                                 </form>
@@ -201,10 +217,211 @@
     </div>
 </div>
 
+<!-- Batch Selection Modal -->
+<div id="batchModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-40">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium">Pilih Batch - <span id="batchModalProductName"></span></h3>
+            <button id="batchModalClose" class="text-gray-600 text-2xl">&times;</button>
+        </div>
+
+        <div class="mb-4">
+            <p class="text-sm text-gray-600 mb-2">Pilih batch berdasarkan tanggal kadaluarsa:</p>
+            <div id="batchList" class="space-y-2 max-h-60 overflow-y-auto">
+                <!-- Batch items will be loaded here -->
+                <div class="text-center text-gray-500 py-4">Loading...</div>
+            </div>
+        </div>
+
+        <div class="mb-4 bg-blue-50 rounded-lg p-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Jumlah</label>
+                    <input type="number" id="batchQuantity" min="1" value="1" class="w-20 border rounded p-2 mt-1">
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-600">Batch dipilih:</div>
+                    <div id="selectedBatchCode" class="font-semibold text-blue-600">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-2">
+            <button id="batchCancel" class="px-4 py-2 bg-gray-100 rounded">Batal</button>
+            <button id="batchConfirm" class="px-4 py-2 bg-blue-600 text-white rounded" disabled>Tambah ke Keranjang</button>
+        </div>
+
+        <input type="hidden" id="batchModalProductId" value="">
+        <input type="hidden" id="selectedBatchId" value="">
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
+    // Batch Modal Functions
+    let currentProductId = null;
+    let currentBatches = [];
+
+    function openBatchModal(productId, productName) {
+        currentProductId = productId;
+        document.getElementById('batchModalProductId').value = productId;
+        document.getElementById('batchModalProductName').textContent = productName;
+        document.getElementById('selectedBatchId').value = '';
+        document.getElementById('selectedBatchCode').textContent = '-';
+        document.getElementById('batchQuantity').value = document.getElementById('qty-input-' + productId)?.value || 1;
+        document.getElementById('batchConfirm').disabled = true;
+        
+        // Show modal
+        const modal = document.getElementById('batchModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Load batches
+        loadBatches(productId);
+    }
+
+    function closeBatchModal() {
+        const modal = document.getElementById('batchModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        currentProductId = null;
+        currentBatches = [];
+    }
+
+    async function loadBatches(productId) {
+        const batchList = document.getElementById('batchList');
+        batchList.innerHTML = '<div class="text-center text-gray-500 py-4">Loading...</div>';
+        
+        try {
+            const response = await fetch(`{{ url('/cashier/api/products') }}/${productId}/batches`);
+            const data = await response.json();
+            currentBatches = data.batches || [];
+            
+            if (currentBatches.length === 0) {
+                // No batches available, submit directly without batch
+                batchList.innerHTML = `
+                    <div class="text-center py-4">
+                        <p class="text-gray-500 mb-3">Tidak ada batch tersedia untuk produk ini.</p>
+                        <p class="text-sm text-gray-400">Produk akan ditambahkan tanpa informasi batch.</p>
+                    </div>
+                `;
+                // Enable confirm button to add without batch
+                document.getElementById('batchConfirm').disabled = false;
+                document.getElementById('selectedBatchCode').textContent = 'Tanpa Batch';
+            } else {
+                renderBatches(currentBatches);
+            }
+        } catch (error) {
+            console.error('Error loading batches:', error);
+            batchList.innerHTML = '<div class="text-center text-red-500 py-4">Gagal memuat batch</div>';
+        }
+    }
+
+    function renderBatches(batches) {
+        const batchList = document.getElementById('batchList');
+        
+        if (batches.length === 0) {
+            batchList.innerHTML = '<div class="text-center text-gray-500 py-4">Tidak ada batch tersedia</div>';
+            return;
+        }
+        
+        let html = '';
+        batches.forEach(batch => {
+            const expClass = batch.is_expired ? 'bg-red-50 border-red-200' : 
+                            (batch.is_expiring_soon ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200');
+            const expText = batch.is_expired ? 'text-red-600' : 
+                           (batch.is_expiring_soon ? 'text-orange-600' : 'text-green-600');
+            
+            html += `
+                <div class="batch-item p-3 rounded-lg border cursor-pointer hover:bg-blue-50 transition-colors ${expClass}" 
+                     data-batch-id="${batch.id}" 
+                     data-batch-code="${batch.batch_code}"
+                     data-batch-qty="${batch.quantity}"
+                     onclick="selectBatch(${batch.id}, '${batch.batch_code}', ${batch.quantity})">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="font-medium text-sm">${batch.batch_code}</div>
+                            <div class="text-xs ${expText}">
+                                ${batch.expiration_date ? 'Exp: ' + batch.expiration_date : 'Tidak ada exp date'}
+                                ${batch.is_expiring_soon ? ' (Segera kadaluarsa!)' : ''}
+                                ${batch.is_expired ? ' (KADALUARSA)' : ''}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold">${batch.quantity}</div>
+                            <div class="text-xs text-gray-500">tersedia</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        batchList.innerHTML = html;
+    }
+
+    function selectBatch(batchId, batchCode, maxQty) {
+        // Remove selection from all
+        document.querySelectorAll('.batch-item').forEach(item => {
+            item.classList.remove('ring-2', 'ring-blue-500');
+        });
+        
+        // Add selection to clicked item
+        const selectedItem = document.querySelector(`.batch-item[data-batch-id="${batchId}"]`);
+        if (selectedItem) {
+            selectedItem.classList.add('ring-2', 'ring-blue-500');
+        }
+        
+        document.getElementById('selectedBatchId').value = batchId;
+        document.getElementById('selectedBatchCode').textContent = batchCode;
+        document.getElementById('batchQuantity').max = maxQty;
+        document.getElementById('batchConfirm').disabled = false;
+    }
+
+    function confirmBatchSelection() {
+        const productId = document.getElementById('batchModalProductId').value;
+        const batchId = document.getElementById('selectedBatchId').value;
+        const quantity = document.getElementById('batchQuantity').value;
+        
+        // Submit form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("cashier.pos.add") }}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
+        
+        const productInput = document.createElement('input');
+        productInput.type = 'hidden';
+        productInput.name = 'product_id';
+        productInput.value = productId;
+        form.appendChild(productInput);
+        
+        const batchInput = document.createElement('input');
+        batchInput.type = 'hidden';
+        batchInput.name = 'batch_id';
+        batchInput.value = batchId;
+        form.appendChild(batchInput);
+        
+        const qtyInput = document.createElement('input');
+        qtyInput.type = 'hidden';
+        qtyInput.name = 'quantity';
+        qtyInput.value = quantity;
+        form.appendChild(qtyInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Event listeners for batch modal
+    document.getElementById('batchModalClose')?.addEventListener('click', closeBatchModal);
+    document.getElementById('batchCancel')?.addEventListener('click', closeBatchModal);
+    document.getElementById('batchConfirm')?.addEventListener('click', confirmBatchSelection);
+
     function filterProducts() {
         const q = document.getElementById('search').value.toLowerCase();
         document.querySelectorAll('.product-card').forEach(card => {
