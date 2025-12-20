@@ -34,13 +34,6 @@ class CashierInventoryController extends Controller
 
         // apply sorting based on request
         switch ($sort) {
-            case 'expiration_asc':
-                // earliest expiration first (nulls last)
-                $query->orderByRaw("(expiration_date IS NULL), expiration_date ASC");
-                break;
-            case 'expiration_desc':
-                $query->orderByRaw("(expiration_date IS NULL), expiration_date DESC");
-                break;
             case 'stock_asc':
                 $query->orderBy('stock', 'asc');
                 break;
@@ -76,16 +69,59 @@ class CashierInventoryController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'nullable|string|max:100',
-            'price' => 'required|numeric|min:0',
+            'price' => 'nullable|numeric|min:0',
             'purchase_price' => 'nullable|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'stock' => 'nullable|integer|min:0',
             'low_stock_threshold' => 'nullable|integer|min:0',
             'barcode' => 'nullable|string|max:100|unique:products,barcode',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
             'unit' => 'nullable|string|max:50',
-            'date_in' => 'nullable|date',
-            'expiration_date' => 'nullable|date|after_or_equal:date_in',
+            // Unit sell flags
+            'sell_pcs' => 'nullable',
+            'sell_pack' => 'nullable',
+            'sell_renteng' => 'nullable',
+            'sell_box' => 'nullable',
+            'sell_karton' => 'nullable',
+            // Unit conversions
+            'pcs_per_pack' => 'nullable|integer|min:1',
+            'pcs_per_renteng' => 'nullable|integer|min:1',
+            'box_contains_qty' => 'nullable|integer|min:1',
+            'box_contains_unit' => 'nullable|string|in:pcs,pack,renteng',
+            'karton_contains_qty' => 'nullable|integer|min:1',
+            'karton_contains_unit' => 'nullable|string|in:pcs,pack,renteng,box',
+            // Selling prices
+            'price_pcs' => 'nullable|numeric|min:0',
+            'price_pack' => 'nullable|numeric|min:0',
+            'price_renteng' => 'nullable|numeric|min:0',
+            'price_box' => 'nullable|numeric|min:0',
+            'price_karton' => 'nullable|numeric|min:0',
+            // Purchase prices
+            'purchase_price_pcs' => 'nullable|numeric|min:0',
+            'purchase_price_pack' => 'nullable|numeric|min:0',
+            'purchase_price_renteng' => 'nullable|numeric|min:0',
+            'purchase_price_box' => 'nullable|numeric|min:0',
+            'purchase_price_karton' => 'nullable|numeric|min:0',
         ]);
+
+        // Handle checkbox values
+        $data['sell_pcs'] = $request->has('sell_pcs');
+        $data['sell_pack'] = $request->has('sell_pack');
+        $data['sell_renteng'] = $request->has('sell_renteng');
+        $data['sell_box'] = $request->has('sell_box');
+        $data['sell_karton'] = $request->has('sell_karton');
+        
+        // Set default price from price_pcs if main price not set
+        if (empty($data['price']) && !empty($data['price_pcs'])) {
+            $data['price'] = $data['price_pcs'];
+        }
+        
+        // Set default purchase_price from purchase_price_pcs if not set
+        if (empty($data['purchase_price']) && !empty($data['purchase_price_pcs'])) {
+            $data['purchase_price'] = $data['purchase_price_pcs'];
+        }
+        
+        // Default stock to 0
+        $data['stock'] = $data['stock'] ?? 0;
 
         // handle image upload
         if ($request->hasFile('image')) {
@@ -98,7 +134,7 @@ class CashierInventoryController extends Controller
         // Log activity
         ActivityLogService::logCreate('product', "Menambahkan produk: {$product->name}", $product, $data);
 
-        return redirect()->route('cashier.inventory.index')->with('success', 'Product added successfully.');
+        return redirect()->route('cashier.inventory.index')->with('success', 'Produk berhasil ditambahkan.');
     }
 
     /**
@@ -110,16 +146,55 @@ class CashierInventoryController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category' => 'nullable|string|max:100',
-            'price' => 'required|numeric|min:0',
-            'purchase_price' => 'nullable|numeric|min:0',
-            'stock' => 'required|integer|min:0',
+            'price' => 'nullable|numeric|min:0',
+            'stock' => 'nullable|integer|min:0',
             'low_stock_threshold' => 'nullable|integer|min:0',
             'barcode' => 'nullable|string|max:100|unique:products,barcode,' . $product->id,
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
             'unit' => 'nullable|string|max:50',
-            'date_in' => 'nullable|date',
-            'expiration_date' => 'nullable|date|after_or_equal:date_in',
+            // Unit sell flags
+            'sell_pcs' => 'nullable',
+            'sell_pack' => 'nullable',
+            'sell_renteng' => 'nullable',
+            'sell_box' => 'nullable',
+            'sell_karton' => 'nullable',
+            // Unit conversions
+            'pcs_per_pack' => 'nullable|integer|min:1',
+            'pcs_per_renteng' => 'nullable|integer|min:1',
+            'box_contains_qty' => 'nullable|integer|min:1',
+            'box_contains_unit' => 'nullable|string|in:pcs,pack,renteng',
+            'karton_contains_qty' => 'nullable|integer|min:1',
+            'karton_contains_unit' => 'nullable|string|in:pcs,pack,renteng,box',
+            // Selling prices
+            'price_pcs' => 'nullable|numeric|min:0',
+            'price_pack' => 'nullable|numeric|min:0',
+            'price_renteng' => 'nullable|numeric|min:0',
+            'price_box' => 'nullable|numeric|min:0',
+            'price_karton' => 'nullable|numeric|min:0',
+            // Purchase prices
+            'purchase_price_pcs' => 'nullable|numeric|min:0',
+            'purchase_price_pack' => 'nullable|numeric|min:0',
+            'purchase_price_renteng' => 'nullable|numeric|min:0',
+            'purchase_price_box' => 'nullable|numeric|min:0',
+            'purchase_price_karton' => 'nullable|numeric|min:0',
         ]);
+
+        // Handle checkbox values
+        $data['sell_pcs'] = $request->has('sell_pcs');
+        $data['sell_pack'] = $request->has('sell_pack');
+        $data['sell_renteng'] = $request->has('sell_renteng');
+        $data['sell_box'] = $request->has('sell_box');
+        $data['sell_karton'] = $request->has('sell_karton');
+        
+        // Set default price from price_pcs if main price not set
+        if (empty($data['price']) && !empty($data['price_pcs'])) {
+            $data['price'] = $data['price_pcs'];
+        }
+        
+        // Set default purchase_price from purchase_price_pcs if not set
+        if (!empty($data['purchase_price_pcs'])) {
+            $data['purchase_price'] = $data['purchase_price_pcs'];
+        }
 
         // handle image replacement
         if ($request->hasFile('image')) {
@@ -129,6 +204,12 @@ class CashierInventoryController extends Controller
             }
             $path = $request->file('image')->store('products', 'public');
             $data['image'] = $path;
+        } elseif ($request->input('remove_image') == '1') {
+            // handle image removal without replacement
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+            $data['image'] = null;
         }
 
         $oldValues = $product->toArray();
@@ -137,7 +218,7 @@ class CashierInventoryController extends Controller
         // Log activity
         ActivityLogService::logUpdate('product', "Mengubah produk: {$product->name}", $product, $oldValues, $data);
 
-        return redirect()->route('cashier.inventory.index')->with('success', 'Product updated successfully.');
+        return redirect()->route('cashier.inventory.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
     /**
@@ -354,6 +435,7 @@ class CashierInventoryController extends Controller
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
+            'incoming_unit' => 'nullable|string|in:pcs,pack,renteng,box,karton',
             'purchase_price' => 'nullable|numeric|min:0',
             'date_received' => 'required|date',
             'expiration_date' => 'nullable|date|after_or_equal:date_received',
@@ -362,15 +444,22 @@ class CashierInventoryController extends Controller
 
         $product = Product::findOrFail($validated['product_id']);
         
+        // Convert quantity to pcs (base unit)
+        $incomingUnit = $validated['incoming_unit'] ?? 'pcs';
+        $incomingQuantity = $validated['quantity'];
+        $quantityInPcs = $product->convertToBaseUnit($incomingQuantity, $incomingUnit);
+        
         // Generate batch code
         $batchCode = ProductBatch::generateBatchCode($product->id);
         
-        // Create the batch
+        // Create the batch (quantity stored in pcs)
         $batch = ProductBatch::create([
             'product_id' => $product->id,
             'batch_code' => $batchCode,
-            'quantity' => $validated['quantity'],
-            'purchase_price' => $validated['purchase_price'] ?? $product->purchase_price,
+            'quantity' => $quantityInPcs,
+            'incoming_unit' => $incomingUnit,
+            'incoming_quantity' => $incomingQuantity,
+            'purchase_price' => $validated['purchase_price'] ?? $product->getPurchasePriceForUnit($incomingUnit),
             'date_received' => $validated['date_received'],
             'expiration_date' => $validated['expiration_date'] ?? null,
             'notes' => $validated['notes'] ?? null,
@@ -378,22 +467,25 @@ class CashierInventoryController extends Controller
             'is_active' => true,
         ]);
 
-        // Update product total stock
+        // Update product total stock (in pcs)
         $oldStock = $product->stock;
-        $product->increment('stock', $validated['quantity']);
+        $product->increment('stock', $quantityInPcs);
 
         // Create stock log for this batch
+        $unitLabel = ucfirst($incomingUnit);
         StockLog::create([
             'product_id' => $product->id,
             'batch_id' => $batch->id,
             'user_id' => auth()->id(),
             'previous_stock' => $oldStock,
             'new_stock' => $product->stock,
-            'change' => $validated['quantity'],
+            'change' => $quantityInPcs,
+            'unit_type' => $incomingUnit,
+            'quantity_in_base_unit' => $quantityInPcs,
             'unit_price' => $batch->purchase_price ?? $product->purchase_price ?? 0,
-            'total_value' => ($batch->purchase_price ?? $product->purchase_price ?? 0) * $validated['quantity'],
+            'total_value' => ($batch->purchase_price ?? $product->purchase_price ?? 0) * $incomingQuantity,
             'transaction_type' => 'purchase',
-            'note' => 'Batch ' . $batchCode . ' - ' . ($validated['notes'] ?? 'Stock in'),
+            'note' => "Batch {$batchCode} - {$incomingQuantity} {$unitLabel}" . ($quantityInPcs != $incomingQuantity ? " ({$quantityInPcs} Pcs)" : ''),
         ]);
 
         // Log activity
@@ -449,10 +541,26 @@ class CashierInventoryController extends Controller
                 ];
             });
         
+        // Get available units for this product
+        $units = $product->available_units;
+        
+        // If no units configured, default to pcs only
+        if (empty($units)) {
+            $units = [
+                [
+                    'type' => 'pcs',
+                    'label' => 'Pcs',
+                    'price' => $product->price_pcs ?? $product->price ?? 0,
+                ]
+            ];
+        }
+        
         return response()->json([
             'product_id' => $product->id,
             'product_name' => $product->name,
-            'total_stock' => $product->stock,
+            'total_stock' => $product->effective_stock,
+            'default_price' => $product->price ?? 0,
+            'units' => $units,
             'batches' => $batches,
         ]);
     }

@@ -12,7 +12,7 @@
                         ← Kembali ke Inventory
                     </a>
                     <h2 class="text-2xl font-bold text-gray-800">Batch Produk: {{ $product->name }}</h2>
-                    <p class="text-gray-600">Total stok: {{ $product->stock }} {{ $product->unit ?? 'pcs' }}</p>
+                    <p class="text-gray-600">Total stok: {{ $product->effective_stock }} {{ $product->unit ?? 'pcs' }}</p>
                 </div>
                 <a href="{{ route('cashier.inventory.batch.stock-in') }}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,12 +22,6 @@
                 </a>
             </div>
         </div>
-
-        @if(session('success'))
-            <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg">
-                {{ session('success') }}
-            </div>
-        @endif
 
         <!-- Batches Table -->
         <div class="overflow-x-auto">

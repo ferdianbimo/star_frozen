@@ -65,12 +65,6 @@
             </header>
 
             <main class="py-6 px-4 sm:px-6 lg:px-8">
-                @if(session('success'))
-                <div class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow" role="alert">
-                    <p>{{ session('success') }}</p>
-                </div>
-                @endif
-
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Product Info -->
                     <div class="bg-white rounded-lg shadow overflow-hidden md:col-span-2">
@@ -100,9 +94,10 @@
                                         </div>
                                         <div>
                                             <p class="text-sm font-medium text-gray-500">Current Stock</p>
-                                            <p class="mt-1 {{ $product->hasLowStock() ? 'text-red-600 font-semibold' : '' }}">
-                                                {{ $product->stock }} units
-                                                @if($product->hasLowStock())
+                                            @php $effectiveStock = $product->effective_stock; @endphp
+                                            <p class="mt-1 {{ $effectiveStock <= ($product->low_stock_threshold ?? 5) ? 'text-red-600 font-semibold' : '' }}">
+                                                {{ $effectiveStock }} units
+                                                @if($effectiveStock <= ($product->low_stock_threshold ?? 5))
                                                     <span class="text-xs text-red-600">(Low stock)</span>
                                                 @endif
                                             </p>
@@ -137,11 +132,11 @@
                                         <button type="button" onclick="decrementStock()" class="bg-red-500 text-white px-4 py-2 rounded-l-md">-</button>
                                         <input type="number" id="stock_change" name="stock_change" value="0" required 
                                             class="flex-1 border-gray-300 focus:ring focus:ring-green-200 focus:border-green-500 text-center" 
-                                            min="{{ -$product->stock }}" step="1">
+                                            min="{{ -$product->effective_stock }}" step="1">
                                         <button type="button" onclick="incrementStock()" class="bg-green-500 text-white px-4 py-2 rounded-r-md">+</button>
                                     </div>
-                                    <p class="mt-1 text-sm text-gray-500">Current stock: <span id="current_stock">{{ $product->stock }}</span></p>
-                                    <p class="mt-1 text-sm text-gray-500">New stock will be: <span id="new_stock">{{ $product->stock }}</span></p>
+                                    <p class="mt-1 text-sm text-gray-500">Current stock: <span id="current_stock">{{ $product->effective_stock }}</span></p>
+                                    <p class="mt-1 text-sm text-gray-500">New stock will be: <span id="new_stock">{{ $product->effective_stock }}</span></p>
                                 </div>
                                 
                                 <div class="mb-4">
@@ -222,7 +217,7 @@
         const stockChangeInput = document.getElementById('stock_change');
         const currentStockSpan = document.getElementById('current_stock');
         const newStockSpan = document.getElementById('new_stock');
-        const currentStock = {{ $product->stock }};
+        const currentStock = {{ $product->effective_stock }};
         
         function updateNewStock() {
             const change = parseInt(stockChangeInput.value) || 0;

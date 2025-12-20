@@ -3,176 +3,226 @@
 @section('title','Laporan Keuangan')
 
 @section('content')
-    <main class="flex-1 overflow-auto bg-gray-50">
-            <!-- Header -->
-            <header class="bg-white shadow-sm sticky top-0 z-10">
-                <div class="px-8 py-6 flex justify-between items-center">
+    <!-- Finance Header -->
+    <div class="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 rounded-2xl shadow-xl mb-8 overflow-hidden">
+        <div class="relative px-6 py-8">
+            <div class="absolute inset-0 bg-gradient-to-r from-emerald-600/10 to-blue-600/10"></div>
+            <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                        <i class="fas fa-wallet text-2xl text-white"></i>
+                    </div>
                     <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Laporan Keuangan</h1>
-                        <p class="text-sm text-gray-500 mt-1">{{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <a href="{{ route('manager.dashboard') }}" class="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition">
-                            Kembali ke Dashboard
-                        </a>
-                        <a href="{{ route('manager.finance.income') }}" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
-                            History Pemasukan
-                        </a>
-                        <a href="{{ route('manager.finance.expenses') }}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
-                            Kelola Pengeluaran
-                        </a>
+                        <h1 class="text-2xl md:text-3xl font-bold text-white">Laporan Keuangan</h1>
+                        <p class="text-slate-400 mt-1">{{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
                     </div>
                 </div>
-            </header>
+                <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                    <a href="{{ route('manager.dashboard') }}" class="bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 px-3 sm:px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 flex items-center gap-2 border border-white/20">
+                        <i class="fas fa-arrow-left"></i>
+                        <span class="hidden sm:inline">Kembali</span>
+                    </a>
+                    <a href="{{ route('manager.finance.income') }}" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 sm:px-4 py-2 rounded-xl font-medium text-sm shadow-lg shadow-green-500/30 transition-all duration-200 flex items-center gap-2">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="hidden sm:inline">History</span> Pemasukan
+                    </a>
+                    <a href="{{ route('manager.finance.expenses') }}" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-3 sm:px-4 py-2 rounded-xl font-medium text-sm shadow-lg shadow-blue-500/30 transition-all duration-200 flex items-center gap-2">
+                        <i class="fas fa-receipt"></i>
+                        <span class="hidden sm:inline">Kelola</span> Pengeluaran
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <!-- Content -->
-            <div class="p-8">
-                <!-- Info Badge - Data dari Stock Logs -->
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                        </svg>
-                        <div>
-                            <p class="text-sm font-medium text-blue-800">Data Otomatis dari Stok Keluar</p>
-                            <p class="text-xs text-blue-600">Setiap transaksi POS dan stok keluar inventory akan langsung terupdate dalam 30 detik</p>
-                        </div>
+    <!-- Info Badge - Data dari Stock Logs -->
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-6 flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+        </div>
+        <div>
+            <p class="text-sm font-semibold text-blue-800">Data Otomatis dari Stok Keluar</p>
+            <p class="text-xs text-blue-600">Setiap transaksi POS dan stok keluar inventory akan langsung terupdate dalam 30 detik</p>
+        </div>
+    </div>
+    
+    <!-- Filter Period -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 mb-6">
+        <form method="GET" action="{{ route('manager.finance.index') }}" class="flex flex-col lg:flex-row items-stretch lg:items-end gap-3 lg:gap-4">
+            <div class="flex-1 w-full">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    <i class="fas fa-calendar-alt mr-1 text-slate-400"></i>
+                    Periode Laporan
+                </label>
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <input type="date" name="start_date" value="{{ $startDate }}" 
+                           class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    <span class="text-slate-400 self-center font-medium hidden sm:block">sampai</span>
+                    <input type="date" name="end_date" value="{{ $endDate }}" 
+                           class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                </div>
+            </div>
+            <button type="submit" class="w-full lg:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/30 transition-all duration-200 flex items-center justify-center gap-2">
+                <i class="fas fa-filter"></i>
+                Terapkan Filter
+            </button>
+        </form>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8">
+        <!-- Total Income -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 hover:shadow-lg transition-all duration-300 group">
+            <div class="flex items-center justify-between mb-3 lg:mb-4">
+                <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-arrow-down text-white text-sm lg:text-lg"></i>
+                </div>
+                @if($incomePercentage >= 0)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                        <i class="fas fa-arrow-up text-[10px]"></i> {{ number_format($incomePercentage, 1) }}%
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                        <i class="fas fa-arrow-down text-[10px]"></i> {{ number_format(abs($incomePercentage), 1) }}%
+                    </span>
+                @endif
+            </div>
+            <p class="text-xs lg:text-sm text-slate-500 font-medium">Total Pemasukan</p>
+            <h3 class="text-lg lg:text-2xl font-bold text-slate-800 mt-1">Rp {{ number_format($totalIncome, 0, ',', '.') }}</h3>
+            <p class="text-xs text-slate-400 mt-1 hidden sm:block">vs periode lalu</p>
+        </div>
+
+        <!-- Total Expenses -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 hover:shadow-lg transition-all duration-300 group">
+            <div class="flex items-center justify-between mb-3 lg:mb-4">
+                <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-arrow-up text-white text-sm lg:text-lg"></i>
+                </div>
+                @if($expensePercentage >= 0)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                        <i class="fas fa-arrow-up text-[10px]"></i> {{ number_format($expensePercentage, 1) }}%
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                        <i class="fas fa-arrow-down text-[10px]"></i> {{ number_format(abs($expensePercentage), 1) }}%
+                    </span>
+                @endif
+            </div>
+            <p class="text-xs lg:text-sm text-slate-500 font-medium">Total Pengeluaran</p>
+            <h3 class="text-lg lg:text-2xl font-bold text-slate-800 mt-1">Rp {{ number_format($totalExpenses, 0, ',', '.') }}</h3>
+            <p class="text-xs text-slate-400 mt-1 hidden sm:block">vs periode lalu</p>
+        </div>
+
+        <!-- Net Profit -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 hover:shadow-lg transition-all duration-300 group">
+            <div class="flex items-center justify-between mb-3 lg:mb-4">
+                <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-chart-pie text-white text-sm lg:text-lg"></i>
+                </div>
+            </div>
+            <p class="text-xs lg:text-sm text-slate-500 font-medium">Laba Bersih</p>
+            <h3 class="text-lg lg:text-2xl font-bold {{ $netProfit >= 0 ? 'text-green-600' : 'text-red-600' }} mt-1">
+                Rp {{ number_format($netProfit, 0, ',', '.') }}
+            </h3>
+            <p class="text-xs text-slate-400 mt-1 hidden sm:block">Pemasukan - Pengeluaran</p>
+        </div>
+
+        <!-- Profit Percentage -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 hover:shadow-lg transition-all duration-300 group">
+            <div class="flex items-center justify-between mb-3 lg:mb-4">
+                <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-percentage text-white text-sm lg:text-lg"></i>
+                </div>
+            </div>
+            <p class="text-xs lg:text-sm text-slate-500 font-medium">Perubahan Laba</p>
+            <h3 class="text-lg lg:text-2xl font-bold mt-1">
+                @if($profitPercentage >= 0)
+                    <span class="text-green-600">+{{ number_format($profitPercentage, 1) }}%</span>
+                @else
+                    <span class="text-red-600">{{ number_format($profitPercentage, 1) }}%</span>
+                @endif
+            </h3>
+            <p class="text-xs text-slate-400 mt-1 hidden sm:block">Dari periode sebelumnya</p>
+        </div>
+    </div>
+
+    <!-- Charts and Tables -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Income vs Expense Chart -->
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fas fa-chart-area text-white"></i>
+                </div>
+                <h2 class="text-lg font-bold text-slate-800">Tren Pemasukan vs Pengeluaran (7 Hari Terakhir)</h2>
+            </div>
+            <canvas id="financeChart" height="80"></canvas>
+        </div>
+
+        <!-- Top Products by Revenue -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fas fa-trophy text-white"></i>
+                </div>
+                <h2 class="text-lg font-bold text-slate-800">Top Produk Penjualan</h2>
+            </div>
+            <div class="space-y-4 max-h-80 overflow-y-auto">
+                @forelse($incomeByProduct as $index => $item)
+                <div class="p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shadow-md">{{ $index + 1 }}</span>
+                        <p class="font-semibold text-slate-700 text-sm flex-1 truncate">{{ $item->name }}</p>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-2">{{ number_format($item->total_quantity) }} unit • Rp {{ number_format($item->total_sales, 0, ',', '.') }}</p>
+                    <div class="w-full h-2 bg-slate-200 rounded-full">
+                        @php
+                            $maxSales = $incomeByProduct->max('total_sales');
+                            $percentage = $maxSales > 0 ? ($item->total_sales / $maxSales) * 100 : 0;
+                        @endphp
+                        <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" style="width: {{ $percentage }}%"></div>
                     </div>
                 </div>
-                
-                <!-- Filter Period -->
-                <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-                    <form method="GET" action="{{ route('manager.finance.index') }}" class="flex items-end gap-4">
-                        <div class="flex-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Periode Laporan</label>
-                            <div class="flex gap-3">
-                                <input type="date" name="start_date" value="{{ $startDate }}" 
-                                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <span class="text-gray-500 self-center">-</span>
-                                <input type="date" name="end_date" value="{{ $endDate }}" 
-                                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            </div>
-                        </div>
-                        <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
-                            Terapkan Filter
-                        </button>
-                    </form>
+                @empty
+                <div class="flex flex-col items-center justify-center py-8">
+                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3">
+                        <i class="fas fa-shopping-bag text-2xl text-slate-400"></i>
+                    </div>
+                    <p class="text-slate-500 text-sm">Tidak ada data penjualan</p>
                 </div>
+                @endforelse
+            </div>
+        </div>
+    </div>
 
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <!-- Total Income -->
-                    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500">
-                        <p class="text-gray-600 text-sm font-medium mb-2">Total Pemasukan</p>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">
-                            Rp {{ number_format($totalIncome, 0, ',', '.') }}
-                        </h3>
-                        <div class="flex items-center">
-                            @if($incomePercentage >= 0)
-                                <span class="text-green-600 text-sm font-medium">↑ {{ number_format($incomePercentage, 1) }}%</span>
-                            @else
-                                <span class="text-red-600 text-sm font-medium">↓ {{ number_format(abs($incomePercentage), 1) }}%</span>
-                            @endif
-                            <span class="text-gray-400 text-sm ml-2">vs periode lalu</span>
-                        </div>
-                    </div>
-
-                    <!-- Total Expenses -->
-                    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-red-500">
-                        <p class="text-gray-600 text-sm font-medium mb-2">Total Pengeluaran</p>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">
-                            Rp {{ number_format($totalExpenses, 0, ',', '.') }}
-                        </h3>
-                        <div class="flex items-center">
-                            @if($expensePercentage >= 0)
-                                <span class="text-red-600 text-sm font-medium">↑ {{ number_format($expensePercentage, 1) }}%</span>
-                            @else
-                                <span class="text-green-600 text-sm font-medium">↓ {{ number_format(abs($expensePercentage), 1) }}%</span>
-                            @endif
-                            <span class="text-gray-400 text-sm ml-2">vs periode lalu</span>
-                        </div>
-                    </div>
-
-                    <!-- Net Profit -->
-                    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
-                        <p class="text-gray-600 text-sm font-medium mb-2">Laba Bersih</p>
-                        <h3 class="text-2xl font-bold {{ $netProfit >= 0 ? 'text-green-600' : 'text-red-600' }} mb-2">
-                            Rp {{ number_format($netProfit, 0, ',', '.') }}
-                        </h3>
-                        <p class="text-gray-500 text-sm">Pemasukan - Pengeluaran</p>
-                    </div>
-
-                    <!-- Profit Percentage -->
-                    <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500">
-                        <p class="text-gray-600 text-sm font-medium mb-2">Perubahan Laba</p>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">
-                            @if($profitPercentage >= 0)
-                                <span class="text-green-600">+{{ number_format($profitPercentage, 1) }}%</span>
-                            @else
-                                <span class="text-red-600">{{ number_format($profitPercentage, 1) }}%</span>
-                            @endif
-                        </h3>
-                        <p class="text-gray-500 text-sm">Dari periode sebelumnya</p>
-                    </div>
+    <!-- Recent Sales Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fas fa-receipt text-white"></i>
                 </div>
-
-                <!-- Charts and Tables -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- Income vs Expense Chart -->
-                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
-                        <h2 class="text-xl font-bold text-gray-900 mb-6">Tren Pemasukan vs Pengeluaran (7 Hari Terakhir)</h2>
-                        <canvas id="financeChart" height="80"></canvas>
-                    </div>
-
-                    <!-- Top Products by Revenue -->
-                    <div class="bg-white rounded-xl shadow-sm p-6">
-                        <h2 class="text-xl font-bold text-gray-900 mb-6">Top Produk Penjualan</h2>
-                        <div class="space-y-4">
-                            @forelse($incomeByProduct as $index => $item)
-                            <div class="p-3 bg-gray-50 rounded-lg">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">{{ $index + 1 }}</span>
-                                    <p class="font-medium text-gray-900 text-sm flex-1">{{ $item->name }}</p>
-                                </div>
-                                <p class="text-xs text-gray-500">{{ number_format($item->total_quantity) }} unit • Rp {{ number_format($item->total_sales, 0, ',', '.') }}</p>
-                                <div class="w-full h-2 bg-gray-200 rounded-full mt-2">
-                                    @php
-                                        $maxSales = $incomeByProduct->max('total_sales');
-                                        $percentage = $maxSales > 0 ? ($item->total_sales / $maxSales) * 100 : 0;
-                                    @endphp
-                                    <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" style="width: {{ $percentage }}%"></div>
-                                </div>
-                            </div>
-                            @empty
-                            <p class="text-center text-gray-400 py-8">Tidak ada data penjualan</p>
-                            @endforelse
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Sales Table -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-bold text-gray-900">Transaksi Penjualan Terbaru</h2>
-                        <a href="{{ route('manager.finance.income') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                            Lihat Semua →
-                        </a>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead>
-                                <tr class="bg-gray-50">
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Waktu</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Produk</th>
-                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Qty</th>
-                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Harga Satuan</th>
-                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">Total</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Kasir</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse($recentSales as $sale)
-                                <tr class="hover:bg-gray-50">
+                <h2 class="text-lg font-bold text-slate-800">Transaksi Penjualan Terbaru</h2>
+            </div>
+            <a href="{{ route('manager.finance.income') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1">
+                Lihat Semua <i class="fas fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Waktu</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Produk</th>
+                        <th class="px-5 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Qty</th>
+                        <th class="px-5 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Harga Satuan</th>
+                        <th class="px-5 py-4 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Total</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Kasir</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($recentSales as $sale)
+                    <tr class="hover:bg-slate-50 transition-colors">
                                     <td class="px-4 py-3 text-sm text-gray-900">
                                         {{ $sale->created_at->format('d/m/Y') }}<br>
                                         <span class="text-xs text-gray-500">{{ $sale->created_at->format('H:i') }}</span>

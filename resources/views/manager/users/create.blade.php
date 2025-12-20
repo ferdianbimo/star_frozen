@@ -49,18 +49,23 @@
 
                         <!-- Role -->
                         <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="role_id">
+                            <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2" for="role_id">
                                 Role <span class="text-red-500">*</span>
                             </label>
-                            <select name="role_id" id="role_id" required
-                                class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('role_id') border-red-500 @enderror">
-                                <option value="">Select Role</option>
-                                @foreach($roles as $role)
-                                    <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                                        {{ ucfirst($role->name) }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div class="relative">
+                                <select name="role_id" id="role_id" required
+                                    class="custom-select w-full appearance-none border-2 border-slate-200 rounded-xl px-4 py-3 pr-10 bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer hover:border-slate-300 @error('role_id') border-red-500 @enderror">
+                                    <option value="">Select Role</option>
+                                    @foreach($roles as $role)
+                                        <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
+                                            {{ ucfirst($role->name) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                </div>
+                            </div>
                             @error('role_id')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
