@@ -12,6 +12,7 @@ class TransactionItem extends Model
     protected $fillable = [
         'transaction_id',
         'product_id',
+        'batch_id',
         'quantity',
         'price',
         'cost',
@@ -40,5 +41,13 @@ class TransactionItem extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the batch.
+     */
+    public function batch()
+    {
+        return $this->belongsTo(ProductBatch::class, 'batch_id');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -41,7 +42,16 @@ class UserController extends Controller
 
         $validated['password'] = Hash::make($validated['password']);
 
-        User::create($validated);
+        $user = User::create($validated);
+
+        // Log activity
+        $role = Role::find($validated['role_id']);
+        ActivityLogService::logCreate(
+            'user',
+            "Menambahkan user baru: {$user->name} (Role: {$role->name})",
+            $user,
+            ['name' => $user->name, 'email' => $user->email, 'role' => $role->name]
+        );
 
         return redirect()->route('manager.access.index')
             ->with('success', 'User created successfully.');
@@ -77,6 +87,12 @@ class UserController extends Controller
             'role_id' => 'required|exists:roles,id',
         ]);
 
+        $oldValues = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role->name ?? 'N/A',
+        ];
+
         if (!empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
@@ -84,6 +100,16 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+        $user->load('role');
+
+        // Log activity
+        ActivityLogService::logUpdate(
+            'user',
+            "Mengubah user: {$user->name}",
+            $user,
+            $oldValues,
+            ['name' => $user->name, 'email' => $user->email, 'role' => $user->role->name ?? 'N/A']
+        );
 
         return redirect()->route('manager.access.index')
             ->with('success', 'User updated successfully.');
@@ -100,7 +126,19 @@ class UserController extends Controller
                 ->with('error', 'Cannot delete your own account.');
         }
 
+        $userName = $user->name;
+        $userEmail = $user->email;
+        $userRole = $user->role->name ?? 'N/A';
+
         $user->delete();
+
+        // Log activity
+        ActivityLogService::logDelete(
+            'user',
+            "Menghapus user: {$userName}",
+            null,
+            ['name' => $userName, 'email' => $userEmail, 'role' => $userRole]
+        );
 
         return redirect()->route('manager.access.index')
             ->with('success', 'User deleted successfully.');

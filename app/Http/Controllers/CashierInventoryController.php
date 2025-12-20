@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 use App\Models\StockLog;
+use App\Models\ProductBatch;
+use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 
 class CashierInventoryController extends Controller
@@ -91,7 +93,10 @@ class CashierInventoryController extends Controller
             $data['image'] = $path;
         }
 
-        Product::create($data + ['is_active' => true]);
+        $product = Product::create($data + ['is_active' => true]);
+
+        // Log activity
+        ActivityLogService::logCreate('product', "Menambahkan produk: {$product->name}", $product, $data);
 
         return redirect()->route('cashier.inventory.index')->with('success', 'Product added successfully.');
     }
@@ -126,7 +131,11 @@ class CashierInventoryController extends Controller
             $data['image'] = $path;
         }
 
+        $oldValues = $product->toArray();
         $product->update($data);
+
+        // Log activity
+        ActivityLogService::logUpdate('product', "Mengubah produk: {$product->name}", $product, $oldValues, $data);
 
         return redirect()->route('cashier.inventory.index')->with('success', 'Product updated successfully.');
     }
@@ -141,7 +150,13 @@ class CashierInventoryController extends Controller
             Storage::disk('public')->delete($product->image);
         }
 
+        $productName = $product->name;
+        $oldValues = $product->toArray();
         $product->delete();
+
+        // Log activity
+        ActivityLogService::logDelete('product', "Menghapus produk: {$productName}", null, $oldValues);
+
         return redirect()->route('cashier.inventory.index')->with('success', 'Product deleted');
     }
 
@@ -197,6 +212,19 @@ class CashierInventoryController extends Controller
             'note' => $validated['note'] ?? 'Stock updated by cashier',
             'user_id' => auth()->id(),
         ]);
+
+        // Log activity
+        $changeText = $validated['stock_change'] > 0 ? "+{$validated['stock_change']}" : $validated['stock_change'];
+        $actionType = $validated['stock_change'] > 0 ? 'stock_in' : 'stock_out';
+        ActivityLogService::log(
+            $actionType,
+            'inventory',
+            "Perubahan stok {$product->name}: {$changeText} (Stok: {$oldStock} → {$product->stock})",
+            $product,
+            ['stock' => $oldStock],
+            ['stock' => $product->stock],
+            ['change' => $validated['stock_change'], 'note' => $validated['note'] ?? null]
+        );
 
         return redirect()->route('cashier.inventory.show', $product)
             ->with('success', 'Stock updated successfully.');
@@ -300,5 +328,132 @@ class CashierInventoryController extends Controller
         });
 
         return response()->json(['logs' => $data]);
+    }
+
+    /**
+     * Show stock-in form with batch input.
+     */
+    public function stockIn()
+    {
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+        
+        // Get recent batch entries
+        $recentBatches = ProductBatch::with('product', 'receivedBy')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+        
+        return view('cashier.inventory.stock-in', compact('products', 'recentBatches'));
+    }
+
+    /**
+     * Store a new batch for stock-in.
+     */
+    public function storeBatch(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'purchase_price' => 'nullable|numeric|min:0',
+            'date_received' => 'required|date',
+            'expiration_date' => 'nullable|date|after_or_equal:date_received',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $product = Product::findOrFail($validated['product_id']);
+        
+        // Generate batch code
+        $batchCode = ProductBatch::generateBatchCode($product->id);
+        
+        // Create the batch
+        $batch = ProductBatch::create([
+            'product_id' => $product->id,
+            'batch_code' => $batchCode,
+            'quantity' => $validated['quantity'],
+            'purchase_price' => $validated['purchase_price'] ?? $product->purchase_price,
+            'date_received' => $validated['date_received'],
+            'expiration_date' => $validated['expiration_date'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'received_by' => auth()->id(),
+            'is_active' => true,
+        ]);
+
+        // Update product total stock
+        $oldStock = $product->stock;
+        $product->increment('stock', $validated['quantity']);
+
+        // Create stock log for this batch
+        StockLog::create([
+            'product_id' => $product->id,
+            'batch_id' => $batch->id,
+            'user_id' => auth()->id(),
+            'previous_stock' => $oldStock,
+            'new_stock' => $product->stock,
+            'change' => $validated['quantity'],
+            'unit_price' => $batch->purchase_price ?? $product->purchase_price ?? 0,
+            'total_value' => ($batch->purchase_price ?? $product->purchase_price ?? 0) * $validated['quantity'],
+            'transaction_type' => 'purchase',
+            'note' => 'Batch ' . $batchCode . ' - ' . ($validated['notes'] ?? 'Stock in'),
+        ]);
+
+        // Log activity
+        ActivityLogService::logStockIn(
+            "Menambahkan batch {$batchCode} untuk produk {$product->name} (+{$validated['quantity']})",
+            $batch,
+            [
+                'product_name' => $product->name,
+                'batch_code' => $batchCode,
+                'quantity' => $validated['quantity'],
+                'expiration_date' => $validated['expiration_date'] ?? null,
+            ]
+        );
+
+        return redirect()->route('cashier.inventory.batch.stock-in')
+            ->with('success', 'Batch berhasil ditambahkan! Kode Batch: ' . $batchCode);
+    }
+
+    /**
+     * Show batches for a specific product.
+     */
+    public function productBatches(Product $product)
+    {
+        $batches = $product->batches()
+            ->orderByRaw('CASE WHEN expiration_date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('expiration_date', 'asc')
+            ->paginate(10);
+        
+        return view('cashier.inventory.batches', compact('product', 'batches'));
+    }
+
+    /**
+     * Get available batches for a product (API for POS).
+     */
+    public function getProductBatches(Product $product)
+    {
+        $batches = $product->batches()
+            ->available()
+            ->notExpired()
+            ->fifo()
+            ->get()
+            ->map(function ($batch) {
+                return [
+                    'id' => $batch->id,
+                    'batch_code' => $batch->batch_code,
+                    'quantity' => $batch->quantity,
+                    'expiration_date' => $batch->expiration_date ? $batch->expiration_date->format('d M Y') : null,
+                    'expiration_status' => $batch->expiration_status,
+                    'is_expiring_soon' => $batch->isExpiringSoon(),
+                    'is_expired' => $batch->isExpired(),
+                    'days_until_expiration' => $batch->daysUntilExpiration(),
+                    'purchase_price' => $batch->purchase_price,
+                ];
+            });
+        
+        return response()->json([
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'total_stock' => $product->stock,
+            'batches' => $batches,
+        ]);
     }
 }

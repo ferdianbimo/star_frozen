@@ -16,6 +16,7 @@ class StockLog extends Model
      */
     protected $fillable = [
         'product_id',
+        'batch_id',
         'user_id',
         'previous_stock',
         'new_stock',
@@ -50,5 +51,13 @@ class StockLog extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the batch associated with this stock log.
+     */
+    public function batch()
+    {
+        return $this->belongsTo(ProductBatch::class, 'batch_id');
     }
 }
