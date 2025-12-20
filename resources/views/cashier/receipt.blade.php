@@ -8,12 +8,32 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="bg-gray-100">
+    @php
+        $settings = \App\Models\ReceiptSetting::current();
+    @endphp
     <div class="min-h-screen flex items-start justify-center p-6">
-        <div class="bg-white shadow-sm p-4" style="width:320px; font-family: 'Courier New', Courier, monospace; font-size:12px;">
+        <div class="bg-white shadow-sm p-4" style="width:{{ $settings->receipt_width }}; font-family: 'Courier New', Courier, monospace; font-size:12px;">
+            <!-- Logo -->
+            @if($settings->show_logo && $settings->logo)
+            <div style="text-align:center; margin-bottom: 8px;">
+                <img src="{{ Storage::url($settings->logo) }}" alt="Logo" style="max-height: 60px; max-width: 150px; margin: 0 auto;">
+            </div>
+            @endif
+
             <div style="text-align:center;">
-                <div style="font-size:18px; font-weight:700;">Star Frozen</div>
-                <div>Jl. Abdul Fatah Barat, RT.02/RW.02, Dusun Bungur, Bungur, Kec. Karangrejo, Kabupaten Tulungagung, Jawa Timur 66253</div>
-                <div>NO.TELP: 0812-3456-7890</div>
+                <div style="font-size:18px; font-weight:700;">{{ $settings->store_name }}</div>
+                @if($settings->show_address && $settings->store_address)
+                    <div>{{ $settings->store_address }}</div>
+                @endif
+                @if($settings->show_phone && $settings->store_phone)
+                    <div>NO.TELP: {{ $settings->store_phone }}</div>
+                @endif
+                @if($settings->store_email)
+                    <div>{{ $settings->store_email }}</div>
+                @endif
+                @if($settings->header_text)
+                    <div style="margin-top:4px;">{{ $settings->header_text }}</div>
+                @endif
                 <div style="margin-top:6px; border-top:1px dashed #000; padding-top:6px;"></div>
             </div>
 
@@ -44,6 +64,9 @@
                         {{ \Carbon\Carbon::parse($transaction['created_at'])->format('d/m/Y H:i') }}
                     @endif
                 </div>
+                @if($settings->show_cashier_name && !empty($cashier))
+                    <div>KASIR: {{ $cashier->name }}</div>
+                @endif
                 @if(!empty($transaction['table_number']))
                     <div>Table: {{ $transaction['table_number'] }}</div>
                 @endif
@@ -109,8 +132,12 @@
             </div>
 
             <div style="margin-top:10px; text-align:center;">
-                <div>TERIMAKASIH TELAH BERBELANJA</div>
-                <div style="margin-top:8px; font-size:10px;">Printed by Star Frozen POS</div>
+                @if($settings->show_thank_you && $settings->thank_you_text)
+                    <div>{{ $settings->thank_you_text }}</div>
+                @endif
+                @if($settings->footer_text)
+                    <div style="margin-top:8px; font-size:10px;">{{ $settings->footer_text }}</div>
+                @endif
             </div>
 
             <div style="margin-top:12px; display:flex; gap:12px; justify-content:center;" class="no-print">

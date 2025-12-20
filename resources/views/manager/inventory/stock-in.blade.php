@@ -60,18 +60,6 @@
                     <p class="text-gray-600">Tambah stok produk</p>
                 </div>
 
-                @if(session('success'))
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                @if(session('error'))
-                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                        {{ session('error') }}
-                    </div>
-                @endif
-
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Form Stok Masuk -->
                     <div class="bg-white rounded-lg shadow p-6">
@@ -80,21 +68,26 @@
                             @csrf
                             
                             <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2">
+                                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">
                                     Produk <span class="text-red-500">*</span>
                                 </label>
-                                <select name="product_id" id="product_id" required 
-                                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('product_id') border-red-500 @enderror">
-                                    <option value="">Pilih Produk</option>
-                                    @foreach($products as $product)
-                                        <option value="{{ $product->id }}" 
-                                                data-stock="{{ $product->stock }}"
-                                                data-unit="{{ $product->unit }}"
-                                                {{ old('product_id') == $product->id ? 'selected' : '' }}>
-                                            {{ $product->name }} (Stok: {{ $product->stock }} {{ $product->unit }})
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="relative">
+                                    <select name="product_id" id="product_id" required 
+                                        class="custom-select w-full appearance-none border-2 border-slate-200 rounded-xl px-4 py-3 pr-10 bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer hover:border-slate-300 @error('product_id') border-red-500 @enderror">
+                                        <option value="">Pilih Produk</option>
+                                        @foreach($products as $product)
+                                            <option value="{{ $product->id }}" 
+                                                    data-stock="{{ $product->effective_stock }}"
+                                                    data-unit="{{ $product->unit }}"
+                                                    {{ old('product_id') == $product->id ? 'selected' : '' }}>
+                                                {{ $product->name }} (Stok: {{ $product->effective_stock }} {{ $product->unit }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                                    </div>
+                                </div>
                                 @error('product_id')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror

@@ -43,10 +43,22 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')
     Route::put('/finance/expenses/{expense}', [\App\Http\Controllers\FinanceController::class, 'updateExpense'])->name('finance.expenses.update');
     Route::delete('/finance/expenses/{expense}', [\App\Http\Controllers\FinanceController::class, 'destroyExpense'])->name('finance.expenses.destroy');
     
+    // Expense Categories
+    Route::get('/finance/expense-categories', [\App\Http\Controllers\FinanceController::class, 'getExpenseCategories'])->name('finance.expense-categories.index');
+    Route::post('/finance/expense-categories', [\App\Http\Controllers\FinanceController::class, 'storeExpenseCategory'])->name('finance.expense-categories.store');
+    Route::put('/finance/expense-categories/{category}', [\App\Http\Controllers\FinanceController::class, 'updateExpenseCategory'])->name('finance.expense-categories.update');
+    Route::delete('/finance/expense-categories/{category}', [\App\Http\Controllers\FinanceController::class, 'destroyExpenseCategory'])->name('finance.expense-categories.destroy');
+    
     // Access Control (Hak Akses) - User & Role Management
     Route::get('/access', [\App\Http\Controllers\AccessController::class, 'index'])->name('access.index');
     Route::resource('users', \App\Http\Controllers\UserController::class);
     Route::resource('roles', \App\Http\Controllers\RoleController::class)->only(['edit', 'update', 'destroy']);
+    
+    // Receipt Settings (CMS Struk)
+    Route::get('/receipt-settings', [\App\Http\Controllers\ReceiptSettingController::class, 'index'])->name('receipt-settings.index');
+    Route::put('/receipt-settings', [\App\Http\Controllers\ReceiptSettingController::class, 'update'])->name('receipt-settings.update');
+    Route::delete('/receipt-settings/logo', [\App\Http\Controllers\ReceiptSettingController::class, 'removeLogo'])->name('receipt-settings.remove-logo');
+    Route::get('/receipt-settings/preview', [\App\Http\Controllers\ReceiptSettingController::class, 'preview'])->name('receipt-settings.preview');
 });
 
 // Cashier Routes
@@ -87,6 +99,11 @@ Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->
     
     // API for POS batch selection
     Route::get('/api/products/{product}/batches', [\App\Http\Controllers\CashierInventoryController::class, 'getProductBatches'])->name('api.product.batches');
+    
+    // Category Management
+    Route::get('/api/categories', [\App\Http\Controllers\CategoryController::class, 'index'])->name('api.categories.index');
+    Route::post('/api/categories', [\App\Http\Controllers\CategoryController::class, 'store'])->name('api.categories.store');
+    Route::delete('/api/categories/{category}', [\App\Http\Controllers\CategoryController::class, 'destroy'])->name('api.categories.destroy');
 });
 
 require __DIR__.'/auth.php';

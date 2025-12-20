@@ -39,35 +39,43 @@ class PosController extends Controller
     {
         $data = $request->validate([
             'product_id' => 'required|exists:products,id',
-            'batch_id' => 'nullable|exists:product_batches,id',
-            'quantity' => 'nullable|integer|min:1'
+            'batch_id' => 'required|exists:product_batches,id',
+            'quantity' => 'nullable|integer|min:1',
+            'unit_type' => 'nullable|string|in:pcs,pack,renteng,box,karton'
+        ], [
+            'batch_id.required' => 'Batch harus dipilih untuk melakukan transaksi.',
+            'batch_id.exists' => 'Batch yang dipilih tidak valid.'
         ]);
 
         $product = Product::findOrFail($data['product_id']);
         $qty = isset($data['quantity']) ? (int)$data['quantity'] : 1;
-        $batchId = $data['batch_id'] ?? null;
+        $batchId = $data['batch_id'];
+        $unitType = $data['unit_type'] ?? 'pcs';
         
-        // If batch_id provided, validate it belongs to product and has enough stock
-        $batch = null;
-        if ($batchId) {
-            $batch = ProductBatch::where('id', $batchId)
-                        ->where('product_id', $product->id)
-                        ->where('is_active', true)
-                        ->first();
-            
-            if (!$batch) {
-                return Redirect::back()->with('error', 'Batch tidak valid');
-            }
-            
-            if ($batch->quantity < $qty) {
-                return Redirect::back()->with('error', 'Stok batch tidak mencukupi');
-            }
+        // Get price for selected unit
+        $unitPrice = $product->getPriceForUnit($unitType);
+        
+        // Calculate quantity in base unit (pcs) for stock validation
+        $qtyInPcs = $product->convertToBaseUnit($qty, $unitType);
+        
+        // Validate batch belongs to product and has enough stock
+        $batch = ProductBatch::where('id', $batchId)
+                    ->where('product_id', $product->id)
+                    ->where('is_active', true)
+                    ->first();
+        
+        if (!$batch) {
+            return Redirect::back()->with('error', 'Batch tidak valid atau tidak aktif');
+        }
+        
+        if ($batch->quantity < $qtyInPcs) {
+            return Redirect::back()->with('error', 'Stok batch tidak mencukupi');
         }
 
         $cart = $this->getCart();
         
-        // Create unique cart key based on product_id and batch_id
-        $cartKey = $batchId ? "{$product->id}_{$batchId}" : (string)$product->id;
+        // Create unique cart key based on product_id, batch_id, and unit_type (batch is always required)
+        $cartKey = "{$product->id}_{$batchId}_{$unitType}";
 
         if (isset($cart[$cartKey])) {
             $cart[$cartKey]['quantity'] += $qty;
@@ -75,10 +83,12 @@ class PosController extends Controller
             $cart[$cartKey] = [
                 'id' => $product->id,
                 'batch_id' => $batchId,
-                'batch_code' => $batch ? $batch->batch_code : null,
-                'expiration_date' => $batch && $batch->expiration_date ? $batch->expiration_date->format('d/m/Y') : null,
+                'batch_code' => $batch->batch_code,
+                'expiration_date' => $batch->expiration_date ? $batch->expiration_date->format('d/m/Y') : null,
                 'name' => $product->name,
-                'price' => $product->price,
+                'price' => $unitPrice,
+                'unit_type' => $unitType,
+                'unit_label' => $this->getUnitLabel($unitType, $product),
                 'quantity' => $qty
             ];
         }
@@ -90,6 +100,21 @@ class PosController extends Controller
         }
 
         return Redirect::back()->with('success', 'Berhasil ditambahkan');
+    }
+    
+    /**
+     * Get unit label for display.
+     */
+    protected function getUnitLabel(string $unitType, Product $product): string
+    {
+        return match($unitType) {
+            'karton' => 'Karton',
+            'box' => 'Box',
+            'pack' => 'Pack',
+            'renteng' => 'Renteng',
+            'pcs' => 'Pcs',
+            default => 'Pcs',
+        };
     }
 
     public function removeFromCart(Request $request)
@@ -112,19 +137,23 @@ class PosController extends Controller
     {
         $data = $request->validate([
             'product_id' => 'required|exists:products,id',
-            'batch_id' => 'nullable|exists:product_batches,id',
+            'batch_id' => 'required|exists:product_batches,id',
             'cart_key' => 'nullable|string',
+            'unit_type' => 'nullable|string|in:pcs,pack,renteng,box,karton',
             'quantity' => 'required|integer|min:0'
+        ], [
+            'batch_id.required' => 'Batch harus dipilih untuk melakukan transaksi.'
         ]);
 
         $cart = $this->getCart();
 
         $productId = $data['product_id'];
-        $batchId = $data['batch_id'] ?? null;
+        $batchId = $data['batch_id'];
+        $unitType = $data['unit_type'] ?? 'pcs';
         $newQty = (int) $data['quantity'];
         
-        // Determine cart key
-        $cartKey = $data['cart_key'] ?? ($batchId ? "{$productId}_{$batchId}" : (string)$productId);
+        // Determine cart key - always includes batch_id since it's required
+        $cartKey = $data['cart_key'] ?? "{$productId}_{$batchId}_{$unitType}";
         
         $oldQty = isset($cart[$cartKey]) ? (int) $cart[$cartKey]['quantity'] : 0;
 
@@ -137,16 +166,19 @@ class PosController extends Controller
             if (isset($cart[$cartKey])) {
                 $cart[$cartKey]['quantity'] = $newQty;
             } else {
-                // If it wasn't present, we add minimal info—backend will recalculated on next render
+                // If it wasn't present, we add minimal info
                 $product = Product::find($productId);
-                $batch = $batchId ? ProductBatch::find($batchId) : null;
+                $batch = ProductBatch::find($batchId);
+                $unitPrice = $product->getPriceForUnit($unitType);
                 $cart[$cartKey] = [
                     'id' => $product->id,
                     'batch_id' => $batchId,
-                    'batch_code' => $batch ? $batch->batch_code : null,
-                    'expiration_date' => $batch && $batch->expiration_date ? $batch->expiration_date->format('d/m/Y') : null,
+                    'batch_code' => $batch->batch_code,
+                    'expiration_date' => $batch->expiration_date ? $batch->expiration_date->format('d/m/Y') : null,
                     'name' => $product->name,
-                    'price' => $product->price,
+                    'price' => $unitPrice,
+                    'unit_type' => $unitType,
+                    'unit_label' => $this->getUnitLabel($unitType, $product),
                     'quantity' => $newQty
                 ];
             }
@@ -197,19 +229,28 @@ class PosController extends Controller
         $total = (int) round($taxable + $taxAmount);
         $changeAmount = max(0, $paymentAmount - $total);
 
-        // Validate stock availability (including batch stock)
+        // Validate stock availability (including batch stock) - convert to base unit (pcs)
         foreach ($cart as $item) {
-            $product = Product::find($item['id']);
-            if (!$product || $product->stock < $item['quantity']) {
-                return Redirect::back()->with('error', "Insufficient stock for {$item['name']}");
+            // Batch is now required for all transactions
+            if (empty($item['batch_id'])) {
+                return Redirect::back()->with('error', "Batch harus dipilih untuk {$item['name']}");
             }
             
-            // If batch is specified, validate batch stock
-            if (!empty($item['batch_id'])) {
-                $batch = ProductBatch::find($item['batch_id']);
-                if (!$batch || $batch->quantity < $item['quantity']) {
-                    return Redirect::back()->with('error', "Insufficient batch stock for {$item['name']}");
-                }
+            $product = Product::find($item['id']);
+            $unitType = $item['unit_type'] ?? 'pcs';
+            $qtyInPcs = $product->convertToBaseUnit($item['quantity'], $unitType);
+            
+            if (!$product || $product->effective_stock < $qtyInPcs) {
+                return Redirect::back()->with('error', "Stok tidak mencukupi untuk {$item['name']}");
+            }
+            
+            // Validate batch stock
+            $batch = ProductBatch::find($item['batch_id']);
+            if (!$batch || !$batch->is_active) {
+                return Redirect::back()->with('error', "Batch tidak valid untuk {$item['name']}");
+            }
+            if ($batch->quantity < $qtyInPcs) {
+                return Redirect::back()->with('error', "Stok batch tidak mencukupi untuk {$item['name']}");
             }
         }
 
@@ -235,7 +276,10 @@ class PosController extends Controller
                     }
                 }
                 
-                $itemProfit = ($item['price'] - $cost) * $item['quantity'];
+                // Calculate profit based on unit sold
+                $unitType = $item['unit_type'] ?? 'pcs';
+                $qtyInPcs = $product->convertToBaseUnit($item['quantity'], $unitType);
+                $itemProfit = ($item['price'] * $item['quantity']) - ($cost * $qtyInPcs);
                 $totalProfit += $itemProfit;
             }
             
@@ -274,8 +318,11 @@ class PosController extends Controller
             // Reduce stock and create transaction items
             foreach ($cart as $item) {
                 $product = Product::find($item['id']);
+                $unitType = $item['unit_type'] ?? 'pcs';
+                $qtyInPcs = $product->convertToBaseUnit($item['quantity'], $unitType);
+                
                 $previous = $product->stock;
-                $product->decrement('stock', $item['quantity']);
+                $product->decrement('stock', $qtyInPcs);
                 $product->save();
                 
                 $batchId = $item['batch_id'] ?? null;
@@ -286,14 +333,14 @@ class PosController extends Controller
                 if ($batchId) {
                     $batch = ProductBatch::find($batchId);
                     if ($batch) {
-                        $batch->decrement('quantity', $item['quantity']);
+                        $batch->decrement('quantity', $qtyInPcs);
                         $itemCost = $batch->purchase_price ?? $itemCost;
                     }
                 }
 
                 // Create transaction item
                 $itemSubtotal = $item['price'] * $item['quantity'];
-                $itemCostTotal = $itemCost * $item['quantity'];
+                $itemCostTotal = $itemCost * $qtyInPcs;
                 $itemProfit = $itemSubtotal - $itemCostTotal;
                 
                 TransactionItem::create([
@@ -301,13 +348,15 @@ class PosController extends Controller
                     'product_id' => $product->id,
                     'batch_id' => $batchId,
                     'quantity' => $item['quantity'],
+                    'unit_sold' => $unitType,
+                    'quantity_in_base_unit' => $qtyInPcs,
                     'price' => $item['price'],
                     'cost' => $itemCost,
                     'subtotal' => $itemSubtotal,
                     'profit' => $itemProfit,
                 ]);
 
-                // Create stock log
+                // Create stock log (always in base unit - pcs)
                 $unitPrice = $item['price'];
                 $totalValue = $item['quantity'] * $unitPrice;
 
@@ -317,11 +366,12 @@ class PosController extends Controller
                     'user_id' => Auth::id(),
                     'previous_stock' => $previous,
                     'new_stock' => $product->stock,
-                    'change' => -$item['quantity'],
+                    'change' => -$qtyInPcs,
+                    'unit_type' => 'pcs', // Stock log always in base unit
                     'unit_price' => $unitPrice,
                     'total_value' => $totalValue,
                     'transaction_type' => 'sale',
-                    'note' => 'Sale via POS - ' . $invoiceNumber . ($batch ? ' (Batch: ' . $batch->batch_code . ')' : '')
+                    'note' => 'Sale via POS - ' . $invoiceNumber . ' (' . $item['quantity'] . ' ' . $unitType . ')' . ($batch ? ' Batch: ' . $batch->batch_code : '')
                 ]);
             }
 
@@ -398,7 +448,10 @@ class PosController extends Controller
             abort(404, 'Receipt not found. Transaction may have expired.');
         }
 
-        return view('cashier.receipt', ['transaction' => $tx]);
+        return view('cashier.receipt', [
+            'transaction' => $tx,
+            'cashier' => auth()->user()
+        ]);
     }
 
     /**

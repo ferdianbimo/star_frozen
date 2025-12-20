@@ -3,115 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Manager') - Star Frozen POS</title>
-     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom sidebar scrollbar */
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.5);
+            border-radius: 10px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 0.7);
+        }
+        /* Smooth transitions */
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-link:hover {
+            transform: translateX(4px);
+        }
+        /* Mobile sidebar animation */
+        .sidebar-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .sidebar-mobile {
+            transition: transform 0.3s ease-in-out;
+        }
+        /* Custom Select Dropdown Styles */
+        .custom-select {
+            background-image: none;
+        }
+        .custom-select:focus {
+            outline: none;
+        }
+        .custom-select option {
+            padding: 12px 16px;
+            background: white;
+            color: #334155;
+        }
+        .custom-select option:checked {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+        .custom-select option:hover {
+            background: #f1f5f9;
+        }
+        /* Modern input date styles */
+        input[type="date"] {
+            position: relative;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+    </style>
     @stack('styles')
 </head>
-<body class="bg-gray-100">
+<body class="bg-slate-100">
     <div class="flex h-screen overflow-hidden">
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebarOverlay" class="sidebar-overlay fixed inset-0 bg-black/50 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
+
         <!-- Sidebar -->
-        <aside class="bg-white text-gray-800 w-56 flex-shrink-0 overflow-y-auto border-r flex flex-col h-full">
-            <div class="px-4 py-6">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center mr-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-shop" viewBox="0 0 16 16">
-                            <path d="M2.97 1.35A1 1 0 0 1 3.73 1h8.54a1 1 0 0 1 .76.35l2.609 3.044A1.5 1.5 0 0 1 16 5.37v.255a2.375 2.375 0 0 1-4.25 1.458A2.37 2.37 0 0 1 9.875 8 2.37 2.37 0 0 1 8 7.083 2.37 2.37 0 0 1 6.125 8a2.37 2.37 0 0 1-1.875-.917A2.375 2.375 0 0 1 0 5.625V5.37a1.5 1.5 0 0 1 .361-.976zm1.78 4.275a1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 1 0 2.75 0V5.37a.5.5 0 0 0-.12-.325L12.27 2H3.73L1.12 5.045A.5.5 0 0 0 1 5.37v.255a1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0M1.5 8.5A.5.5 0 0 1 2 9v6h1v-5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v5h6V9a.5.5 0 0 1 1 0v6h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1V9a.5.5 0 0 1 .5-.5M4 15h3v-5H4zm5-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zm3 0h-2v3h2z"/>
-                        </svg>
+        <aside id="sidebar" class="sidebar-mobile bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white w-64 flex-shrink-0 flex flex-col h-full shadow-xl fixed lg:relative z-50 -translate-x-full lg:translate-x-0">
+            <!-- Logo Section -->
+            <div class="px-5 py-6 border-b border-slate-700/50">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/30">
+                            <i class="fas fa-store text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-base font-bold text-white">Star Frozen</div>
+                            <div class="text-xs text-indigo-400 font-medium flex items-center gap-1">
+                                <span class="w-2 h-2 bg-indigo-400 rounded-full animate-pulse"></span>
+                                Manager Panel
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-sm font-semibold">Star Frozen</div>
-                        <div class="text-xs text-gray-500">Manager Panel</div>
-                    </div>
+                    <!-- Close button for mobile -->
+                    <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white p-2">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
                 </div>
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 px-2 overflow-y-auto">
-                <a href="{{ route('manager.dashboard') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.dashboard') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                    </svg>
-                    <span class="text-sm">Dashboard</span>
+            <nav class="flex-1 px-3 py-4 overflow-y-auto sidebar-scroll">
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-3">Menu Utama</div>
+                
+                <a href="{{ route('manager.dashboard') }}" class="nav-link group flex items-center px-4 py-3 rounded-xl mb-1 {{ request()->routeIs('manager.dashboard') ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' }}">
+                    <div class="w-9 h-9 rounded-lg {{ request()->routeIs('manager.dashboard') ? 'bg-white/20' : 'bg-slate-700/50 group-hover:bg-slate-600/50' }} flex items-center justify-center mr-3 transition-colors">
+                        <i class="fas fa-chart-pie {{ request()->routeIs('manager.dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                    </div>
+                    <span class="text-sm font-medium">Dashboard</span>
                 </a>
 
-                <a href="{{ route('manager.inventory.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.inventory.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                    </svg>
-                    <span class="text-sm">Inventory</span>
+                <a href="{{ route('manager.inventory.index') }}" class="nav-link group flex items-center px-4 py-3 rounded-xl mb-1 {{ request()->routeIs('manager.inventory.*') ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' }}">
+                    <div class="w-9 h-9 rounded-lg {{ request()->routeIs('manager.inventory.*') ? 'bg-white/20' : 'bg-slate-700/50 group-hover:bg-slate-600/50' }} flex items-center justify-center mr-3 transition-colors">
+                        <i class="fas fa-boxes {{ request()->routeIs('manager.inventory.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                    </div>
+                    <span class="text-sm font-medium">Inventaris</span>
                 </a>
 
-                <a href="{{ route('manager.finance.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.finance.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="text-sm">Keuangan</span>
+                <a href="{{ route('manager.finance.index') }}" class="nav-link group flex items-center px-4 py-3 rounded-xl mb-1 {{ request()->routeIs('manager.finance.*') ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' }}">
+                    <div class="w-9 h-9 rounded-lg {{ request()->routeIs('manager.finance.*') ? 'bg-white/20' : 'bg-slate-700/50 group-hover:bg-slate-600/50' }} flex items-center justify-center mr-3 transition-colors">
+                        <i class="fas fa-wallet {{ request()->routeIs('manager.finance.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                    </div>
+                    <span class="text-sm font-medium">Keuangan</span>
                 </a>
 
-                <a href="{{ route('manager.access.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.access.*') || request()->routeIs('manager.users.*') || request()->routeIs('manager.roles.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                    </svg>
-                    <span class="text-sm">Hak Akses</span>
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-6 mb-3 px-3">Administrasi</div>
+
+                <a href="{{ route('manager.access.index') }}" class="nav-link group flex items-center px-4 py-3 rounded-xl mb-1 {{ request()->routeIs('manager.access.*') || request()->routeIs('manager.users.*') || request()->routeIs('manager.roles.*') ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' }}">
+                    <div class="w-9 h-9 rounded-lg {{ request()->routeIs('manager.access.*') || request()->routeIs('manager.users.*') || request()->routeIs('manager.roles.*') ? 'bg-white/20' : 'bg-slate-700/50 group-hover:bg-slate-600/50' }} flex items-center justify-center mr-3 transition-colors">
+                        <i class="fas fa-users-cog {{ request()->routeIs('manager.access.*') || request()->routeIs('manager.users.*') || request()->routeIs('manager.roles.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                    </div>
+                    <span class="text-sm font-medium">Hak Akses</span>
                 </a>
 
-                <a href="{{ route('manager.activity-logs.index') }}" class="group flex items-center p-3 rounded-lg mb-1 {{ request()->routeIs('manager.activity-logs.*') ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-600' : 'text-gray-700 hover:bg-gray-50' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                    </svg>
-                    <span class="text-sm">Log Aktivitas</span>
+                <a href="{{ route('manager.activity-logs.index') }}" class="nav-link group flex items-center px-4 py-3 rounded-xl mb-1 {{ request()->routeIs('manager.activity-logs.*') ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' }}">
+                    <div class="w-9 h-9 rounded-lg {{ request()->routeIs('manager.activity-logs.*') ? 'bg-white/20' : 'bg-slate-700/50 group-hover:bg-slate-600/50' }} flex items-center justify-center mr-3 transition-colors">
+                        <i class="fas fa-clipboard-list {{ request()->routeIs('manager.activity-logs.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                    </div>
+                    <span class="text-sm font-medium">Log Aktivitas</span>
+                </a>
+
+                <a href="{{ route('manager.receipt-settings.index') }}" class="nav-link group flex items-center px-4 py-3 rounded-xl mb-1 {{ request()->routeIs('manager.receipt-settings.*') ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' }}">
+                    <div class="w-9 h-9 rounded-lg {{ request()->routeIs('manager.receipt-settings.*') ? 'bg-white/20' : 'bg-slate-700/50 group-hover:bg-slate-600/50' }} flex items-center justify-center mr-3 transition-colors">
+                        <i class="fas fa-receipt {{ request()->routeIs('manager.receipt-settings.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
+                    </div>
+                    <span class="text-sm font-medium">Pengaturan Struk</span>
                 </a>
             </nav>
 
-            <div class="mt-auto px-4 pb-6 pt-9">
-                <div class="flex items-center mb-3">
-                    <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center mr-3 text-gray-700">{{ substr(auth()->user()->name, 0, 1) }}</div>
-                    <div>
-                        <div class="text-sm font-medium">{{ auth()->user()->name }}</div>
-                        <div class="text-xs text-gray-400">{{ auth()->user()->email }}</div>
+            <!-- User Section -->
+            <div class="border-t border-slate-700/50 p-4">
+                <div class="bg-slate-800/50 rounded-xl p-3 mb-3">
+                    <div class="flex items-center">
+                        @if(auth()->user()->avatar)
+                            <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-xl object-cover mr-3 shadow-md">
+                        @else
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mr-3 text-white font-bold shadow-md">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            </div>
+                        @endif
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-semibold text-white truncate">{{ auth()->user()->name }}</div>
+                            <div class="text-xs text-slate-400 truncate">{{ auth()->user()->email }}</div>
+                        </div>
                     </div>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="w-full text-left text-sm text-red-600 hover:text-red-800 flex items-center">
-                        <svg class="w-4 h-4 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
-                        Logout
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200 text-sm font-medium">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
                     </button>
                 </form>
             </div>
         </aside>
 
+        <!-- Action Modal Component -->
+        <x-action-modal />
+
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto">
-            <!-- Top Bar -->
-            <header class="bg-white shadow-sm sticky top-0 z-10">
-                <div class="px-6 py-4">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-2xl font-semibold text-gray-800">@yield('title', 'Dashboard')</h2>
+        <main class="flex-1 overflow-y-auto bg-slate-100 w-full">
+            <!-- Mobile Header -->
+            <div class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+                <button onclick="toggleSidebar()" class="p-2 -ml-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <i class="fas fa-store text-white text-sm"></i>
                     </div>
+                    <span class="font-semibold text-slate-800">Star Frozen</span>
                 </div>
-            </header>
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
+            </div>
 
             <!-- Content -->
-            <div class="p-6">
-                @if(session('success'))
-                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                @if(session('error'))
-                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                        {{ session('error') }}
-                    </div>
-                @endif
-
+            <div class="p-4 sm:p-6">
                 @yield('content')
             </div>
         </main>
     </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Close sidebar when clicking a link (mobile)
+        document.querySelectorAll('#sidebar a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 1024) {
+                    toggleSidebar();
+                }
+            });
+        });
+
+        // Close sidebar on resize to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                document.getElementById('sidebar').classList.remove('-translate-x-full');
+                document.getElementById('sidebarOverlay').classList.add('hidden');
+            }
+        });
+    </script>
 
     @stack('scripts')
 </body>

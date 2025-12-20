@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\Product;
 use App\Models\StockLog;
 use App\Models\User;
@@ -227,7 +228,7 @@ class FinanceController extends Controller
         }
         
         $expenses = $query->paginate(15)->withQueryString();
-        $categories = Expense::distinct()->pluck('category');
+        $categories = ExpenseCategory::orderBy('name')->get();
         
         return view('manager.finance.expenses', compact('expenses', 'categories'));
     }
@@ -429,5 +430,66 @@ class FinanceController extends Controller
         $users = User::where('role_id', 2)->orderBy('name')->get();
         
         return view('manager.finance.income', compact('incomeLogs', 'totalFilteredValue', 'users'));
+    }
+
+    // Expense Category CRUD Methods
+    public function getExpenseCategories()
+    {
+        $categories = ExpenseCategory::orderBy('name')->get();
+        return response()->json($categories);
+    }
+
+    public function storeExpenseCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:expense_categories,name'
+        ]);
+
+        $category = ExpenseCategory::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kategori berhasil ditambahkan!',
+            'category' => $category
+        ]);
+    }
+
+    public function updateExpenseCategory(Request $request, ExpenseCategory $category)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:expense_categories,name,' . $category->id
+        ]);
+
+        // Update expenses with old category name to new name
+        $oldName = $category->name;
+        Expense::where('category', $oldName)->update(['category' => $validated['name']]);
+
+        $category->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kategori berhasil diupdate!',
+            'category' => $category
+        ]);
+    }
+
+    public function destroyExpenseCategory(ExpenseCategory $category)
+    {
+        // Check if category is in use
+        $usedCount = Expense::where('category', $category->name)->count();
+        
+        if ($usedCount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "Kategori tidak dapat dihapus karena digunakan oleh {$usedCount} pengeluaran."
+            ], 400);
+        }
+
+        $category->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Kategori berhasil dihapus!'
+        ]);
     }
 }

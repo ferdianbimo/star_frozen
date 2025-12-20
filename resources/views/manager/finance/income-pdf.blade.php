@@ -5,60 +5,179 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Pemasukan</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            margin: 20px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 3px solid #2563eb;
-            padding-bottom: 15px;
-        }
-        .header h1 {
+        * {
             margin: 0;
-            color: #1e40af;
-            font-size: 24px;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .header p {
-            margin: 5px 0;
-            color: #64748b;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11px;
+            color: #334155;
+            background: #fff;
+            line-height: 1.5;
         }
-        .summary {
-            background: #f1f5f9;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            border-left: 4px solid #10b981;
+        .container {
+            padding: 30px;
+            max-width: 100%;
         }
-        .summary h2 {
-            margin: 0 0 10px 0;
-            color: #059669;
-            font-size: 16px;
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 25px 30px;
+            margin: -30px -30px 30px -30px;
+            position: relative;
         }
-        .summary .total {
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-box {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 24px;
             font-weight: bold;
-            color: #047857;
+        }
+        .brand-info h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .brand-info p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .header-meta {
+            text-align: right;
+            font-size: 11px;
+        }
+        .header-meta p {
+            margin-bottom: 3px;
+            opacity: 0.9;
+        }
+        
+        /* Summary Box */
+        .summary-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .summary-card {
+            flex: 1;
+            padding: 20px;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-main {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .summary-main::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .summary-secondary {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+        .summary-label {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-bottom: 6px;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .summary-secondary .summary-label {
+            color: #64748b;
+        }
+        .summary-secondary .summary-value {
+            color: #1e293b;
+            font-size: 20px;
+        }
+        
+        /* Table */
+        .table-section {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .table-header {
+            background: #f8fafc;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .table-header h2 {
+            font-size: 14px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+        .table-badge {
+            background: #10b981;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
         th {
-            background: #1e40af;
-            color: white;
-            padding: 10px;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 12px 15px;
             text-align: left;
-            font-size: 11px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
         }
         td {
-            padding: 8px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
         }
         tr:nth-child(even) {
+            background: #fafbfc;
+        }
+        tr:hover {
             background: #f8fafc;
         }
         .text-right {
@@ -67,76 +186,214 @@
         .text-center {
             text-align: center;
         }
+        
+        /* Badges */
+        .qty-badge {
+            display: inline-block;
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .income-badge {
+            display: inline-block;
+            background: #d1fae5;
+            color: #059669;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .product-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .product-code {
+            font-size: 10px;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .user-avatar {
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 6px;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Total Row */
         .total-row {
-            font-weight: bold;
-            background: #dcfce7 !important;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%) !important;
             border-top: 2px solid #10b981;
         }
+        .total-row td {
+            padding: 15px;
+            font-weight: 700;
+            color: #047857;
+            font-size: 13px;
+        }
+        
+        /* Footer */
         .footer {
             margin-top: 30px;
-            text-align: center;
-            color: #64748b;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .footer-left {
+            color: #94a3b8;
             font-size: 10px;
+        }
+        .footer-right {
+            text-align: right;
+        }
+        .footer-brand {
+            font-weight: 600;
+            color: #10b981;
+            font-size: 12px;
+        }
+        .footer-copy {
+            color: #94a3b8;
+            font-size: 9px;
+            margin-top: 3px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #94a3b8;
+        }
+        .empty-state p {
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>STAR FROZEN POS</h1>
-        <p>Laporan Pemasukan</p>
-        <p>Dicetak pada: {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY HH:mm') }}</p>
-    </div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="brand">
+                    <div class="logo-box">SF</div>
+                    <div class="brand-info">
+                        <h1>STAR FROZEN</h1>
+                        <p>Laporan Pemasukan</p>
+                    </div>
+                </div>
+                <div class="header-meta">
+                    <p><strong>Tanggal Cetak:</strong></p>
+                    <p>{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
+                    <p>{{ \Carbon\Carbon::now()->format('H:i') }} WIB</p>
+                </div>
+            </div>
+        </div>
 
-    <div class="summary">
-        <h2>Total Pemasukan</h2>
-        <div class="total">Rp {{ number_format($totalFilteredValue, 0, ',', '.') }}</div>
-        <p style="margin: 5px 0 0 0; color: #64748b;">Dari {{ $incomeLogs->count() }} transaksi penjualan</p>
-    </div>
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="summary-card summary-main">
+                <div class="summary-label">Total Pemasukan</div>
+                <div class="summary-value">Rp {{ number_format($totalFilteredValue, 0, ',', '.') }}</div>
+            </div>
+            <div class="summary-card summary-secondary">
+                <div class="summary-label">Jumlah Transaksi</div>
+                <div class="summary-value">{{ $incomeLogs->count() }} Transaksi</div>
+            </div>
+        </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 5%;">No</th>
-                <th style="width: 15%;">Tanggal</th>
-                <th style="width: 20%;">Produk</th>
-                <th style="width: 10%;" class="text-center">Qty</th>
-                <th style="width: 15%;" class="text-right">Harga Satuan</th>
-                <th style="width: 15%;" class="text-right">Total</th>
-                <th style="width: 10%;">Kasir</th>
-                <th style="width: 10%;">Catatan</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($incomeLogs as $index => $log)
-            <tr>
-                <td class="text-center">{{ $index + 1 }}</td>
-                <td>{{ $log->created_at->format('d/m/Y H:i') }}</td>
-                <td><strong>{{ $log->product->name ?? 'N/A' }}</strong></td>
-                <td class="text-center">{{ abs($log->change) }} pack</td>
-                <td class="text-right">Rp {{ number_format($log->unit_price, 0, ',', '.') }}</td>
-                <td class="text-right"><strong>Rp {{ number_format($log->total_value, 0, ',', '.') }}</strong></td>
-                <td>{{ $log->user->name ?? 'System' }}</td>
-                <td style="font-size: 10px;">{{ $log->note ?? '-' }}</td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="8" class="text-center" style="padding: 20px;">Tidak ada data</td>
-            </tr>
-            @endforelse
+        <!-- Table Section -->
+        <div class="table-section">
+            <div class="table-header">
+                <h2>📋 Daftar Pemasukan</h2>
+                <span class="table-badge">{{ $incomeLogs->count() }} Data</span>
+            </div>
             
-            @if($incomeLogs->count() > 0)
-            <tr class="total-row">
-                <td colspan="5" class="text-right" style="padding: 12px;"><strong>TOTAL PEMASUKAN:</strong></td>
-                <td class="text-right" style="padding: 12px;"><strong>Rp {{ number_format($totalFilteredValue, 0, ',', '.') }}</strong></td>
-                <td colspan="2"></td>
-            </tr>
-            @endif
-        </tbody>
-    </table>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 4%;">No</th>
+                        <th style="width: 12%;">Tanggal</th>
+                        <th style="width: 22%;">Produk</th>
+                        <th style="width: 10%;" class="text-center">Qty</th>
+                        <th style="width: 14%;" class="text-right">Harga Satuan</th>
+                        <th style="width: 16%;" class="text-right">Total</th>
+                        <th style="width: 12%;">Kasir</th>
+                        <th style="width: 10%;">Catatan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($incomeLogs as $index => $log)
+                    <tr>
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        <td>
+                            <div style="font-weight: 500;">{{ $log->created_at->format('d/m/Y') }}</div>
+                            <div style="font-size: 10px; color: #94a3b8;">{{ $log->created_at->format('H:i') }}</div>
+                        </td>
+                        <td>
+                            <div class="product-name">{{ $log->product->name ?? 'N/A' }}</div>
+                            <div class="product-code">{{ $log->product->code ?? '-' }}</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="qty-badge">{{ abs($log->change) }} {{ $log->unit_label ?? 'pcs' }}</span>
+                        </td>
+                        <td class="text-right">Rp {{ number_format($log->unit_price, 0, ',', '.') }}</td>
+                        <td class="text-right">
+                            <span class="income-badge">Rp {{ number_format($log->total_value, 0, ',', '.') }}</span>
+                        </td>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar">{{ strtoupper(substr($log->user->name ?? 'S', 0, 1)) }}</div>
+                                <span>{{ $log->user->name ?? 'System' }}</span>
+                            </div>
+                        </td>
+                        <td style="font-size: 10px; color: #64748b;">{{ Str::limit($log->note ?? '-', 20) }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <p>Tidak ada data pemasukan</p>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                    
+                    @if($incomeLogs->count() > 0)
+                    <tr class="total-row">
+                        <td colspan="5" class="text-right">TOTAL PEMASUKAN:</td>
+                        <td class="text-right">Rp {{ number_format($totalFilteredValue, 0, ',', '.') }}</td>
+                        <td colspan="2"></td>
+                    </tr>
+                    @endif
+                </tbody>
+            </table>
+        </div>
 
-    <div class="footer">
-        <p>Dokumen ini digenerate otomatis oleh Star Frozen POS</p>
-        <p>© {{ date('Y') }} Star Frozen. All rights reserved.</p>
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-left">
+                <p>Dokumen ini digenerate secara otomatis oleh sistem</p>
+                <p>Halaman 1 dari 1</p>
+            </div>
+            <div class="footer-right">
+                <div class="footer-brand">Star Frozen POS</div>
+                <div class="footer-copy">© {{ date('Y') }} All rights reserved</div>
+            </div>
+        </div>
     </div>
 </body>
 </html>

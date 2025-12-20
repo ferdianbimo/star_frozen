@@ -3,152 +3,257 @@
 @section('title','Dashboard')
 
 @section('content')
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
-                    <div class="space-y-4">
-                        <div class="bg-white rounded-lg shadow p-4 md:p-5 flex items-start h-24 md:h-24">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs text-gray-500">Daily Sales</p>
-                                <h3 class="text-lg md:text-xl font-bold mt-1 truncate">{{ 'Rp ' . number_format($dailySales ?? 0, 0, ',', '.') }}</h3>
-                                    @php
-                                        $dp = $dailyPercentage ?? 0;
-                                    @endphp
-                                    <p class="text-xs mt-1">
-                                        @if($dp > 0)
-                                            <span class="text-green-600">&uarr; {{ abs($dp) }}%</span>
-                                        @elseif($dp < 0)
-                                            <span class="text-red-600">&darr; {{ abs($dp) }}%</span>
+    <!-- Dashboard Header -->
+    <div class="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 rounded-2xl shadow-xl mb-8 overflow-hidden">
+        <div class="relative px-6 py-8">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10"></div>
+            <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                        <i class="fas fa-chart-pie text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-white">Manager Dashboard</h1>
+                        <p class="text-slate-400 mt-1">Ringkasan bisnis dan analisis performa</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
+                        <div class="flex items-center gap-2 text-white">
+                            <i class="fas fa-calendar-day text-slate-400"></i>
+                            <span class="text-sm font-medium">{{ now()->format('d M Y') }}</span>
+                        </div>
+                    </div>
+                    <a href="{{ route('manager.inventory.index') }}" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-blue-500/30 hover:shadow-xl transition-all duration-300 flex items-center gap-2">
+                        <i class="fas fa-boxes"></i>
+                        Kelola Inventaris
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Daily Sales Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-coins text-white text-lg"></i>
+                </div>
+                @php $dp = $dailyPercentage ?? 0; @endphp
+                @if($dp > 0)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                        <i class="fas fa-arrow-up text-[10px]"></i> {{ abs($dp) }}%
+                    </span>
+                @elseif($dp < 0)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                        <i class="fas fa-arrow-down text-[10px]"></i> {{ abs($dp) }}%
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">0%</span>
+                @endif
+            </div>
+            <p class="text-sm text-slate-500 font-medium">Penjualan Hari Ini</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ 'Rp ' . number_format($dailySales ?? 0, 0, ',', '.') }}</h3>
+        </div>
+
+        <!-- Monthly Sales Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-chart-line text-white text-lg"></i>
+                </div>
+                @php $mp = $monthlyPercentage ?? 0; @endphp
+                @if($mp > 0)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                        <i class="fas fa-arrow-up text-[10px]"></i> {{ abs($mp) }}%
+                    </span>
+                @elseif($mp < 0)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                        <i class="fas fa-arrow-down text-[10px]"></i> {{ abs($mp) }}%
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">0%</span>
+                @endif
+            </div>
+            <p class="text-sm text-slate-500 font-medium">30 Hari Terakhir</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ 'Rp ' . number_format($monthlySales ?? 0, 0, ',', '.') }}</h3>
+        </div>
+
+        <!-- Low Stock Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-box-open text-white text-lg"></i>
+                </div>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                    <i class="fas fa-exclamation-triangle text-[10px]"></i> Alert
+                </span>
+            </div>
+            <p class="text-sm text-slate-500 font-medium">Stok Menipis</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ $lowStockCount ?? 0 }} <span class="text-sm font-normal text-slate-500">produk</span></h3>
+        </div>
+
+        <!-- Expiring Soon Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300 group">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-hourglass-half text-white text-lg"></i>
+                </div>
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                    <i class="fas fa-clock text-[10px]"></i> 7 hari
+                </span>
+            </div>
+            <p class="text-sm text-slate-500 font-medium">Segera Kadaluarsa</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ $expiringCount ?? 0 }} <span class="text-sm font-normal text-slate-500">produk</span></h3>
+        </div>
+    </div>
+
+    <!-- Sales Chart Section -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fas fa-chart-area text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Tren Penjualan</h3>
+                    <p class="text-sm text-slate-500" id="periodLabel">{{ $period ?? 7 }} hari terakhir</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <select id="periodSelect" onchange="changePeriod(this.value)" class="custom-select appearance-none bg-white border-2 border-slate-200 text-slate-700 rounded-xl pl-4 pr-10 py-2.5 text-sm font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 cursor-pointer hover:border-slate-300">
+                        <option value="7" {{ ($period ?? 7) == 7 ? 'selected' : '' }}>📅 7 Hari Terakhir</option>
+                        <option value="30" {{ ($period ?? 7) == 30 ? 'selected' : '' }}>📅 30 Hari Terakhir</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                        <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="min-height: 320px; position: relative;">
+            <canvas id="salesChartLarge"></canvas>
+        </div>
+    </div>
+
+    <!-- Tables Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Expiring Soon Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-red-50 to-orange-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-calendar-times text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-base font-bold text-slate-800">Segera Kadaluarsa</h4>
+                        <p class="text-xs text-slate-500">Produk yang akan kadaluarsa dalam 7 hari</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 max-h-64 overflow-y-auto scrollbar-custom">
+                @if(isset($expiringProducts) && $expiringProducts->count())
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                <th class="pb-3 px-2">Produk</th>
+                                <th class="pb-3 px-2">Kadaluarsa</th>
+                                <th class="pb-3 px-2 text-right">Sisa Hari</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($expiringProducts as $p)
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="py-3 px-2">
+                                        <span class="font-medium text-slate-700">{{ $p->name }}</span>
+                                    </td>
+                                    <td class="py-3 px-2 text-slate-500 text-sm">{{ optional($p->expiry_date)->format('d/m/Y') }}</td>
+                                    <td class="py-3 px-2 text-right">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold {{ ($p->remaining_days ?? 0) <= 3 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700' }}">
+                                            <i class="fas fa-clock text-[10px]"></i>
+                                            {{ $p->remaining_days ?? '-' }} hari
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <div class="flex flex-col items-center justify-center py-8 text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-check-circle text-2xl text-green-500"></i>
+                        </div>
+                        <p class="text-slate-500 text-sm">Tidak ada produk yang akan kadaluarsa</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Low Stock Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-amber-50 to-yellow-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fas fa-boxes text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-base font-bold text-slate-800">Stok Menipis</h4>
+                        <p class="text-xs text-slate-500">Produk yang perlu segera di-restock</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 max-h-64 overflow-y-auto scrollbar-custom">
+                @if(isset($stockAlmostOut) && $stockAlmostOut->count())
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                <th class="pb-3 px-2">Produk</th>
+                                <th class="pb-3 px-2">Stok</th>
+                                <th class="pb-3 px-2 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($stockAlmostOut as $p)
+                                <tr class="hover:bg-slate-50 transition-colors {{ $p->stock == 0 ? 'bg-red-50/50' : '' }}">
+                                    <td class="py-3 px-2">
+                                        <span class="font-medium {{ $p->stock == 0 ? 'text-red-700' : 'text-slate-700' }}">{{ $p->name }}</span>
+                                    </td>
+                                    <td class="py-3 px-2">
+                                        <span class="font-semibold {{ $p->stock == 0 ? 'text-red-700' : 'text-slate-600' }}">{{ $p->stock }}</span>
+                                    </td>
+                                    <td class="py-3 px-2 text-right">
+                                        @if($p->stock == 0)
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                                                <i class="fas fa-times-circle text-[10px]"></i> Habis
+                                            </span>
+                                        @elseif($p->stock <= 5)
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                                                <i class="fas fa-exclamation-circle text-[10px]"></i> Kritis
+                                            </span>
                                         @else
-                                            <span class="text-gray-500">0%</span>
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                                                <i class="fas fa-exclamation-triangle text-[10px]"></i> Rendah
+                                            </span>
                                         @endif
-                                    </p>
-                            </div>
-                            <div class="ml-2 md:ml-4 bg-blue-50 rounded p-2 flex-shrink-0">
-                                <i class="fas fa-download text-blue-500 text-sm md:text-base"></i>
-                            </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <div class="flex flex-col items-center justify-center py-8 text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                            <i class="fas fa-check-circle text-2xl text-green-500"></i>
                         </div>
-
-                        <div class="bg-white rounded-lg shadow p-4 md:p-5 flex items-start h-24 md:h-24">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs text-gray-500">Monthly Sales</p>
-                                <h3 class="text-lg md:text-xl font-bold mt-1 truncate">{{ 'Rp ' . number_format($monthlySales ?? 0, 0, ',', '.') }}</h3>
-                                <p class="text-xs text-green-500 mt-1">@if(isset($monthlyPercentage)) {{ ($monthlyPercentage >= 0 ? '↑ ' : '↓ ') . abs($monthlyPercentage) . '%' }} @endif</p>
-                            </div>
-                            <div class="ml-2 md:ml-4 bg-yellow-50 rounded p-2 flex-shrink-0">
-                                <i class="fas fa-chart-line text-yellow-500 text-sm md:text-base"></i>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-lg shadow p-4 md:p-5 flex items-start h-24 md:h-24">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs text-gray-500">Low Stock</p>
-                                <h3 class="text-lg md:text-xl font-bold mt-1">{{ $lowStockCount ?? 0 }}</h3>
-                                <p class="text-xs text-yellow-500 mt-1">Perlu restok</p>
-                            </div>
-                            <div class="ml-2 md:ml-4 bg-yellow-100 rounded p-2 flex-shrink-0">
-                                <i class="fas fa-box-open text-yellow-600 text-sm md:text-base"></i>
-                            </div>
-                        </div>
-
-                        <div class="bg-white rounded-lg shadow p-4 md:p-5 flex items-start h-24 md:h-24">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-xs text-gray-500">Expiring Soon</p>
-                                <h3 class="text-lg md:text-xl font-bold mt-1">{{ $expiringCount ?? 0 }}</h3>
-                                <p class="text-xs text-red-500 mt-1">Dalam 7 hari</p>
-                            </div>
-                            <div class="ml-2 md:ml-4 bg-red-50 rounded p-2 flex-shrink-0">
-                                <i class="fas fa-hourglass-half text-red-500 text-sm md:text-base"></i>
-                            </div>
-                        </div>
+                        <p class="text-slate-500 text-sm">Semua stok dalam kondisi baik</p>
                     </div>
-
-                    <div class="md:col-span-2 lg:col-span-3">
-                        <div class="bg-white rounded-lg shadow p-4 md:p-6 h-full flex flex-col">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
-                                <div>
-                                    <h3 class="text-lg font-medium text-gray-900">Sales Trend</h3>
-                                    <p class="text-sm text-gray-500" id="periodLabel">Last {{ $period ?? 7 }} days</p>
-                                </div>
-                                <div>
-                                    <select id="periodSelect" class="border rounded px-3 py-1 text-sm w-full md:w-auto" onchange="changePeriod(this.value)">
-                                        <option value="7" {{ ($period ?? 7) == 7 ? 'selected' : '' }}>Last 7 days</option>
-                                        <option value="30" {{ ($period ?? 7) == 30 ? 'selected' : '' }}>Last 30 days</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div style="flex: 1; min-height: 300px; position: relative;">
-                                <canvas id="salesChartLarge"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6">
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <h4 class="text-base font-medium mb-3">Expired Soon</h4>
-                        <div class="max-h-48 overflow-y-auto scrollbar-custom">
-                            @if(isset($expiringProducts) && $expiringProducts->count())
-                                <table class="w-full text-xs md:text-sm">
-                                    <thead>
-                                        <tr class="text-left text-gray-500">
-                                            <th class="truncate">Produk</th>
-                                            <th class="truncate">Expired</th>
-                                            <th class="text-right truncate">Sisa Hari</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($expiringProducts as $p)
-                                            <tr class="border-t">
-                                                <td class="py-2">{{ $p->name }}</td>
-                                                <td class="py-2 text-gray-500">{{ optional($p->expiry_date)->format('d/m/Y') }}</td>
-                                                <td class="py-2 text-right">
-                                                    <span class="inline-block bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">{{ $p->remaining_days ?? '-' }} hari</span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            @else
-                                <p class="text-sm text-gray-500">No expiring items.</p>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <h4 class="text-base font-medium mb-3">Stock is Almost Out</h4>
-                        <div class="max-h-48 overflow-y-auto scrollbar-custom">
-                            @if(isset($stockAlmostOut) && $stockAlmostOut->count())
-                                <table class="w-full text-xs md:text-sm">
-                                    <thead>
-                                        <tr class="text-left text-gray-500">
-                                            <th class="truncate">Produk</th>
-                                            <th class="truncate">Stok</th>
-                                            <th class="text-right truncate">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($stockAlmostOut as $p)
-                                            <tr class="border-t {{ $p->stock == 0 ? 'bg-red-50' : '' }}">
-                                                <td class="py-2 truncate {{ $p->stock == 0 ? 'text-red-700 font-medium' : '' }}">{{ $p->name }}</td>
-                                                <td class="py-2 {{ $p->stock == 0 ? 'text-red-700 font-semibold' : '' }}">{{ $p->stock }}</td>
-                                                <td class="py-2 text-right">
-                                                    @if($p->stock == 0)
-                                                        <span class="inline-block bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-semibold">Habis</span>
-                                                    @elseif($p->stock <= 5)
-                                                        <span class="inline-block bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-semibold">Kritis</span>
-                                                    @else
-                                                        <span class="inline-block bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-semibold">Rendah</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            @else
-                                <p class="text-xs md:text-sm text-gray-500">No low-stock items.</p>
-                            @endif
-                        </div>
-                    </div>
-                </div>
+                @endif
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -169,8 +274,9 @@
         const ctx = canvas.getContext('2d');
 
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        gradient.addColorStop(0, 'rgba(59,130,246,0.15)');
-        gradient.addColorStop(1, 'rgba(59,130,246,0.03)');
+        gradient.addColorStop(0, 'rgba(59,130,246,0.25)');
+        gradient.addColorStop(0.5, 'rgba(99,102,241,0.10)');
+        gradient.addColorStop(1, 'rgba(99,102,241,0.02)');
 
         new Chart(ctx, {
             type: 'line',
@@ -183,28 +289,63 @@
                     backgroundColor: gradient,
                     fill: true,
                     tension: 0.4,
-                    pointRadius: 3,
-                    pointBackgroundColor: 'rgba(59,130,246,1)'
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: 'rgba(59,130,246,1)',
+                    pointBorderWidth: 2,
+                    pointHoverBackgroundColor: 'rgba(59,130,246,1)',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 2,
+                    borderWidth: 3
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(30,41,59,0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#e2e8f0',
+                        borderColor: 'rgba(59,130,246,0.3)',
+                        borderWidth: 1,
+                        cornerRadius: 12,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Rp ' + context.raw.toLocaleString('id-ID');
+                            }
+                        }
+                    }
                 },
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { color: '#6b7280' }
+                        ticks: { 
+                            color: '#64748b',
+                            font: { size: 11, weight: '500' }
+                        }
                     },
                     y: {
-                        grid: { color: 'rgba(229,231,235,0.6)' },
+                        grid: { 
+                            color: 'rgba(226,232,240,0.8)',
+                            drawBorder: false
+                        },
                         ticks: {
                             callback: function(value) {
-                                try { return (value/1000000).toFixed(1) + ' jt'; } catch(e) { return value; }
+                                if (value >= 1000000) return (value/1000000).toFixed(1) + ' jt';
+                                if (value >= 1000) return (value/1000).toFixed(0) + ' rb';
+                                return value;
                             },
-                            color: '#6b7280'
+                            color: '#64748b',
+                            font: { size: 11, weight: '500' }
                         }
                     }
                 }
@@ -215,7 +356,7 @@
 <style>
     /* Custom scrollbar styling */
     .scrollbar-custom::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
     }
 
     .scrollbar-custom::-webkit-scrollbar-track {
@@ -224,14 +365,14 @@
     }
 
     .scrollbar-custom::-webkit-scrollbar-thumb {
-        background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
+        background: linear-gradient(180deg, #3b82f6 0%, #6366f1 100%);
         border-radius: 10px;
         transition: all 0.3s ease;
     }
 
     .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%);
-        box-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
+        background: linear-gradient(180deg, #2563eb 0%, #4f46e5 100%);
+        box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
     }
 
     /* Firefox scrollbar */

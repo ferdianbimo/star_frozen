@@ -19,6 +19,8 @@ class ProductBatch extends Model
         'product_id',
         'batch_code',
         'quantity',
+        'incoming_unit',
+        'incoming_quantity',
         'purchase_price',
         'date_received',
         'expiration_date',
