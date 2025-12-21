@@ -11,11 +11,38 @@ use App\Models\User;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
+/**
+ * FinanceController - Mengelola data keuangan dan laporan.
+ *
+ * Controller ini menangani:
+ * - Dashboard keuangan dengan ringkasan pendapatan/pengeluaran
+ * - Manajemen pengeluaran (CRUD)
+ * - Laporan keuangan dengan export PDF/Excel
+ * - Analisis trend dan perbandingan periode
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class FinanceController extends Controller
 {
+    /**
+     * Menampilkan dashboard keuangan.
+     *
+     * Menampilkan ringkasan:
+     * - Total pendapatan dari penjualan
+     * - Total pengeluaran
+     * - Laba bersih
+     * - Trend 7 hari terakhir
+     * - Produk terlaris
+     *
+     * @param  Request $request Request dengan filter start_date dan end_date
+     * @return \Illuminate\View\View
+     */
     public function index(Request $request)
     {
         // Default periode: 1 bulan terakhir (bukan startOfMonth)
@@ -137,6 +164,12 @@ class FinanceController extends Controller
         ));
     }
 
+    /**
+     * Menampilkan daftar pengeluaran dengan filter dan export.
+     *
+     * @param  Request $request Request dengan filter search, category, date range
+     * @return \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
+     */
     public function expenses(Request $request)
     {
         $query = Expense::with('user')->orderBy('expense_date', 'desc');
@@ -175,56 +208,34 @@ class FinanceController extends Controller
             return $pdf->download('laporan-pengeluaran-' . date('Y-m-d') . '.pdf');
         }
         
-        // Export to Excel (CSV)
+        // Export to Excel (HTML-based untuk kompatibilitas)
         if ($request->has('export') && $request->export === 'excel') {
             $expensesList = $query->get();
             $totalExpenses = $expensesList->sum('amount');
             
             // Log export activity
             ActivityLogService::logExport('finance', "Export laporan pengeluaran ke Excel", [
-                'format' => 'Excel/CSV',
+                'format' => 'Excel/XLS',
                 'total_records' => $expensesList->count(),
                 'total_amount' => $totalExpenses,
             ]);
             
-            $filename = 'laporan-pengeluaran-' . date('Y-m-d') . '.csv';
-            $headers = [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-                'Pragma' => 'no-cache',
-                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-                'Expires' => '0'
-            ];
-
-            $callback = function() use ($expensesList, $totalExpenses) {
-                $file = fopen('php://output', 'w');
-                
-                // Add BOM untuk Excel
-                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-                
-                // Headers
-                fputcsv($file, ['No', 'Tanggal', 'Kategori', 'Deskripsi', 'Jumlah', 'Dicatat Oleh']);
-                
-                // Data
-                $no = 1;
-                foreach ($expensesList as $expense) {
-                    fputcsv($file, [
-                        $no++,
-                        Carbon::parse($expense->expense_date)->format('d/m/Y'),
-                        $expense->category,
-                        $expense->description,
-                        'Rp ' . number_format($expense->amount, 0, ',', '.'),
-                        $expense->user->name ?? 'N/A'
-                    ]);
-                }
-                
-                // Total row
-                fputcsv($file, ['', '', '', 'TOTAL:', 'Rp ' . number_format($totalExpenses, 0, ',', '.'), '']);
-                
-                fclose($file);
-            };
-
-            return response()->stream($callback, 200, $headers);
+            $filename = 'laporan-pengeluaran-' . date('Y-m-d') . '.xls';
+            $periodText = '';
+            if ($request->start_date && $request->end_date) {
+                $periodText = Carbon::parse($request->start_date)->format('d/m/Y') . ' - ' . Carbon::parse($request->end_date)->format('d/m/Y');
+            } elseif ($request->start_date) {
+                $periodText = 'Dari ' . Carbon::parse($request->start_date)->format('d/m/Y');
+            } elseif ($request->end_date) {
+                $periodText = 'Sampai ' . Carbon::parse($request->end_date)->format('d/m/Y');
+            } else {
+                $periodText = 'Semua Periode';
+            }
+            
+            return response()->view('exports.expenses-excel', compact('expensesList', 'totalExpenses', 'periodText'))
+                ->header('Content-Type', 'application/vnd.ms-excel')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Cache-Control', 'max-age=0');
         }
         
         $expenses = $query->paginate(15)->withQueryString();
@@ -233,6 +244,12 @@ class FinanceController extends Controller
         return view('manager.finance.expenses', compact('expenses', 'categories'));
     }
 
+    /**
+     * Menyimpan pengeluaran baru.
+     *
+     * @param  Request $request Request dengan data pengeluaran
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function storeExpense(Request $request)
     {
         $validated = $request->validate([
@@ -258,6 +275,13 @@ class FinanceController extends Controller
             ->with('success', 'Pengeluaran berhasil ditambahkan!');
     }
 
+    /**
+     * Mengupdate data pengeluaran.
+     *
+     * @param  Request $request Request dengan data update
+     * @param  Expense $expense Expense yang akan diupdate
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function updateExpense(Request $request, Expense $expense)
     {
         $validated = $request->validate([
@@ -288,6 +312,12 @@ class FinanceController extends Controller
             ->with('success', 'Pengeluaran berhasil diupdate!');
     }
 
+    /**
+     * Menghapus pengeluaran dari database.
+     *
+     * @param  Expense $expense Expense yang akan dihapus
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroyExpense(Expense $expense)
     {
         $expenseCategory = $expense->category;
@@ -307,6 +337,12 @@ class FinanceController extends Controller
             ->with('success', 'Pengeluaran berhasil dihapus!');
     }
 
+    /**
+     * Menampilkan daftar pemasukan (penjualan) dengan filter dan export.
+     *
+     * @param  Request $request Request dengan filter search, date range
+     * @return \Illuminate\View\View|\Symfony\Component\HttpFoundation\StreamedResponse
+     */
     public function income(Request $request)
     {
         $query = StockLog::with(['product', 'user'])
@@ -350,58 +386,34 @@ class FinanceController extends Controller
             return $pdf->download('laporan-pemasukan-' . date('Y-m-d') . '.pdf');
         }
         
-        // Export to Excel (CSV)
+        // Export to Excel (HTML-based untuk kompatibilitas)
         if ($request->has('export') && $request->export === 'excel') {
             $incomeLogs = $query->get();
             $totalFilteredValue = $incomeLogs->sum('total_value');
             
             // Log export activity
             ActivityLogService::logExport('finance', "Export laporan pemasukan ke Excel", [
-                'format' => 'Excel/CSV',
+                'format' => 'Excel/XLS',
                 'total_records' => $incomeLogs->count(),
                 'total_amount' => $totalFilteredValue,
             ]);
             
-            $filename = 'laporan-pemasukan-' . date('Y-m-d') . '.csv';
-            $headers = [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-                'Pragma' => 'no-cache',
-                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-                'Expires' => '0'
-            ];
-
-            $callback = function() use ($incomeLogs, $totalFilteredValue) {
-                $file = fopen('php://output', 'w');
-                
-                // Add BOM untuk Excel agar UTF-8 terbaca dengan benar
-                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-                
-                // Headers
-                fputcsv($file, ['No', 'Tanggal', 'Produk', 'Jumlah Terjual', 'Harga Satuan', 'Total Pemasukan', 'User/Kasir', 'Catatan']);
-                
-                // Data
-                $no = 1;
-                foreach ($incomeLogs as $log) {
-                    fputcsv($file, [
-                        $no++,
-                        $log->created_at->format('d/m/Y H:i'),
-                        $log->product->name ?? 'N/A',
-                        abs($log->change) . ' pack',
-                        'Rp ' . number_format($log->unit_price, 0, ',', '.'),
-                        'Rp ' . number_format($log->total_value, 0, ',', '.'),
-                        $log->user->name ?? 'System',
-                        $log->note ?? '-'
-                    ]);
-                }
-                
-                // Total row
-                fputcsv($file, ['', '', '', '', 'TOTAL:', 'Rp ' . number_format($totalFilteredValue, 0, ',', '.'), '', '']);
-                
-                fclose($file);
-            };
-
-            return response()->stream($callback, 200, $headers);
+            $filename = 'laporan-pemasukan-' . date('Y-m-d') . '.xls';
+            $periodText = '';
+            if ($request->start_date && $request->end_date) {
+                $periodText = Carbon::parse($request->start_date)->format('d/m/Y') . ' - ' . Carbon::parse($request->end_date)->format('d/m/Y');
+            } elseif ($request->start_date) {
+                $periodText = 'Dari ' . Carbon::parse($request->start_date)->format('d/m/Y');
+            } elseif ($request->end_date) {
+                $periodText = 'Sampai ' . Carbon::parse($request->end_date)->format('d/m/Y');
+            } else {
+                $periodText = 'Semua Periode';
+            }
+            
+            return response()->view('exports.income-excel', compact('incomeLogs', 'totalFilteredValue', 'periodText'))
+                ->header('Content-Type', 'application/vnd.ms-excel')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Cache-Control', 'max-age=0');
         }
         
         $incomeLogs = $query->paginate(15)->withQueryString();
@@ -432,13 +444,29 @@ class FinanceController extends Controller
         return view('manager.finance.income', compact('incomeLogs', 'totalFilteredValue', 'users'));
     }
 
-    // Expense Category CRUD Methods
+    /*
+    |--------------------------------------------------------------------------
+    | EXPENSE CATEGORY CRUD (JSON API)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Mendapatkan daftar kategori pengeluaran.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getExpenseCategories()
     {
         $categories = ExpenseCategory::orderBy('name')->get();
         return response()->json($categories);
     }
 
+    /**
+     * Menyimpan kategori pengeluaran baru.
+     *
+     * @param  Request $request Request dengan nama kategori
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function storeExpenseCategory(Request $request)
     {
         $validated = $request->validate([
@@ -454,6 +482,16 @@ class FinanceController extends Controller
         ]);
     }
 
+    /**
+     * Mengupdate kategori pengeluaran.
+     *
+     * Juga mengupdate semua expense yang menggunakan
+     * nama kategori lama ke nama baru.
+     *
+     * @param  Request         $request  Request dengan nama baru
+     * @param  ExpenseCategory $category Kategori yang akan diupdate
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function updateExpenseCategory(Request $request, ExpenseCategory $category)
     {
         $validated = $request->validate([
@@ -473,6 +511,14 @@ class FinanceController extends Controller
         ]);
     }
 
+    /**
+     * Menghapus kategori pengeluaran.
+     *
+     * Tidak dapat menghapus kategori yang masih digunakan oleh expense.
+     *
+     * @param  ExpenseCategory $category Kategori yang akan dihapus
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function destroyExpenseCategory(ExpenseCategory $category)
     {
         // Check if category is in use

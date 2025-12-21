@@ -11,8 +11,34 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * ManagerDashboardController - Dashboard utama untuk Manager.
+ *
+ * Controller ini menyediakan data dashboard komprehensif:
+ * - Ringkasan penjualan harian dan bulanan
+ * - Produk dengan stok rendah
+ * - Produk yang akan kadaluarsa
+ * - Trend penjualan
+ * - Data keuangan real-time
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class ManagerDashboardController extends Controller
 {
+    /**
+     * Menampilkan dashboard manager.
+     *
+     * Mengambil dan mengolah data untuk dashboard termasuk:
+     * - Penjualan harian dan bulanan dengan perbandingan periode sebelumnya
+     * - Produk low stock dan expiring soon
+     * - Trend penjualan (7 atau 30 hari)
+     * - Top products berdasarkan revenue
+     *
+     * @param  Request $request Request dengan parameter period (7 atau 30 hari)
+     * @return \Illuminate\View\View
+     */
     public function index(Request $request)
     {
         // Get period from request (default: 7 days)

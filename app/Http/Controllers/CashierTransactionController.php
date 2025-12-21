@@ -5,14 +5,39 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
+/**
+ * CashierTransactionController - Mengelola riwayat transaksi kasir.
+ *
+ * Controller ini menangani:
+ * - Daftar transaksi yang dibuat oleh kasir yang sedang login
+ * - Filter berdasarkan pencarian dan rentang tanggal
+ * - Statistik transaksi kasir
+ * - Detail transaksi
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class CashierTransactionController extends Controller
 {
     /**
-     * Display transaction history for the logged-in cashier.
-     * Shows only transactions made by the current cashier.
+     * Menampilkan riwayat transaksi kasir.
+     *
+     * Menampilkan transaksi dengan fitur:
+     * - Filter berdasarkan ID atau nomor invoice
+     * - Filter berdasarkan rentang tanggal
+     * - Sorting (terbaru, terlama, total besar/kecil)
+     * - Statistik: total transaksi, total sales, net sales, average
+     * - Grouping berdasarkan bulan
+     *
+     * Hanya menampilkan transaksi milik kasir yang sedang login.
+     *
+     * @param  Request $request Request dengan parameter filter
+     * @return View
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $search = $request->input('search');
         $dateFrom = $request->input('date_from');
@@ -95,9 +120,12 @@ class CashierTransactionController extends Controller
     }
     
     /**
-     * Show transaction detail
+     * Menampilkan detail transaksi.
+     *
+     * @param  int $id ID transaksi
+     * @return View
      */
-    public function show($id)
+    public function show($id): View
     {
         $transaction = Transaction::with('items.product', 'user')
             ->where('user_id', auth()->id()) // Only own transactions

@@ -7,10 +7,45 @@ use App\Models\ProductBatch;
 use App\Models\StockLog;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
+/**
+ * ManagerInventoryController - Mengelola inventory untuk Manager.
+ *
+ * Controller ini menangani:
+ * - Daftar produk dengan search, sort, dan pagination
+ * - Manajemen stock out (pengeluaran stok)
+ * - Overview dan manajemen batch produk
+ * - Riwayat activity logs
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class ManagerInventoryController extends Controller
 {
-    public function index(Request $request)
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - INVENTORY MANAGEMENT
+    |--------------------------------------------------------------------------
+    |
+    | Method untuk menampilkan dan mengelola data inventory.
+    |
+    */
+
+    /**
+     * Menampilkan halaman utama inventory.
+     *
+     * Menampilkan daftar produk dengan fitur:
+     * - Search berdasarkan nama, kategori, atau barcode
+     * - Sorting (nama, stok, harga, tanggal, kadaluarsa)
+     * - Pagination 10 item per halaman
+     * - Statistik ringkasan inventory
+     *
+     * @param  Request $request Request dengan parameter search dan sort
+     * @return View
+     */
+    public function index(Request $request): View
     {
         $query = Product::query()->with('batches');
         
@@ -85,8 +120,20 @@ class ManagerInventoryController extends Controller
         
         return view('manager.inventory.index', compact('products', 'stockInLogs', 'recentBatches', 'stats'));
     }
-    
-    public function stockOut(Request $request)
+
+    /**
+     * Menampilkan halaman stock out (pengeluaran stok).
+     *
+     * Menampilkan log pengeluaran stok dengan fitur:
+     * - Search berdasarkan nama produk, kategori, atau barcode
+     * - Filter berdasarkan user, tanggal dari, dan tanggal sampai
+     * - Sorting (terbaru, terlama, qty tinggi/rendah)
+     * - Statistik pengeluaran harian, mingguan, dan bulanan
+     *
+     * @param  Request $request Request dengan parameter filter
+     * @return View
+     */
+    public function stockOut(Request $request): View
     {
         // Get stock out logs (negative changes) with pagination
         $query = StockLog::where('change', '<', 0)
@@ -149,10 +196,28 @@ class ManagerInventoryController extends Controller
         return view('manager.inventory.stock-out', compact('stockLogs', 'stats', 'users'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - BATCH MANAGEMENT
+    |--------------------------------------------------------------------------
+    |
+    | Method untuk menampilkan dan mengelola batch produk.
+    |
+    */
+
     /**
-     * Show batches overview.
+     * Menampilkan overview batch produk.
+     *
+     * Menampilkan daftar batch dengan fitur:
+     * - Filter status: all, expiring, expired, available, empty
+     * - Search berdasarkan batch code atau nama produk
+     * - Statistik jumlah batch per status
+     * - Sorted by expiration date (terdekat duluan)
+     *
+     * @param  Request $request Request dengan parameter status dan search
+     * @return View
      */
-    public function batches(Request $request)
+    public function batches(Request $request): View
     {
         $query = ProductBatch::with('product', 'receivedBy')->where('is_active', true);
         
@@ -221,10 +286,29 @@ class ManagerInventoryController extends Controller
         return view('manager.inventory.batches', compact('batches', 'stats', 'status'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - ACTIVITY LOGS
+    |--------------------------------------------------------------------------
+    |
+    | Method untuk menampilkan riwayat aktivitas sistem.
+    |
+    */
+
     /**
-     * Show activity logs.
+     * Menampilkan halaman activity logs.
+     *
+     * Menampilkan riwayat aktivitas dengan fitur:
+     * - Filter berdasarkan module (inventory, pos, finance, etc)
+     * - Filter berdasarkan action (create, update, delete, etc)
+     * - Filter berdasarkan user
+     * - Filter berdasarkan rentang tanggal
+     * - Pagination 20 item per halaman
+     *
+     * @param  Request $request Request dengan parameter filter
+     * @return View
      */
-    public function activityLogs(Request $request)
+    public function activityLogs(Request $request): View
     {
         $query = ActivityLog::with('user');
         

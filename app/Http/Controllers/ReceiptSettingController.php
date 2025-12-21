@@ -5,23 +5,50 @@ namespace App\Http\Controllers;
 use App\Models\ReceiptSetting;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
+/**
+ * ReceiptSettingController - Mengelola pengaturan struk penjualan.
+ *
+ * Controller ini menangani konfigurasi struk:
+ * - Informasi toko (nama, alamat, telepon, email)
+ * - Teks header, footer, dan terima kasih
+ * - Upload dan hapus logo toko
+ * - Toggle visibility elemen struk
+ * - Preview struk
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class ReceiptSettingController extends Controller
 {
     /**
-     * Display the receipt settings form.
+     * Menampilkan form pengaturan struk.
+     *
+     * @return View
      */
-    public function index()
+    public function index(): View
     {
         $settings = ReceiptSetting::current();
         return view('manager.receipt-settings.index', compact('settings'));
     }
 
     /**
-     * Update the receipt settings.
+     * Mengupdate pengaturan struk.
+     *
+     * Memproses:
+     * - Validasi input
+     * - Upload logo baru (hapus yang lama jika ada)
+     * - Handle checkbox values
+     * - Pencatatan activity log dengan old/new values
+     *
+     * @param  Request $request Request dengan data setting
+     * @return RedirectResponse
      */
-    public function update(Request $request)
+    public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'store_name' => 'required|string|max:255',
@@ -79,9 +106,11 @@ class ReceiptSettingController extends Controller
     }
 
     /**
-     * Remove the logo.
+     * Menghapus logo dari pengaturan struk.
+     *
+     * @return RedirectResponse
      */
-    public function removeLogo()
+    public function removeLogo(): RedirectResponse
     {
         $settings = ReceiptSetting::current();
         

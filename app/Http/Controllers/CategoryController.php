@@ -3,14 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
+/**
+ * CategoryController - Mengelola data kategori produk (API).
+ *
+ * Controller ini menangani CRUD kategori via JSON response:
+ * - Mendapatkan daftar kategori untuk dropdown
+ * - Membuat kategori baru
+ * - Menghapus kategori (dengan proteksi jika digunakan produk)
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class CategoryController extends Controller
 {
     /**
-     * Get all active categories for dropdown.
+     * Mendapatkan semua kategori aktif untuk dropdown.
+     *
+     * @return JsonResponse Daftar kategori dengan product count
      */
-    public function index()
+    public function index(): JsonResponse
     {
         $categories = Category::active()
             ->withCount('products')
@@ -23,9 +39,12 @@ class CategoryController extends Controller
     }
 
     /**
-     * Store a new category.
+     * Menyimpan kategori baru.
+     *
+     * @param  Request $request Request dengan nama dan deskripsi kategori
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
@@ -48,14 +67,19 @@ class CategoryController extends Controller
     }
 
     /**
-     * Delete a category.
+     * Menghapus kategori.
+     *
+     * Tidak dapat menghapus kategori yang masih digunakan oleh produk.
+     *
+     * @param  int $id ID kategori yang akan dihapus
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
         $category = Category::findOrFail($id);
         
         // Check if category is used by products
-        $productCount = \App\Models\Product::where('category', $category->name)->count();
+        $productCount = Product::where('category', $category->name)->count();
         
         if ($productCount > 0) {
             return response()->json([
