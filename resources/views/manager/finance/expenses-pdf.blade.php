@@ -18,17 +18,26 @@
             line-height: 1.5;
         }
         .container {
-            padding: 30px;
+            padding: 8px 20px 20px 20px;
             max-width: 100%;
         }
         
         /* Header */
         .header {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            padding: 25px 30px;
-            margin: -30px -30px 30px -30px;
+            color: #dc2626;
+            padding: 10px 20px 10px 20px;
+            margin: -8px -20px 4px -20px;
             position: relative;
+        }
+        .main-title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #dc2626;
+            text-align: center;
+            margin-bottom: 2px;
+            margin-top: 8px;
+            letter-spacing: 1px;
         }
         .header::after {
             content: '';
@@ -41,8 +50,29 @@
         }
         .header-content {
             display: flex;
+            flex-direction: row;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
+        }
+        .header-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 2px;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: #dc2626;
+            margin-bottom: 0;
+        }
+        .header-meta {
+            text-align: right;
+            color: #dc2626;
+            font-size: 13px;
+        }
+        .header-meta-date {
+            font-size: 12px;
+            color: #dc2626;
         }
         .brand {
             display: flex;
@@ -81,13 +111,13 @@
         /* Summary Box */
         .summary-section {
             display: flex;
-            gap: 20px;
-            margin-bottom: 25px;
+            gap: 15px;
+            margin-bottom: 15px;
         }
         .summary-card {
             flex: 1;
-            padding: 20px;
-            border-radius: 12px;
+            padding: 15px;
+            border-radius: 10px;
             position: relative;
             overflow: hidden;
         }
@@ -115,7 +145,7 @@
             margin-bottom: 6px;
         }
         .summary-value {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
         }
         .summary-secondary .summary-label {
@@ -123,26 +153,26 @@
         }
         .summary-secondary .summary-value {
             color: #1e293b;
-            font-size: 20px;
+            font-size: 18px;
         }
         
         /* Table */
         .table-section {
             background: #fff;
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
             border: 1px solid #e2e8f0;
         }
         .table-header {
             background: #f8fafc;
-            padding: 12px 20px;
+            padding: 10px 15px;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .table-header h2 {
-            font-size: 14px;
+            font-size: 13px;
             color: #1e293b;
             font-weight: 600;
         }
@@ -159,26 +189,25 @@
             border-collapse: collapse;
         }
         th {
-            background: #f1f5f9;
-            color: #475569;
-            padding: 12px 15px;
-            text-align: left;
+            background: #dc2626;
+            color: #fff;
+            padding: 8px 12px;
             font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #e2e8f0;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 2px solid #b91c1c;
         }
         td {
-            padding: 12px 15px;
+            padding: 8px 12px;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
+            font-size: 10px;
         }
-        tr:nth-child(even) {
-            background: #fafbfc;
+        tbody tr:nth-child(even) {
+            background: #fef2f2;
         }
-        tr:hover {
-            background: #f8fafc;
+        tbody tr:nth-child(odd) {
+            background: #fff;
         }
         .text-right {
             text-align: right;
@@ -230,16 +259,16 @@
             border-top: 2px solid #ef4444;
         }
         .total-row td {
-            padding: 15px;
+            padding: 12px;
             font-weight: 700;
             color: #b91c1c;
-            font-size: 13px;
+            font-size: 12px;
         }
         
         /* Footer */
         .footer {
-            margin-top: 30px;
-            padding-top: 20px;
+            margin-top: 20px;
+            padding-top: 15px;
             border-top: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
@@ -276,85 +305,50 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <div class="header-content">
-                <div class="brand">
-                    <div class="logo-box">SF</div>
-                    <div class="brand-info">
-                        <h1>STAR FROZEN</h1>
-                        <p>Laporan Pengeluaran</p>
-                    </div>
+                <div>
+                    <div class="header-title">STAR FROZEN</div>
+                    <div class="header-subtitle">Laporan Pengeluaran</div>
                 </div>
                 <div class="header-meta">
-                    <p><strong>Tanggal Cetak:</strong></p>
-                    <p>{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
-                    <p>{{ \Carbon\Carbon::now()->format('H:i') }} WIB</p>
+                    <div><b>Tanggal Cetak:</b></div>
+                    <div class="header-meta-date">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</div>
+                    <div class="header-meta-date">{{ \Carbon\Carbon::now()->format('H:i') }} WIB</div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Summary Section -->
-        <div class="summary-section">
-            <div class="summary-card summary-main">
-                <div class="summary-label">Total Pengeluaran</div>
-                <div class="summary-value">Rp {{ number_format($totalExpenses, 0, ',', '.') }}</div>
-            </div>
-            <div class="summary-card summary-secondary">
-                <div class="summary-label">Jumlah Transaksi</div>
-                <div class="summary-value">{{ $expensesList->count() }} Transaksi</div>
             </div>
         </div>
 
         <!-- Table Section -->
         <div class="table-section">
             <div class="table-header">
-                <h2>📋 Daftar Pengeluaran</h2>
+                <h2>Daftar Pengeluaran</h2>
                 <span class="table-badge">{{ $expensesList->count() }} Data</span>
             </div>
             
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 5%;">No</th>
-                        <th style="width: 12%;">Tanggal</th>
-                        <th style="width: 15%;">Kategori</th>
-                        <th style="width: 35%;">Deskripsi</th>
-                        <th style="width: 18%;" class="text-right">Jumlah</th>
-                        <th style="width: 15%;">Dicatat Oleh</th>
+                        <th width="5%">No</th>
+                        <th width="12%">Tanggal</th>
+                        <th width="18%">Kategori</th>
+                        <th width="35%">Deskripsi</th>
+                        <th width="15%">Jumlah (Rp)</th>
+                        <th width="15%">Dicatat Oleh</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($expensesList as $index => $expense)
+                    @php $no = 1; @endphp
+                    @foreach($expensesList as $expense)
                     <tr>
-                        <td class="text-center">{{ $index + 1 }}</td>
-                        <td>
-                            <div style="font-weight: 500;">{{ \Carbon\Carbon::parse($expense->expense_date)->format('d/m/Y') }}</div>
-                        </td>
-                        <td>
-                            <span class="category-badge">{{ $expense->category }}</span>
-                        </td>
-                        <td style="color: #64748b;">{{ $expense->description }}</td>
-                        <td class="text-right">
-                            <span class="expense-badge">Rp {{ number_format($expense->amount, 0, ',', '.') }}</span>
-                        </td>
-                        <td>
-                            <div class="user-cell">
-                                <div class="user-avatar">{{ strtoupper(substr($expense->user->name ?? 'U', 0, 1)) }}</div>
-                                <span>{{ $expense->user->name ?? 'N/A' }}</span>
-                            </div>
-                        </td>
+                        <td class="text-center">{{ $no++ }}</td>
+                        <td class="text-center">{{ \Carbon\Carbon::parse($expense->expense_date)->format('d/m/Y') }}</td>
+                        <td>{{ $expense->category ?? '-' }}</td>
+                        <td>{{ $expense->description ?? '-' }}</td>
+                        <td class="text-right">Rp {{ number_format($expense->amount, 0, ',', '.') }}</td>
+                        <td>{{ $expense->user->name ?? 'N/A' }}</td>
                     </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6">
-                            <div class="empty-state">
-                                <p>Tidak ada data pengeluaran</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                    
+                    @endforeach
                     @if($expensesList->count() > 0)
                     <tr class="total-row">
                         <td colspan="4" class="text-right">TOTAL PENGELUARAN:</td>
@@ -364,6 +358,10 @@
                     @endif
                 </tbody>
             </table>
+            <div class="info" style="margin-top:8px;">
+                Total {{ $expensesList->count() }} transaksi pengeluaran |
+                Rata-rata: Rp {{ $expensesList->count() > 0 ? number_format($totalExpenses / $expensesList->count(), 0, ',', '.') : 0 }} per transaksi
+            </div>
         </div>
 
         <!-- Footer -->

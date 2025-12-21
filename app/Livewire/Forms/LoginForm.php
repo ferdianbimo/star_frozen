@@ -10,21 +10,60 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
+/**
+ * LoginForm - Livewire Form untuk proses autentikasi user.
+ *
+ * Class ini menangani form login dengan fitur:
+ * - Validasi email dan password
+ * - Remember me functionality
+ * - Rate limiting untuk mencegah brute force
+ * - Throttle key berbasis email + IP
+ *
+ * @package App\Livewire\Forms
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ *
+ * @property string $email    Email user untuk login
+ * @property string $password Password user
+ * @property bool   $remember Flag untuk "remember me"
+ */
 class LoginForm extends Form
 {
+    /**
+     * Alamat email user untuk login.
+     *
+     * @var string
+     */
     #[Validate('required|string|email')]
     public string $email = '';
 
+    /**
+     * Password user untuk login.
+     *
+     * @var string
+     */
     #[Validate('required|string')]
     public string $password = '';
 
+    /**
+     * Flag untuk menyimpan session login.
+     *
+     * @var bool
+     */
     #[Validate('boolean')]
     public bool $remember = false;
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Mencoba autentikasi dengan credentials yang diberikan.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * Proses:
+     * 1. Cek rate limiting
+     * 2. Attempt login dengan email/password
+     * 3. Jika gagal, increment rate limiter
+     * 4. Jika sukses, clear rate limiter
+     *
+     * @return void
+     * @throws ValidationException Jika login gagal atau rate limited
      */
     public function authenticate(): void
     {
@@ -42,7 +81,13 @@ class LoginForm extends Form
     }
 
     /**
-     * Ensure the authentication request is not rate limited.
+     * Memastikan request tidak melebihi rate limit.
+     *
+     * Maksimum 5 percobaan login gagal. Jika melebihi,
+     * user harus menunggu sesuai waktu cooldown.
+     *
+     * @return void
+     * @throws ValidationException Jika rate limited
      */
     protected function ensureIsNotRateLimited(): void
     {
@@ -63,7 +108,12 @@ class LoginForm extends Form
     }
 
     /**
-     * Get the authentication rate limiting throttle key.
+     * Generate throttle key untuk rate limiting.
+     *
+     * Key dibuat dari kombinasi email (lowercase) dan IP address
+     * untuk membatasi percobaan login per kombinasi user+device.
+     *
+     * @return string Format: "email|ip_address"
      */
     protected function throttleKey(): string
     {

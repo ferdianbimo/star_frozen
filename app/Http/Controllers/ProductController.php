@@ -4,10 +4,27 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
+/**
+ * ProductController - Controller scaffold untuk produk.
+ *
+ * Controller ini merupakan scaffold kosong yang dapat diimplementasikan
+ * untuk mengelola produk via resource controller.
+ *
+ * Saat ini, manajemen produk dilakukan melalui:
+ * - CashierInventoryController (untuk kasir)
+ * - ManagerInventoryController (untuk manager)
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ * @todo    Implementasi jika diperlukan API atau view terpisah
+ */
 class ProductController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Menampilkan daftar produk.
+     *
+     * @return void
      */
     public function index()
     {
@@ -15,7 +32,9 @@ class ProductController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Menampilkan form tambah produk.
+     *
+     * @return void
      */
     public function create()
     {
@@ -23,7 +42,10 @@ class ProductController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Menyimpan produk baru.
+     *
+     * @param  Request $request
+     * @return void
      */
     public function store(Request $request)
     {
@@ -31,7 +53,10 @@ class ProductController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Menampilkan detail produk.
+     *
+     * @param  string $id ID produk
+     * @return void
      */
     public function show(string $id)
     {
@@ -39,7 +64,10 @@ class ProductController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Menampilkan form edit produk.
+     *
+     * @param  string $id ID produk
+     * @return void
      */
     public function edit(string $id)
     {
@@ -47,7 +75,11 @@ class ProductController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Mengupdate produk.
+     *
+     * @param  Request $request
+     * @param  string  $id ID produk
+     * @return void
      */
     public function update(Request $request, string $id)
     {
@@ -55,7 +87,10 @@ class ProductController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Menghapus produk.
+     *
+     * @param  string $id ID produk
+     * @return void
      */
     public function destroy(string $id)
     {

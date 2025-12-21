@@ -9,11 +9,38 @@ use App\Models\StockLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\View\View;
 use Carbon\Carbon;
 
+/**
+ * CashierDashboardController - Dashboard utama untuk Kasir.
+ *
+ * Controller ini menyediakan data dashboard untuk kasir:
+ * - Ringkasan penjualan harian dengan perbandingan kemarin
+ * - Jumlah transaksi dan item terjual hari ini
+ * - Trend penjualan (7 atau 30 hari)
+ * - Produk dengan stok rendah dan kadaluarsa
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class CashierDashboardController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Menampilkan dashboard kasir.
+     *
+     * Mengambil data:
+     * - Penjualan harian dengan perbandingan kemarin
+     * - Jumlah transaksi dan item terjual
+     * - Penjualan bulanan (30 hari terakhir)
+     * - Trend penjualan berdasarkan periode (7/30 hari)
+     * - Produk low stock dan expiring soon
+     *
+     * @param  Request $request Request dengan parameter period
+     * @return View
+     */
+    public function index(Request $request): View
     {
         // Get period from request (default: 7 days)
         $period = $request->input('period', 7);

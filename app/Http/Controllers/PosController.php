@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
 use App\Models\Product;
 use App\Models\ProductBatch;
 use App\Models\StockLog;
@@ -15,19 +18,79 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+/**
+ * PosController - Mengelola operasional Point of Sale (POS).
+ *
+ * Controller ini menangani semua operasi POS termasuk:
+ * - Manajemen keranjang belanja (cart)
+ * - Proses checkout dan pembayaran
+ * - Generate struk/receipt transaksi
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class PosController extends Controller
 {
-    protected function getCart()
+    /*
+    |--------------------------------------------------------------------------
+    | CART MANAGEMENT (PRIVATE METHODS)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Mengambil data keranjang dari session.
+     *
+     * @return array<string, array> Data keranjang belanja
+     */
+    protected function getCart(): array
     {
         return session('cart', []);
     }
 
-    protected function saveCart(array $cart)
+    /**
+     * Menyimpan data keranjang ke session.
+     *
+     * @param  array<string, array> $cart Data keranjang
+     * @return void
+     */
+    protected function saveCart(array $cart): void
     {
         session(['cart' => $cart]);
     }
 
-    public function index(Request $request)
+    /**
+     * Mendapatkan label unit untuk ditampilkan.
+     *
+     * @param  string  $unitType Tipe unit (pcs/renteng/pack/box/karton)
+     * @param  Product $product  Model product (unused, for future extension)
+     * @return string            Label unit yang readable
+     */
+    protected function getUnitLabel(string $unitType, Product $product): string
+    {
+        return match($unitType) {
+            'karton' => 'Karton',
+            'box' => 'Box',
+            'pack' => 'Pack',
+            'renteng' => 'Renteng',
+            'pcs' => 'Pcs',
+            default => 'Pcs',
+        };
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - DISPLAY
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Menampilkan halaman POS utama.
+     *
+     * @param  Request $request Request HTTP
+     * @return View             View halaman POS dengan produk dan cart
+     */
+    public function index(Request $request): View
     {
         $products = Product::where('is_active', 1)->orderBy('name')->get();
         $cart = $this->getCart();
@@ -35,7 +98,22 @@ class PosController extends Controller
         return view('cashier.pos', compact('products', 'cart'));
     }
 
-    public function addToCart(Request $request)
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - CART OPERATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Menambahkan produk ke keranjang.
+     *
+     * Validasi batch dan stok sebelum menambahkan.
+     * Mendukung multiple unit type (pcs, renteng, pack, box, karton).
+     *
+     * @param  Request                       $request Request dengan product_id, batch_id, quantity, unit_type
+     * @return RedirectResponse|JsonResponse Response redirect atau JSON
+     */
+    public function addToCart(Request $request): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'product_id' => 'required|exists:products,id',
@@ -101,23 +179,14 @@ class PosController extends Controller
 
         return Redirect::back()->with('success', 'Berhasil ditambahkan');
     }
-    
-    /**
-     * Get unit label for display.
-     */
-    protected function getUnitLabel(string $unitType, Product $product): string
-    {
-        return match($unitType) {
-            'karton' => 'Karton',
-            'box' => 'Box',
-            'pack' => 'Pack',
-            'renteng' => 'Renteng',
-            'pcs' => 'Pcs',
-            default => 'Pcs',
-        };
-    }
 
-    public function removeFromCart(Request $request)
+    /**
+     * Menghapus produk dari keranjang.
+     *
+     * @param  Request          $request Request dengan product_id
+     * @return RedirectResponse          Response redirect
+     */
+    public function removeFromCart(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'product_id' => 'required|exists:products,id'
@@ -133,7 +202,15 @@ class PosController extends Controller
         return Redirect::back();
     }
 
-    public function updateCart(Request $request)
+    /**
+     * Mengupdate kuantitas produk di keranjang.
+     *
+     * Jika quantity = 0, produk akan dihapus dari keranjang.
+     *
+     * @param  Request                       $request Request dengan product_id, batch_id, quantity
+     * @return RedirectResponse|JsonResponse          Response redirect atau JSON
+     */
+    public function updateCart(Request $request): RedirectResponse|JsonResponse
     {
         $data = $request->validate([
             'product_id' => 'required|exists:products,id',
@@ -201,7 +278,27 @@ class PosController extends Controller
         return Redirect::back()->with('success', $message);
     }
 
-    public function checkout(Request $request)
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - CHECKOUT & TRANSACTION
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Memproses checkout transaksi.
+     *
+     * Proses meliputi:
+     * 1. Validasi stok dan batch
+     * 2. Kalkulasi subtotal, diskon, pajak, total
+     * 3. Buat record Transaction dan TransactionItem
+     * 4. Update stok produk dan batch
+     * 5. Buat StockLog untuk audit trail
+     * 6. Log aktivitas
+     *
+     * @param  Request          $request Request dengan discount, tax, payment_method, paid_amount
+     * @return RedirectResponse          Redirect ke halaman receipt atau back dengan error
+     */
+    public function checkout(Request $request): RedirectResponse
     {
         \Log::info('Checkout started', ['request_data' => $request->all()]);
         
@@ -430,7 +527,21 @@ class PosController extends Controller
         }
     }
 
-    public function receipt($transaction)
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - RECEIPT & NEW TRANSACTION
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Menampilkan struk/receipt transaksi.
+     *
+     * @param  int|string $transaction ID transaksi
+     * @return View                    View receipt
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
+     */
+    public function receipt($transaction): View
     {
         $tx = session('last_transaction');
         
@@ -455,9 +566,14 @@ class PosController extends Controller
     }
 
     /**
-     * Start a new transaction: clear last transaction and cart from session.
+     * Memulai transaksi baru.
+     *
+     * Menghapus data last_transaction dan cart dari session,
+     * kemudian redirect ke halaman POS utama.
+     *
+     * @return RedirectResponse Redirect ke halaman POS
      */
-    public function newTransaction()
+    public function newTransaction(): RedirectResponse
     {
         session()->forget('last_transaction');
         session()->forget('cart');

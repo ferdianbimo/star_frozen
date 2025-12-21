@@ -3,18 +3,47 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use Illuminate\Support\Facades\Storage;
 use App\Models\StockLog;
 use App\Models\ProductBatch;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
+/**
+ * CashierInventoryController - Mengelola inventory untuk Kasir.
+ *
+ * Controller ini menangani operasi inventory oleh kasir:
+ * - CRUD produk dengan multi-unit pricing
+ * - Manajemen batch produk (stock in)
+ * - Upload dan hapus gambar produk
+ * - Pencatatan stock logs
+ *
+ * Fitur multi-unit:
+ * - Unit dasar: pcs (satuan terkecil)
+ * - Unit packaging: pack, renteng, box, karton
+ * - Konversi otomatis antar unit
+ * - Harga jual dan beli per unit
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class CashierInventoryController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - LIST & SEARCH
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * Display a listing of inventory items.
+     * Menampilkan daftar produk dengan search dan filter.
+     *
+     * @return View
      */
-    public function index()
+    public function index(): View
     {
         $q = request()->input('q');
         $category = request()->input('category');
@@ -52,18 +81,35 @@ class CashierInventoryController extends Controller
         return view('cashier.inventory.index', compact('products', 'categories', 'q', 'category'));
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - CREATE PRODUCT
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * Show the form for creating a new product.
+     * Menampilkan form tambah produk baru.
+     *
+     * @return View
      */
-    public function create()
+    public function create(): View
     {
         return view('cashier.inventory.create');
     }
 
     /**
-     * Store a newly created product in storage.
+     * Menyimpan produk baru ke database.
+     *
+     * Memproses data produk termasuk:
+     * - Multi-unit flags dan konversi
+     * - Multi-unit pricing (jual dan beli)
+     * - Upload gambar produk
+     * - Pencatatan activity log
+     *
+     * @param  Request $request Request dengan data produk
+     * @return RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',

@@ -6,33 +6,85 @@ use App\Models\User;
 use App\Models\Role;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
 
+/**
+ * UserController - Mengelola data user sistem.
+ *
+ * Controller ini menangani CRUD user dengan fitur:
+ * - Manajemen user (tambah, edit, hapus)
+ * - Assignment role (manager/kasir)
+ * - Upload avatar user
+ * - Pencatatan activity log
+ *
+ * @package App\Http\Controllers
+ * @author  Star Frozen Team
+ * @version 1.0.0
+ */
 class UserController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - LIST & VIEW
+    |--------------------------------------------------------------------------
+    */
+
     /**
-     * Display a listing of the resource.
+     * Redirect ke halaman access control.
+     *
+     * @return RedirectResponse
      */
-    public function index()
+    public function index(): RedirectResponse
     {
         // Redirect to access control page instead
         return redirect()->route('manager.access.index');
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Menampilkan detail user.
+     *
+     * @param  User $user User yang akan ditampilkan
+     * @return View
      */
-    public function create()
+    public function show(User $user): View
+    {
+        $user->load('role');
+        return view('manager.users.show', compact('user'));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - CREATE
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Menampilkan form tambah user baru.
+     *
+     * @return View
+     */
+    public function create(): View
     {
         $roles = Role::all();
         return view('manager.users.create', compact('roles'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Menyimpan user baru ke database.
+     *
+     * Memproses:
+     * - Validasi input (nama, email, password, role)
+     * - Upload avatar jika ada
+     * - Hash password
+     * - Pencatatan activity log
+     *
+     * @param  Request $request Request dengan data user
+     * @return RedirectResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -65,28 +117,38 @@ class UserController extends Controller
             ->with('success', 'User created successfully.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(User $user)
-    {
-        $user->load('role');
-        return view('manager.users.show', compact('user'));
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | PUBLIC METHODS - EDIT & UPDATE
+    |--------------------------------------------------------------------------
+    */
 
     /**
-     * Show the form for editing the specified resource.
+     * Menampilkan form edit user.
+     *
+     * @param  User $user User yang akan diedit
+     * @return View
      */
-    public function edit(User $user)
+    public function edit(User $user): View
     {
         $roles = Role::all();
         return view('manager.users.edit', compact('user', 'roles'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Mengupdate data user di database.
+     *
+     * Memproses:
+     * - Validasi input
+     * - Upload avatar baru jika ada (hapus yang lama)
+     * - Update password jika diisi
+     * - Pencatatan activity log dengan old/new values
+     *
+     * @param  Request $request Request dengan data update
+     * @param  User    $user    User yang akan diupdate
+     * @return RedirectResponse
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
