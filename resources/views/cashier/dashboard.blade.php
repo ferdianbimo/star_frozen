@@ -3,177 +3,169 @@
 @section('title','Dashboard')
 
 @section('content')
-    <!-- Dashboard Header -->
-    <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 rounded-2xl shadow-xl mb-8 overflow-hidden">
-        <div class="relative px-6 py-8">
-            <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent"></div>
-            <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-cash-register text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-white">Cashier Dashboard</h1>
-                        <p class="text-blue-100 mt-1">Ringkasan penjualan dan inventaris hari ini</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div class="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
-                        <div class="flex items-center gap-2 text-white">
-                            <i class="fas fa-calendar-day text-blue-200"></i>
-                            <span class="text-sm font-medium">{{ now()->format('d M Y') }}</span>
-                        </div>
-                    </div>
-                    <a href="{{ route('cashier.pos.index') }}" class="bg-white text-blue-600 hover:bg-blue-50 px-5 py-2.5 rounded-xl font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2">
-                        <i class="fas fa-shopping-cart"></i>
-                        Mulai Transaksi
-                    </a>
+<div class="p-6">
+    <!-- Page Header -->
+    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800">Dashboard Kasir</h1>
+            <p class="text-sm text-slate-600 mt-1">Ringkasan penjualan dan inventaris hari ini</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="px-4 py-2 bg-white border border-slate-200 rounded-lg">
+                <div class="flex items-center gap-2 text-slate-600">
+                    <i class="fas fa-calendar-day text-sm"></i>
+                    <span class="text-sm font-medium">{{ now()->format('d M Y') }}</span>
                 </div>
             </div>
+            <a href="{{ route('cashier.pos.index') }}" class="px-5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm flex items-center gap-2">
+                <i class="fas fa-shopping-cart"></i>
+                Mulai Transaksi
+            </a>
         </div>
     </div>
 
-    <!-- Stats Cards Row -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <!-- Daily Sales Card -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300 group">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <i class="fas fa-coins text-white text-lg"></i>
+        <div class="bg-white rounded-lg p-5 border border-slate-200">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-sm text-slate-600 mb-1">Penjualan Hari Ini</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ 'Rp ' . number_format($dailySales ?? 0, 0, ',', '.') }}</h3>
                 </div>
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-coins text-blue-600"></i>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
                 @php $dp = $dailyPercentage ?? 0; @endphp
                 @if($dp > 0)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                        <i class="fas fa-arrow-up text-[10px]"></i> {{ abs($dp) }}%
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">
+                        <i class="fas fa-arrow-up text-[10px]"></i>
+                        +{{ abs($dp) }}%
                     </span>
                 @elseif($dp < 0)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                        <i class="fas fa-arrow-down text-[10px]"></i> {{ abs($dp) }}%
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                        <i class="fas fa-arrow-down text-[10px]"></i>
+                        {{ abs($dp) }}%
                     </span>
                 @else
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">0%</span>
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-600 rounded-full font-medium">0%</span>
                 @endif
             </div>
-            <p class="text-sm text-slate-500 font-medium">Penjualan Hari Ini</p>
-            <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ 'Rp ' . number_format($dailySales ?? 0, 0, ',', '.') }}</h3>
         </div>
 
         <!-- Monthly Sales Card -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300 group">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <i class="fas fa-chart-line text-white text-lg"></i>
+        <div class="bg-white rounded-lg p-5 border border-slate-200">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-sm text-slate-600 mb-1">30 Hari Terakhir</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ 'Rp ' . number_format($monthlySales ?? 0, 0, ',', '.') }}</h3>
                 </div>
+                <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-emerald-600"></i>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
                 @php $mp = $monthlyPercentage ?? 0; @endphp
                 @if($mp > 0)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                        <i class="fas fa-arrow-up text-[10px]"></i> {{ abs($mp) }}%
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">
+                        <i class="fas fa-arrow-up text-[10px]"></i>
+                        +{{ abs($mp) }}%
                     </span>
                 @elseif($mp < 0)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                        <i class="fas fa-arrow-down text-[10px]"></i> {{ abs($mp) }}%
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                        <i class="fas fa-arrow-down text-[10px]"></i>
+                        {{ abs($mp) }}%
                     </span>
                 @else
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">0%</span>
+                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-600 rounded-full font-medium">0%</span>
                 @endif
             </div>
-            <p class="text-sm text-slate-500 font-medium">30 Hari Terakhir</p>
-            <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ 'Rp ' . number_format($monthlySales ?? 0, 0, ',', '.') }}</h3>
         </div>
 
         <!-- Low Stock Card -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300 group">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <i class="fas fa-box-open text-white text-lg"></i>
+        <div class="bg-white rounded-lg p-5 border border-slate-200">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-sm text-slate-600 mb-1">Stok Menipis</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $lowStockCount ?? 0 }}</h3>
                 </div>
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                    <i class="fas fa-exclamation-triangle text-[10px]"></i> Alert
+                <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-box-open text-amber-600"></i>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full font-medium">
+                    <i class="fas fa-exclamation-triangle text-[10px]"></i>
+                    Perlu restok
                 </span>
             </div>
-            <p class="text-sm text-slate-500 font-medium">Stok Menipis</p>
-            <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ $lowStockCount ?? 0 }} <span class="text-sm font-normal text-slate-500">produk</span></h3>
         </div>
 
         <!-- Expiring Soon Card -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-lg transition-all duration-300 group">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <i class="fas fa-hourglass-half text-white text-lg"></i>
+        <div class="bg-white rounded-lg p-5 border border-slate-200">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-sm text-slate-600 mb-1">Segera Kadaluarsa</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $expiringCount ?? 0 }}</h3>
                 </div>
-                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                    <i class="fas fa-clock text-[10px]"></i> 7 hari
+                <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-hourglass-half text-red-600"></i>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                    <i class="fas fa-clock text-[10px]"></i>
+                    Dalam 7 hari
                 </span>
             </div>
-            <p class="text-sm text-slate-500 font-medium">Segera Kadaluarsa</p>
-            <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ $expiringCount ?? 0 }} <span class="text-sm font-normal text-slate-500">produk</span></h3>
         </div>
     </div>
 
-    <!-- Sales Chart Section -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-chart-area text-white"></i>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold text-slate-800">Tren Penjualan</h3>
-                    <p class="text-sm text-slate-500" id="periodLabel">{{ $period ?? 7 }} hari terakhir</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="relative">
-                    <select id="periodSelect" onchange="changePeriod(this.value)" class="custom-select appearance-none bg-white border-2 border-slate-200 text-slate-700 rounded-xl pl-4 pr-10 py-2.5 text-sm font-medium focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 cursor-pointer hover:border-slate-300">
-                        <option value="7" {{ ($period ?? 7) == 7 ? 'selected' : '' }}>📅 7 Hari Terakhir</option>
-                        <option value="30" {{ ($period ?? 7) == 30 ? 'selected' : '' }}>📅 30 Hari Terakhir</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                        <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
-                    </div>
-                </div>
+    <!-- Sales Trend Chart -->
+    <div class="bg-white rounded-lg p-5 border border-slate-200 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold text-slate-800">Tren Penjualan</h3>
+            <div class="flex items-center gap-2">
+                <button onclick="changePeriod(7)" class="px-3 py-1.5 text-xs font-medium rounded-lg {{ ($period ?? 7) == 7 ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                    7 Hari
+                </button>
+                <button onclick="changePeriod(30)" class="px-3 py-1.5 text-xs font-medium rounded-lg {{ ($period ?? 7) == 30 ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                    30 Hari
+                </button>
             </div>
         </div>
-        <div style="min-height: 320px; position: relative;">
+        <div style="height: 300px; position: relative;">
             <canvas id="salesChartLarge"></canvas>
         </div>
     </div>
 
     <!-- Tables Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Expiring Soon Table -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-red-50 to-orange-50">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-md">
-                        <i class="fas fa-calendar-times text-white"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-base font-bold text-slate-800">Segera Kadaluarsa</h4>
-                        <p class="text-xs text-slate-500">Produk yang akan kadaluarsa dalam 7 hari</p>
-                    </div>
-                </div>
+        <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200">
+                <h4 class="text-base font-semibold text-slate-800">Segera Kadaluarsa</h4>
+                <p class="text-xs text-slate-500 mt-1">Produk yang akan kadaluarsa dalam 7 hari</p>
             </div>
-            <div class="p-4 max-h-64 overflow-y-auto scrollbar-custom">
+            <div class="overflow-x-auto">
                 @if(isset($expiringProducts) && $expiringProducts->count())
                     <table class="w-full">
-                        <thead>
-                            <tr class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                <th class="pb-3 px-2">Produk</th>
-                                <th class="pb-3 px-2">Kadaluarsa</th>
-                                <th class="pb-3 px-2 text-right">Sisa Hari</th>
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="text-left py-3 px-4 text-xs font-semibold text-slate-600">Produk</th>
+                                <th class="text-left py-3 px-4 text-xs font-semibold text-slate-600">Kadaluarsa</th>
+                                <th class="text-right py-3 px-4 text-xs font-semibold text-slate-600">Sisa Hari</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @foreach($expiringProducts as $p)
-                                <tr class="hover:bg-slate-50 transition-colors">
-                                    <td class="py-3 px-2">
-                                        <span class="font-medium text-slate-700">{{ $p->name }}</span>
-                                    </td>
-                                    <td class="py-3 px-2 text-slate-500 text-sm">{{ optional($p->expiry_date)->format('d/m/Y') }}</td>
-                                    <td class="py-3 px-2 text-right">
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold {{ ($p->remaining_days ?? 0) <= 3 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700' }}">
-                                            <i class="fas fa-clock text-[10px]"></i>
+                                <tr class="hover:bg-slate-50">
+                                    <td class="py-3 px-4 text-sm text-slate-700">{{ $p->name }}</td>
+                                    <td class="py-3 px-4 text-sm text-slate-600">{{ optional($p->expiry_date)->format('d/m/Y') }}</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium {{ ($p->remaining_days ?? 0) <= 3 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700' }}">
                                             {{ $p->remaining_days ?? '-' }} hari
                                         </span>
                                     </td>
@@ -182,59 +174,48 @@
                         </tbody>
                     </table>
                 @else
-                    <div class="flex flex-col items-center justify-center py-8 text-center">
-                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
-                            <i class="fas fa-check-circle text-2xl text-green-500"></i>
+                    <div class="py-8 text-center">
+                        <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-check-circle text-xl text-emerald-500"></i>
                         </div>
-                        <p class="text-slate-500 text-sm">Tidak ada produk yang akan kadaluarsa</p>
+                        <p class="text-sm text-slate-500">Tidak ada produk yang akan kadaluarsa</p>
                     </div>
                 @endif
             </div>
         </div>
 
         <!-- Low Stock Table -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-amber-50 to-yellow-50">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
-                        <i class="fas fa-boxes text-white"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-base font-bold text-slate-800">Stok Menipis</h4>
-                        <p class="text-xs text-slate-500">Produk yang perlu segera di-restock</p>
-                    </div>
-                </div>
+        <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200">
+                <h4 class="text-base font-semibold text-slate-800">Stok Menipis</h4>
+                <p class="text-xs text-slate-500 mt-1">Produk yang perlu segera di-restock</p>
             </div>
-            <div class="p-4 max-h-64 overflow-y-auto scrollbar-custom">
+            <div class="overflow-x-auto">
                 @if(isset($stockAlmostOut) && $stockAlmostOut->count())
                     <table class="w-full">
-                        <thead>
-                            <tr class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                <th class="pb-3 px-2">Produk</th>
-                                <th class="pb-3 px-2">Stok</th>
-                                <th class="pb-3 px-2 text-right">Status</th>
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="text-left py-3 px-4 text-xs font-semibold text-slate-600">Produk</th>
+                                <th class="text-left py-3 px-4 text-xs font-semibold text-slate-600">Stok</th>
+                                <th class="text-right py-3 px-4 text-xs font-semibold text-slate-600">Status</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
                             @foreach($stockAlmostOut as $p)
-                                <tr class="hover:bg-slate-50 transition-colors {{ $p->stock == 0 ? 'bg-red-50/50' : '' }}">
-                                    <td class="py-3 px-2">
-                                        <span class="font-medium {{ $p->stock == 0 ? 'text-red-700' : 'text-slate-700' }}">{{ $p->name }}</span>
-                                    </td>
-                                    <td class="py-3 px-2">
-                                        <span class="font-semibold {{ $p->stock == 0 ? 'text-red-700' : 'text-slate-600' }}">{{ $p->stock }}</span>
-                                    </td>
-                                    <td class="py-3 px-2 text-right">
+                                <tr class="hover:bg-slate-50">
+                                    <td class="py-3 px-4 text-sm text-slate-700">{{ $p->name }}</td>
+                                    <td class="py-3 px-4 text-sm text-slate-600">{{ $p->stock }}</td>
+                                    <td class="py-3 px-4 text-right">
                                         @if($p->stock == 0)
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
                                                 <i class="fas fa-times-circle text-[10px]"></i> Habis
                                             </span>
                                         @elseif($p->stock <= 5)
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700">
                                                 <i class="fas fa-exclamation-circle text-[10px]"></i> Kritis
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                                                 <i class="fas fa-exclamation-triangle text-[10px]"></i> Rendah
                                             </span>
                                         @endif
@@ -244,9 +225,9 @@
                         </tbody>
                     </table>
                 @else
-                    <div class="flex flex-col items-center justify-center py-8 text-center">
-                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
-                            <i class="fas fa-check-circle text-2xl text-green-500"></i>
+                    <div class="py-8 text-center">
+                        <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-check-circle text-xl text-emerald-500"></i>
                         </div>
                         <p class="text-slate-500 text-sm">Semua stok dalam kondisi baik</p>
                     </div>
@@ -328,13 +309,13 @@
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { 
+                        ticks: {
                             color: '#64748b',
                             font: { size: 11, weight: '500' }
                         }
                     },
                     y: {
-                        grid: { 
+                        grid: {
                             color: 'rgba(226,232,240,0.8)',
                             drawBorder: false
                         },
