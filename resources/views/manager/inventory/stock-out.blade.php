@@ -36,12 +36,12 @@
             </div>
 
             <div class="flex gap-3 flex-shrink-0">
-                <input type="date" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white">
-
-                <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 whitespace-nowrap">
-                    <i class="fas fa-filter"></i>
-                    Filter
-                </button>
+                <select id="categoryFilter" name="category" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white" onchange="filterByCategory()">
+                    <option value="Semua">Semua</option>
+                    @foreach($categories ?? [] as $cat)
+                        <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                    @endforeach
+                </select>
             </div>
         </div>
     </div>
@@ -88,4 +88,19 @@
         </div>
     </div>
 </div>
+
+<script>
+function filterByCategory() {
+    const category = document.getElementById('categoryFilter').value;
+    const currentUrl = new URL(window.location.href);
+
+    if (category === 'Semua') {
+        currentUrl.searchParams.delete('category');
+    } else {
+        currentUrl.searchParams.set('category', category);
+    }
+
+    window.location.href = currentUrl.toString();
+}
+</script>
 @endsection

@@ -43,42 +43,56 @@ class CashierInventoryController extends Controller
      *
      * @return View
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $q = request()->input('q');
-        $category = request()->input('category');
-        $sort = request()->input('sort');
+        $query = Product::query()->with('batches');
 
-        $query = Product::query();
-        if ($q) {
-            $query->where(function($sub) use ($q) {
-                $sub->where('name', 'like', "%{$q}%")
-                    ->orWhere('barcode', 'like', "%{$q}%")
-                    ->orWhere('category', 'like', "%{$q}%");
+        // Search
+        if ($request->has('search') && $request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('category', 'like', '%' . $request->search . '%')
+                  ->orWhere('barcode', 'like', '%' . $request->search . '%');
             });
         }
-        if ($category) {
-            $query->where('category', $category);
+
+        // Filter by category
+        if ($request->has('category') && $request->category && $request->category != 'Semua') {
+            $query->where('category', $request->category);
         }
 
-        // apply sorting based on request
-        switch ($sort) {
-            case 'stock_asc':
-                $query->orderBy('stock', 'asc');
-                break;
-            case 'stock_desc':
-                $query->orderBy('stock', 'desc');
-                break;
-            default:
-                $query->orderBy('name');
+        // Sort mapping
+        $sort = $request->get('sort', 'name_asc');
+        $sortMapping = [
+            'name_asc' => ['name', 'asc'],
+            'name_desc' => ['name', 'desc'],
+            'stock_low' => ['stock', 'asc'],
+            'stock_high' => ['stock', 'desc'],
+            'price_low' => ['price', 'asc'],
+            'price_high' => ['price', 'desc'],
+            'newest' => ['created_at', 'desc'],
+            'oldest' => ['created_at', 'asc'],
+            'expiration_asc' => ['expiration_date', 'asc'],
+            'expiration_desc' => ['expiration_date', 'desc'],
+        ];
+
+        if (isset($sortMapping[$sort])) {
+            [$column, $direction] = $sortMapping[$sort];
+            if ($column === 'expiration_date') {
+                $query->orderByRaw("(expiration_date IS NULL), expiration_date $direction");
+            } else {
+                $query->orderBy($column, $direction);
+            }
+        } else {
+            $query->orderBy('name', 'asc');
         }
 
-        $products = $query->paginate(8)->appends(request()->query());
+        $products = $query->paginate(10)->withQueryString();
 
         // get categories for filter
         $categories = Product::select('category')->distinct()->whereNotNull('category')->pluck('category');
 
-        return view('cashier.inventory.index', compact('products', 'categories', 'q', 'category'));
+        return view('cashier.inventory.index', compact('products', 'categories'));
     }
 
     /*
@@ -392,6 +406,13 @@ class CashierInventoryController extends Controller
             });
         }
 
+        // Category filter
+        if ($request->has('category') && $request->category && $request->category != 'Semua') {
+            $query->whereHas('product', function($q) use ($request) {
+                $q->where('category', $request->category);
+            });
+        }
+
         // Sorting
         $sortMapping = [
             'tanggal_terbaru' => ['created_at', 'desc'],
@@ -408,8 +429,12 @@ class CashierInventoryController extends Controller
 
         $stockLogs = $query->paginate(8)->appends(request()->query());
 
+        // get categories for filter
+        $categories = Product::select('category')->distinct()->whereNotNull('category')->pluck('category');
+
         return view('cashier.inventory.stock-out', [
             'logs' => $stockLogs,
+            'categories' => $categories,
             'search' => $search,
             'sort' => $sort
         ]);

@@ -28,9 +28,9 @@
         <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
             @foreach($products as $product)
                 @php
-                    $availableBatches = $product->batches()->available()->notExpired();
-                    $batchStock = $availableBatches->sum('quantity');
-                    $hasBatches = $availableBatches->count() > 0;
+                    // Use stock field from products table
+                    $batchStock = $product->stock ?? 0;
+                    $hasBatches = $batchStock > 0;
                 @endphp
                 <div class="bg-white border border-slate-200 rounded-lg p-4 product-card" data-name="{{ strtolower($product->name) }}">
                     <!-- Product Image -->
@@ -187,51 +187,105 @@
 </div>
 
 <!-- Checkout Modal -->
-<div id="checkoutModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-        <h3 class="text-xl font-bold text-slate-800 mb-4">Payment</h3>
+<div id="checkoutModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl p-5 w-full max-w-xs mx-auto">
+        <h3 class="text-lg font-bold text-slate-800 mb-3">Payment</h3>
 
-        <div class="space-y-3 mb-4">
-            <div class="flex justify-between">
-                <span class="text-slate-600">Total:</span>
-                <span class="font-bold" id="modalTotal">Rp. 0</span>
-            </div>
+        <!-- Total Price Display -->
+        <div class="mb-3">
+            <div class="text-xs text-slate-600 mb-1">Total Price:</div>
+            <div class="text-xl font-bold text-slate-800" id="modalTotal">Rp. 0</div>
+        </div>
 
-            <div id="cashPaymentSection">
-                <label class="block text-sm text-slate-600 mb-1">Amount Paid</label>
+        <!-- Amount Input with Return -->
+        <div class="mb-3">
+            <div class="bg-white border-2 border-slate-200 rounded-lg p-3">
                 <input
-                    type="number"
+                    type="text"
                     id="paidInput"
-                    class="w-full px-3 py-2 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onchange="calculateChange()">
-
-                <div id="changeDisplay" class="mt-2 p-3 bg-emerald-50 rounded hidden">
-                    <div class="flex justify-between">
-                        <span class="text-slate-600">Change:</span>
-                        <span class="font-bold text-emerald-600" id="changeAmount">Rp. 0</span>
-                    </div>
-                </div>
-
-                <div id="insufficientError" class="mt-2 text-red-500 text-sm hidden">
-                    Insufficient payment amount
+                    readonly
+                    oninput="calculateChange()"
+                    class="w-full text-left text-lg font-semibold text-slate-800 bg-transparent border-none focus:outline-none mb-2"
+                    placeholder="">
+                <div class="flex justify-end items-center">
+                    <span class="text-xs text-emerald-600 mr-2">Return:</span>
+                    <span class="text-sm font-bold text-emerald-600" id="changeAmount">Rp. 0</span>
                 </div>
             </div>
         </div>
 
-        <div class="flex gap-3">
+        <!-- Number Keypad - 4 columns -->
+        <div class="grid grid-cols-4 gap-2 mb-3">
+            <!-- Row 1 -->
+            <button type="button" onclick="appendNumber('10000')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                10.000
+            </button>
+            <button type="button" onclick="appendNumber('1')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                1
+            </button>
+            <button type="button" onclick="appendNumber('2')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                2
+            </button>
+            <button type="button" onclick="appendNumber('3')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                3
+            </button>
+
+            <!-- Row 2 -->
+            <button type="button" onclick="appendNumber('20000')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                20.000
+            </button>
+            <button type="button" onclick="appendNumber('4')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                4
+            </button>
+            <button type="button" onclick="appendNumber('5')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                5
+            </button>
+            <button type="button" onclick="appendNumber('6')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                6
+            </button>
+
+            <!-- Row 3 -->
+            <button type="button" onclick="appendNumber('50000')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                50.000
+            </button>
+            <button type="button" onclick="appendNumber('7')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                7
+            </button>
+            <button type="button" onclick="appendNumber('8')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                8
+            </button>
+            <button type="button" onclick="appendNumber('9')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                9
+            </button>
+
+            <!-- Row 4 -->
+            <button type="button" onclick="clearPaid()" class="bg-red-50 hover:bg-red-100 text-red-600 rounded-lg py-2 text-xs font-semibold transition-colors">
+                Clear
+            </button>
+            <button type="button" onclick="appendNumber('.')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                .
+            </button>
+            <button type="button" onclick="appendNumber('0')" class="bg-slate-100 hover:bg-slate-200 rounded-lg py-2 text-xs font-semibold text-slate-700 transition-colors">
+                0
+            </button>
+            <button type="button" onclick="confirmCheckout()" id="confirmBtn" class="bg-blue-500 hover:bg-blue-600 text-white rounded-lg py-2 text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                Enter
+            </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-2">
             <button
                 type="button"
                 onclick="closeCheckoutModal()"
-                class="flex-1 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                class="flex-1 px-3 py-2 bg-white border-2 border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors">
                 Cancel
             </button>
             <button
                 type="button"
                 onclick="confirmCheckout()"
-                id="confirmBtn"
-                class="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50"
-                disabled>
-                Confirm & Print
+                class="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors">
+                Print
             </button>
         </div>
     </div>
@@ -243,13 +297,12 @@
 <script>
 let cart = {};
 let products = {!! json_encode($products->map(function($p) {
-    $batches = $p->batches()->available()->notExpired()->get();
     return [
         'id' => $p->id,
         'name' => $p->name,
         'price' => $p->price,
-        'stock' => $batches->sum('quantity'),
-        'batch_id' => optional($batches->first())->id
+        'stock' => $p->stock ?? 0,
+        'batch_id' => optional($p->batches()->where('is_active', true)->where('quantity', '>', 0)->first())->id
     ];
 })) !!};
 
@@ -397,19 +450,8 @@ function openCheckoutModal() {
 
     document.getElementById('modalTotal').textContent = `Rp. ${formatNumber(total)}`;
     document.getElementById('paidInput').value = '';
-    document.getElementById('changeDisplay').classList.add('hidden');
-    document.getElementById('insufficientError').classList.add('hidden');
-    document.getElementById('confirmBtn').disabled = true;
-
-    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-    const cashSection = document.getElementById('cashPaymentSection');
-
-    if (paymentMethod === 'qris') {
-        cashSection.classList.add('hidden');
-        document.getElementById('confirmBtn').disabled = false;
-    } else {
-        cashSection.classList.remove('hidden');
-    }
+    document.getElementById('changeAmount').textContent = `Rp. 0`;
+    document.getElementById('confirmBtn').disabled = false;
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -421,6 +463,26 @@ function closeCheckoutModal() {
     modal.classList.remove('flex');
 }
 
+// Keypad functions
+function appendNumber(num) {
+    const input = document.getElementById('paidInput');
+    const currentValue = input.value.replace(/\./g, ''); // Remove dots
+
+    // Prevent multiple decimal points
+    if (num === '.' && currentValue.includes('.')) {
+        return;
+    }
+
+    input.value = currentValue + num;
+    calculateChange();
+}
+
+function clearPaid() {
+    document.getElementById('paidInput').value = '';
+    document.getElementById('changeAmount').textContent = `Rp. 0`;
+    calculateChange();
+}
+
 function calculateChange() {
     const items = Object.values(cart);
     const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -430,21 +492,17 @@ function calculateChange() {
     const taxAmount = (subtotal - discountAmount) * (taxPercent / 100);
     const total = subtotal - discountAmount + taxAmount;
 
-    const paid = parseFloat(document.getElementById('paidInput').value) || 0;
+    const paidValue = document.getElementById('paidInput').value.replace(/\./g, '');
+    const paid = parseFloat(paidValue) || 0;
     const change = paid - total;
 
-    const changeDisplay = document.getElementById('changeDisplay');
-    const insufficientError = document.getElementById('insufficientError');
     const confirmBtn = document.getElementById('confirmBtn');
 
-    if (paid >= total) {
-        changeDisplay.classList.remove('hidden');
-        insufficientError.classList.add('hidden');
+    if (paid >= total && paid > 0) {
         document.getElementById('changeAmount').textContent = `Rp. ${formatNumber(change)}`;
         confirmBtn.disabled = false;
     } else {
-        changeDisplay.classList.add('hidden');
-        insufficientError.classList.remove('hidden');
+        document.getElementById('changeAmount').textContent = `Rp. 0`;
         confirmBtn.disabled = true;
     }
 }
@@ -452,7 +510,8 @@ function calculateChange() {
 function confirmCheckout() {
     const items = Object.values(cart);
     const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-    const paidAmount = paymentMethod === 'cash' ? parseFloat(document.getElementById('paidInput').value) : 0;
+    const paidValue = document.getElementById('paidInput').value.replace(/\./g, '');
+    const paidAmount = parseFloat(paidValue) || 0;
 
     // Prepare form data
     document.getElementById('itemsInput').value = JSON.stringify(items);

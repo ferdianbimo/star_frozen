@@ -36,11 +36,11 @@
             </div>
 
             <div class="flex gap-3 flex-shrink-0">
-                <select class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white">
-                    <option>Semua</option>
-                    <option>Frozen Food</option>
-                    <option>Sembako</option>
-                    <option>Minuman</option>
+                <select id="categoryFilter" name="category" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white" onchange="filterByCategory()">
+                    <option value="Semua">Semua</option>
+                    @foreach(\App\Models\Product::select('category')->distinct()->whereNotNull('category')->pluck('category') as $cat)
+                        <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                    @endforeach
                 </select>
 
                 <button onclick="openAddModal()" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium flex items-center gap-2 whitespace-nowrap">
@@ -74,7 +74,7 @@
                     <tr class="hover:bg-slate-50">
                         <td class="px-4 py-3 text-sm text-slate-700">{{ $index + 1 }}</td>
                         <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ $product->name }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $product->category->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-600">{{ $product->category ?? '-' }}</td>
                         <td class="px-4 py-3 text-sm text-slate-700">Rp {{ number_format($product->purchase_price ?? 0, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-sm text-slate-700">Rp {{ number_format($product->selling_price ?? 0, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ $product->stock ?? 0 }}</td>
@@ -128,11 +128,11 @@
                     <label class="block text-sm font-medium text-slate-700 mb-2">
                         Kategori<span class="text-red-500">*</span>
                     </label>
-                    <select name="category_id" required
+                    <select name="category" required
                         class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white">
                         <option value="">Pilih kategori</option>
-                        @foreach($categories ?? [] as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @foreach($categories ?? [] as $cat)
+                            <option value="{{ $cat }}">{{ $cat }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -253,11 +253,11 @@
                     <label class="block text-sm font-medium text-slate-700 mb-2">
                         Kategori<span class="text-red-500">*</span>
                     </label>
-                    <select name="category_id" id="edit_category_id" required
+                    <select name="category" id="edit_category" required
                         class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white">
                         <option value="">Pilih kategori</option>
-                        @foreach($categories ?? [] as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @foreach($categories ?? [] as $cat)
+                            <option value="{{ $cat }}">{{ $cat }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -367,7 +367,7 @@ function openEditModal(product) {
     // Fill form with product data
     document.getElementById('edit_product_id').value = product.id;
     document.getElementById('edit_name').value = product.name;
-    document.getElementById('edit_category_id').value = product.category_id || '';
+    document.getElementById('edit_category').value = product.category || '';
     document.getElementById('edit_purchase_price').value = product.purchase_price || '';
     document.getElementById('edit_selling_price').value = product.selling_price || '';
     document.getElementById('edit_stock').value = product.stock || '';
@@ -488,5 +488,19 @@ document.getElementById('editProductModal').addEventListener('click', function(e
         closeEditModal();
     }
 });
+
+// Category filter function
+function filterByCategory() {
+    const category = document.getElementById('categoryFilter').value;
+    const currentUrl = new URL(window.location.href);
+
+    if (category === 'Semua') {
+        currentUrl.searchParams.delete('category');
+    } else {
+        currentUrl.searchParams.set('category', category);
+    }
+
+    window.location.href = currentUrl.toString();
+}
 </script>
 @endsection

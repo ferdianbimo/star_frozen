@@ -36,10 +36,10 @@
             </div>
 
             <div class="flex gap-3 flex-shrink-0">
-                <select class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white">
-                    <option>Semua</option>
+                <select id="categoryFilter" name="category" class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white" onchange="filterByCategory()">
+                    <option value="Semua">Semua</option>
                     @foreach($categories ?? [] as $cat)
-                        <option>{{ $cat }}</option>
+                        <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
                     @endforeach
                 </select>
 
@@ -106,20 +106,380 @@
     </div>
 </div>
 
+<!-- Modal Tambah Produk -->
+<div id="addProductModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-slate-800 mb-6">Tambah Produk Baru</h2>
+
+            <form id="addProductForm">
+                @csrf
+                <!-- Nama Produk -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Nama Produk<span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" required
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                        placeholder="Masukkan nama produk">
+                </div>
+
+                <!-- Kategori -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Kategori<span class="text-red-500">*</span>
+                    </label>
+                    <select name="category" required
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white">
+                        <option value="">Pilih kategori</option>
+                        @foreach($categories ?? [] as $cat)
+                            <option value="{{ $cat }}">{{ $cat }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Harga Beli & Harga Jual -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Harga Beli<span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">Rp</span>
+                            <input type="number" name="purchase_price" required
+                                class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                                placeholder="0">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Harga Jual<span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">Rp</span>
+                            <input type="number" name="price" required
+                                class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                                placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stok Awal & Satuan -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Stok Awal<span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="stock" required
+                            class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                            placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Satuan<span class="text-red-500">*</span>
+                        </label>
+                        <select name="unit" required
+                            class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white">
+                            <option value="">Pilih satuan</option>
+                            <option value="pcs">Pcs</option>
+                            <option value="pack">Pack</option>
+                            <option value="box">Box</option>
+                            <option value="kg">Kg</option>
+                            <option value="gram">Gram</option>
+                            <option value="liter">Liter</option>
+                            <option value="ml">Ml</option>
+                            <option value="sack">Sack</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tanggal Kadaluwarsa -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Tanggal Kadaluwarsa
+                    </label>
+                    <input type="date" name="expiry_date"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3">
+                    <button type="submit"
+                        class="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Simpan Produk
+                    </button>
+                    <button type="button" onclick="closeAddModal()"
+                        class="flex-1 px-4 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-sm font-medium">
+                        Batal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Produk -->
+<div id="editProductModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-slate-800 mb-6">Edit Produk</h2>
+
+            <form id="editProductForm">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="product_id" id="edit_product_id">
+
+                <!-- Nama Produk -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Nama Produk<span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" id="edit_name" required
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                        placeholder="Masukkan nama produk">
+                </div>
+
+                <!-- Kategori -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Kategori<span class="text-red-500">*</span>
+                    </label>
+                    <select name="category" id="edit_category" required
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white">
+                        <option value="">Pilih kategori</option>
+                        @foreach($categories ?? [] as $cat)
+                            <option value="{{ $cat }}">{{ $cat }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Harga Beli & Harga Jual -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Harga Beli<span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">Rp</span>
+                            <input type="number" name="purchase_price" id="edit_purchase_price" required
+                                class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                                placeholder="0">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Harga Jual<span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">Rp</span>
+                            <input type="number" name="price" id="edit_price" required
+                                class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                                placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stok & Satuan -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Stok<span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" name="stock" id="edit_stock" required
+                            class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+                            placeholder="0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            Satuan<span class="text-red-500">*</span>
+                        </label>
+                        <select name="unit" id="edit_unit" required
+                            class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 bg-white">
+                            <option value="">Pilih satuan</option>
+                            <option value="pcs">Pcs</option>
+                            <option value="pack">Pack</option>
+                            <option value="box">Box</option>
+                            <option value="kg">Kg</option>
+                            <option value="gram">Gram</option>
+                            <option value="liter">Liter</option>
+                            <option value="ml">Ml</option>
+                            <option value="sack">Sack</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tanggal Kadaluwarsa -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Tanggal Kadaluwarsa
+                    </label>
+                    <input type="date" name="expiry_date" id="edit_expiry_date"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20">
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3">
+                    <button type="submit"
+                        class="flex-1 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i>
+                        Update Produk
+                    </button>
+                    <button type="button" onclick="closeEditModal()"
+                        class="flex-1 px-4 py-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-sm font-medium">
+                        Batal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 // Modal functions
 function openAddModal() {
-    alert('Fitur tambah produk untuk cashier');
+    document.getElementById('addProductModal').classList.remove('hidden');
+}
+
+function closeAddModal() {
+    document.getElementById('addProductModal').classList.add('hidden');
+    document.getElementById('addProductForm').reset();
 }
 
 function openEditModal(product) {
-    alert('Fitur edit produk untuk cashier');
+    // Fill form with product data
+    document.getElementById('edit_product_id').value = product.id;
+    document.getElementById('edit_name').value = product.name || '';
+    document.getElementById('edit_category').value = product.category || '';
+    document.getElementById('edit_purchase_price').value = product.purchase_price || '';
+    document.getElementById('edit_price').value = product.price || '';
+    document.getElementById('edit_stock').value = product.stock || '';
+    document.getElementById('edit_unit').value = product.unit || '';
+
+    // Format expiry date if exists
+    if (product.expiry_date) {
+        const expiryDate = new Date(product.expiry_date);
+        document.getElementById('edit_expiry_date').value = expiryDate.toISOString().split('T')[0];
+    }
+
+    document.getElementById('editProductModal').classList.remove('hidden');
 }
 
+function closeEditModal() {
+    document.getElementById('editProductModal').classList.add('hidden');
+    document.getElementById('editProductForm').reset();
+}
+
+// Form submissions
+document.getElementById('addProductForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('/cashier/inventory', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Produk berhasil ditambahkan');
+            closeAddModal();
+            location.reload();
+        } else {
+            alert('Gagal menambahkan produk: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat menambahkan produk');
+    });
+});
+
+document.getElementById('editProductForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const productId = document.getElementById('edit_product_id').value;
+
+    fetch(`/cashier/inventory/${productId}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Produk berhasil diupdate');
+            closeEditModal();
+            location.reload();
+        } else {
+            alert('Gagal mengupdate produk: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat mengupdate produk');
+    });
+});
+
 function deleteProduct(productId) {
-    if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
-        alert('Fitur delete produk untuk cashier');
+    if (!confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+        return;
     }
+
+    fetch(`/cashier/inventory/${productId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Produk berhasil dihapus');
+            location.reload();
+        } else {
+            alert('Gagal menghapus produk: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat menghapus produk');
+    });
+}
+
+// Close modal when clicking outside
+document.getElementById('addProductModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeAddModal();
+    }
+});
+
+document.getElementById('editProductModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEditModal();
+    }
+});
+
+// Filter by category
+function filterByCategory() {
+    const category = document.getElementById('categoryFilter').value;
+    const currentUrl = new URL(window.location.href);
+
+    if (category === 'Semua') {
+        currentUrl.searchParams.delete('category');
+    } else {
+        currentUrl.searchParams.set('category', category);
+    }
+
+    window.location.href = currentUrl.toString();
 }
 </script>
 @endsection
