@@ -26,15 +26,15 @@ Route::view('profile', 'profile')
 Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\ManagerDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Inventory Management (View Only - No CRUD)
     Route::get('/inventory', [\App\Http\Controllers\ManagerInventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/stock-out', [\App\Http\Controllers\ManagerInventoryController::class, 'stockOut'])->name('inventory.stock-out');
     Route::get('/inventory/batches', [\App\Http\Controllers\ManagerInventoryController::class, 'batches'])->name('inventory.batches');
-    
+
     // Activity Logs (separate feature)
     Route::get('/activity-logs', [\App\Http\Controllers\ManagerInventoryController::class, 'activityLogs'])->name('activity-logs.index');
-    
+
     // Finance (Keuangan)
     Route::get('/finance', [\App\Http\Controllers\FinanceController::class, 'index'])->name('finance.index');
     Route::get('/finance/income', [\App\Http\Controllers\FinanceController::class, 'income'])->name('finance.income');
@@ -42,18 +42,18 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')
     Route::post('/finance/expenses', [\App\Http\Controllers\FinanceController::class, 'storeExpense'])->name('finance.expenses.store');
     Route::put('/finance/expenses/{expense}', [\App\Http\Controllers\FinanceController::class, 'updateExpense'])->name('finance.expenses.update');
     Route::delete('/finance/expenses/{expense}', [\App\Http\Controllers\FinanceController::class, 'destroyExpense'])->name('finance.expenses.destroy');
-    
+
     // Expense Categories
     Route::get('/finance/expense-categories', [\App\Http\Controllers\FinanceController::class, 'getExpenseCategories'])->name('finance.expense-categories.index');
     Route::post('/finance/expense-categories', [\App\Http\Controllers\FinanceController::class, 'storeExpenseCategory'])->name('finance.expense-categories.store');
     Route::put('/finance/expense-categories/{category}', [\App\Http\Controllers\FinanceController::class, 'updateExpenseCategory'])->name('finance.expense-categories.update');
     Route::delete('/finance/expense-categories/{category}', [\App\Http\Controllers\FinanceController::class, 'destroyExpenseCategory'])->name('finance.expense-categories.destroy');
-    
+
     // Access Control (Hak Akses) - User & Role Management
     Route::get('/access', [\App\Http\Controllers\AccessController::class, 'index'])->name('access.index');
     Route::resource('users', \App\Http\Controllers\UserController::class);
-    Route::resource('roles', \App\Http\Controllers\RoleController::class)->only(['edit', 'update', 'destroy']);
-    
+    Route::resource('roles', \App\Http\Controllers\RoleController::class);
+
     // Receipt Settings (CMS Struk)
     Route::get('/receipt-settings', [\App\Http\Controllers\ReceiptSettingController::class, 'index'])->name('receipt-settings.index');
     Route::put('/receipt-settings', [\App\Http\Controllers\ReceiptSettingController::class, 'update'])->name('receipt-settings.update');
@@ -65,7 +65,7 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')
 Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->group(function () {
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\CashierDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Point of Sale
     Route::get('/pos', [\App\Http\Controllers\PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/add', [\App\Http\Controllers\PosController::class, 'addToCart'])->name('pos.add');
@@ -75,11 +75,11 @@ Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->
     Route::get('/pos/receipt/{transaction}', [\App\Http\Controllers\PosController::class, 'receipt'])->name('pos.receipt');
     // New transaction: clear last transaction and cart, redirect to POS
     Route::get('/pos/new', [\App\Http\Controllers\PosController::class, 'newTransaction'])->name('pos.new');
-    
+
     // Transactions
     Route::get('/transactions', [\App\Http\Controllers\CashierTransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/{id}', [\App\Http\Controllers\CashierTransactionController::class, 'show'])->name('transactions.show');
-    
+
     // Inventory Management
     Route::get('/inventory', [\App\Http\Controllers\CashierInventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/create', [\App\Http\Controllers\CashierInventoryController::class, 'create'])->name('inventory.create');
@@ -91,15 +91,15 @@ Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->
     Route::get('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'show'])->name('inventory.show');
     Route::put('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'update'])->name('inventory.update');
     Route::delete('/inventory/{product}', [\App\Http\Controllers\CashierInventoryController::class, 'destroy'])->name('inventory.destroy');
-    
+
     // Batch Management (Stock In)
     Route::get('/inventory/batch/stock-in', [\App\Http\Controllers\CashierInventoryController::class, 'stockIn'])->name('inventory.batch.stock-in');
     Route::post('/inventory/batch/store', [\App\Http\Controllers\CashierInventoryController::class, 'storeBatch'])->name('inventory.batch.store');
     Route::get('/inventory/{product}/batches', [\App\Http\Controllers\CashierInventoryController::class, 'productBatches'])->name('inventory.batches');
-    
+
     // API for POS batch selection
     Route::get('/api/products/{product}/batches', [\App\Http\Controllers\CashierInventoryController::class, 'getProductBatches'])->name('api.product.batches');
-    
+
     // Category Management
     Route::get('/api/categories', [\App\Http\Controllers\CategoryController::class, 'index'])->name('api.categories.index');
     Route::post('/api/categories', [\App\Http\Controllers\CategoryController::class, 'store'])->name('api.categories.store');

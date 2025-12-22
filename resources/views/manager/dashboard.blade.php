@@ -5,130 +5,139 @@
 @section('content')
 <div class="p-6">
     <!-- Page Header -->
-    <div class="mb-4">
+    <div class="mb-6">
         <h1 class="text-xl font-bold text-slate-800">Dashboard</h1>
     </div>
 
-    <!-- Main Grid: Stats + Chart -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <!-- Left Column: Stats Cards -->
-        <div class="space-y-3">
-            <!-- Daily Sales Card -->
-            <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-4 border-l-blue-500">
-                <div class="flex items-start justify-between mb-2">
-                    <div>
-                        <p class="text-xs text-slate-500 mb-1">Daily Sales</p>
-                        <h3 class="text-xl font-bold text-slate-900">Rp {{ number_format($dailySales ?? 2450000, 0, ',', '.') }}</h3>
-                    </div>
-                    <button class="text-blue-500 hover:text-blue-600">
-                        <i class="fas fa-download text-sm"></i>
-                    </button>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Daily Sales Card -->
+        <div class="bg-white rounded-lg p-5 border border-slate-200">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-sm text-slate-600 mb-1">Penjualan Hari Ini</p>
+                    <h3 class="text-2xl font-bold text-slate-800">Rp {{ number_format($dailySales ?? 2450000, 0, ',', '.') }}</h3>
                 </div>
-                <div class="flex items-center gap-1 text-green-600 text-xs">
-                    <i class="fas fa-arrow-up"></i>
-                    <span class="font-medium">+{{ number_format(abs($dailyPercentage ?? 12.5), 1) }}% dari kemarin</span>
+                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-cash-register text-blue-600"></i>
                 </div>
             </div>
-
-            <!-- Monthly Sales Card -->
-            <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-4 border-l-blue-500">
-                <div class="flex items-start justify-between mb-2">
-                    <div>
-                        <p class="text-xs text-slate-500 mb-1">Monthly Sales</p>
-                        <h3 class="text-xl font-bold text-slate-900">Rp {{ number_format($monthlySales ?? 68750000, 0, ',', '.') }}</h3>
-                    </div>
-                    <button class="text-blue-500 hover:text-blue-600">
-                        <i class="fas fa-download text-sm"></i>
-                    </button>
-                </div>
-                <div class="flex items-center gap-1 text-green-600 text-xs">
-                    <i class="fas fa-arrow-up"></i>
-                    <span class="font-medium">+{{ number_format(abs($monthlyPercentage ?? 8.2), 1) }}% dari bulan lalu</span>
-                </div>
-            </div>
-
-            <!-- Low Stock Card -->
-            <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200 border-l-4 border-l-yellow-500">
-                <div class="flex items-start justify-between mb-2">
-                    <div>
-                        <p class="text-xs text-yellow-800 mb-1">Low Stock</p>
-                        <h3 class="text-2xl font-bold text-yellow-900">{{ $lowStockCount ?? 15 }}</h3>
-                    </div>
-                    <div class="text-2xl">📦</div>
-                </div>
-                <p class="text-xs text-yellow-700 flex items-center gap-1">
-                    <i class="fas fa-exclamation-triangle text-[10px]"></i>
-                    Perlu restok
-                </p>
-            </div>
-
-            <!-- Expiring Soon Card -->
-            <div class="bg-red-50 rounded-lg p-4 border border-red-200 border-l-4 border-l-red-500">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs text-red-800 mb-1">Expiring Soon</p>
-                        <h3 class="text-2xl font-bold text-red-900">{{ $expiringCount ?? 8 }}</h3>
-                        <p class="text-xs text-red-700 mt-1">
-                            <i class="fas fa-clock text-[10px]"></i> Dalam 7 hari
-                        </p>
-                    </div>
-                    <div class="text-2xl">⏳</div>
-                </div>
+            <div class="flex items-center gap-1 text-xs">
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">
+                    <i class="fas fa-arrow-up text-[10px]"></i>
+                    +{{ number_format(abs($dailyPercentage ?? 12.5), 1) }}%
+                </span>
             </div>
         </div>
 
-        <!-- Right Column: Sales Trend Chart -->
-        <div class="lg:col-span-2">
-            <div class="bg-white rounded-lg p-4 border border-slate-200">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-sm font-bold text-slate-800">Sales Trend</h2>
-                    <div class="relative">
-                        <select id="periodSelect" onchange="changePeriod(this.value)" class="appearance-none bg-white border border-slate-300 text-slate-700 rounded-md pl-3 pr-8 py-1 text-xs font-medium focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 cursor-pointer hover:border-slate-400">
-                            <option value="7" {{ ($period ?? 7) == 7 ? 'selected' : '' }}>Last 7 days</option>
-                            <option value="30" {{ ($period ?? 7) == 30 ? 'selected' : '' }}>Last 30 days</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                            <i class="fas fa-chevron-down text-slate-400 text-[10px]"></i>
-                        </div>
-                    </div>
+        <!-- Monthly Sales Card -->
+        <div class="bg-white rounded-lg p-5 border border-slate-200">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-sm text-slate-600 mb-1">Penjualan Bulan Ini</p>
+                    <h3 class="text-2xl font-bold text-slate-800">Rp {{ number_format($monthlySales ?? 68750000, 0, ',', '.') }}</h3>
                 </div>
-                <div style="height: 320px; position: relative;">
-                    <canvas id="salesChartLarge"></canvas>
+                <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-emerald-600"></i>
                 </div>
             </div>
+            <div class="flex items-center gap-1 text-xs">
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">
+                    <i class="fas fa-arrow-up text-[10px]"></i>
+                    +{{ number_format(abs($monthlyPercentage ?? 8.2), 1) }}%
+                </span>
+            </div>
+        </div>
+
+        <!-- Low Stock Card -->
+        <div class="bg-white rounded-lg p-5 border border-slate-200">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-sm text-slate-600 mb-1">Stok Rendah</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $lowStockCount ?? 15 }}</h3>
+                </div>
+                <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-box text-amber-600"></i>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 rounded-full font-medium">
+                    <i class="fas fa-exclamation-triangle text-[10px]"></i>
+                    Perlu restok
+                </span>
+            </div>
+        </div>
+
+        <!-- Expiring Soon Card -->
+        <div class="bg-white rounded-lg p-5 border border-slate-200">
+            <div class="flex items-start justify-between mb-3">
+                <div>
+                    <p class="text-sm text-slate-600 mb-1">Akan Kadaluarsa</p>
+                    <h3 class="text-2xl font-bold text-slate-800">{{ $expiringCount ?? 8 }}</h3>
+                </div>
+                <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-clock text-red-600"></i>
+                </div>
+            </div>
+            <div class="flex items-center gap-1 text-xs">
+                <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                    <i class="fas fa-exclamation-circle text-[10px]"></i>
+                    Dalam 7 hari
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Trend Chart -->
+    <div class="bg-white rounded-lg p-5 border border-slate-200 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold text-slate-800">Trend Penjualan</h2>
+            <div class="flex items-center gap-2">
+                <button onclick="changePeriod(7)" class="px-3 py-1.5 text-xs font-medium rounded-lg {{ ($period ?? 7) == 7 ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                    7 Hari
+                </button>
+                <button onclick="changePeriod(30)" class="px-3 py-1.5 text-xs font-medium rounded-lg {{ ($period ?? 7) == 30 ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                    30 Hari
+                </button>
+            </div>
+        </div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="salesChartLarge"></canvas>
         </div>
     </div>
 
     <!-- Tables Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <!-- Expired Soon Table -->
-        <div class="bg-white rounded-lg p-4 border border-slate-200">
-            <h3 class="text-sm font-bold text-slate-800 mb-3">Expired Soon</h3>
+        <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200">
+                <h3 class="text-base font-semibold text-slate-800">Produk Akan Kadaluarsa</h3>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full">
-                    <thead>
-                        <tr class="border-b border-slate-200">
-                            <th class="text-left py-2 px-1 text-xs font-semibold text-slate-600">Produk</th>
-                            <th class="text-left py-2 px-1 text-xs font-semibold text-slate-600">Expired</th>
-                            <th class="text-right py-2 px-1 text-xs font-semibold text-slate-600">Sisa Hari</th>
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="text-left py-3 px-4 text-xs font-semibold text-slate-600">Produk</th>
+                            <th class="text-left py-3 px-4 text-xs font-semibold text-slate-600">Expired</th>
+                            <th class="text-right py-3 px-4 text-xs font-semibold text-slate-600">Sisa Hari</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-100">
                         @if(isset($expiringProducts) && $expiringProducts->count())
                             @foreach($expiringProducts as $p)
-                                <tr class="border-b border-slate-100 hover:bg-slate-50">
-                                    <td class="py-2 px-1 text-xs text-slate-700">{{ $p->name }}</td>
-                                    <td class="py-2 px-1 text-xs text-slate-600">{{ optional($p->expiry_date)->format('d/m/Y') }}</td>
-                                    <td class="py-2 px-1 text-right">
-                                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium {{ ($p->remaining_days ?? 0) <= 2 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700' }}">
-                                            {{ $p->remaining_days ?? '-' }}hari
+                                <tr class="hover:bg-slate-50">
+                                    <td class="py-3 px-4 text-sm text-slate-700">{{ $p->name }}</td>
+                                    <td class="py-3 px-4 text-sm text-slate-600">{{ optional($p->expiry_date)->format('d/m/Y') }}</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ ($p->remaining_days ?? 0) <= 2 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700' }}">
+                                            {{ $p->remaining_days ?? '-' }} hari
                                         </span>
                                     </td>
                                 </tr>
                             @endforeach
                         @else
                             <tr>
-                                <td colspan="3" class="py-6 text-center text-xs text-slate-500">
+                                <td colspan="3" class="py-8 text-center text-sm text-slate-500">
                                     Tidak ada produk yang akan kadaluarsa
                                 </td>
                             </tr>
@@ -139,25 +148,27 @@
         </div>
 
         <!-- Low Stock Table -->
-        <div class="bg-white rounded-lg p-4 border border-slate-200">
-            <h3 class="text-sm font-bold text-slate-800 mb-3">Stok Hampir Habis</h3>
+        <div class="bg-white rounded-lg border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-200">
+                <h3 class="text-base font-semibold text-slate-800">Stok Hampir Habis</h3>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full">
-                    <thead>
-                        <tr class="border-b border-slate-200">
-                            <th class="text-left py-2 px-1 text-xs font-semibold text-slate-600">Produk</th>
-                            <th class="text-center py-2 px-1 text-xs font-semibold text-slate-600">Stok</th>
-                            <th class="text-right py-2 px-1 text-xs font-semibold text-slate-600">Sisa Hari</th>
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="text-left py-3 px-4 text-xs font-semibold text-slate-600">Produk</th>
+                            <th class="text-center py-3 px-4 text-xs font-semibold text-slate-600">Stok</th>
+                            <th class="text-right py-3 px-4 text-xs font-semibold text-slate-600">Status</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="divide-y divide-slate-100">
                         @if(isset($stockAlmostOut) && $stockAlmostOut->count())
                             @foreach($stockAlmostOut as $p)
-                                <tr class="border-b border-slate-100 hover:bg-slate-50">
-                                    <td class="py-2 px-1 text-xs text-slate-700">{{ $p->name }}</td>
-                                    <td class="py-2 px-1 text-xs text-center font-medium text-slate-800">{{ $p->stock }} pcs</td>
-                                    <td class="py-2 px-1 text-right">
-                                        <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-medium {{ $p->stock <= 2 ? 'bg-red-100 text-red-700' : 'bg-pink-100 text-pink-700' }}">
+                                <tr class="hover:bg-slate-50">
+                                    <td class="py-3 px-4 text-sm text-slate-700">{{ $p->name }}</td>
+                                    <td class="py-3 px-4 text-sm text-center font-medium text-slate-800">{{ $p->stock }} {{ $p->unit ?? 'pcs' }}</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $p->stock <= 2 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700' }}">
                                             {{ $p->stock <= 5 ? 'Kritis' : 'Rendah' }}
                                         </span>
                                     </td>
@@ -165,7 +176,7 @@
                             @endforeach
                         @else
                             <tr>
-                                <td colspan="3" class="py-6 text-center text-xs text-slate-500">
+                                <td colspan="3" class="py-8 text-center text-sm text-slate-500">
                                     Semua stok dalam kondisi baik
                                 </td>
                             </tr>
