@@ -151,18 +151,18 @@
 
             <!-- User Section -->
             <div class="border-t border-slate-200 p-4">
-                <div class="bg-slate-800/50 rounded-xl p-3 mb-3">
-                    <div class="flex items-center">
+                <div class="bg-slate-50 rounded-lg p-3 mb-3">
+                    <div class="flex items-center gap-3">
                         @if(auth()->user()->avatar)
-                            <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-xl object-cover mr-3 shadow-md">
+                            <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="{{ auth()->user()->name }}" class="w-10 h-10 rounded-lg object-cover">
                         @else
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mr-3 text-white font-bold shadow-md">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </div>
                         @endif
                         <div class="flex-1 min-w-0">
-                            <div class="text-sm font-semibold text-white truncate">{{ auth()->user()->name }}</div>
-                            <div class="text-xs text-slate-400 truncate">{{ auth()->user()->email }}</div>
+                            <div class="text-sm font-semibold text-slate-800 truncate">{{ auth()->user()->name }}</div>
+                            <div class="text-xs text-slate-500 truncate">{{ auth()->user()->email }}</div>
                         </div>
                     </div>
                 </div>

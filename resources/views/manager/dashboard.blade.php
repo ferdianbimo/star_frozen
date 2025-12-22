@@ -14,7 +14,7 @@
         <!-- Left Column: Stats Cards -->
         <div class="space-y-3">
             <!-- Daily Sales Card -->
-            <div class="bg-white rounded-lg p-4 border border-slate-200">
+            <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-4 border-l-blue-500">
                 <div class="flex items-start justify-between mb-2">
                     <div>
                         <p class="text-xs text-slate-500 mb-1">Daily Sales</p>
@@ -31,7 +31,7 @@
             </div>
 
             <!-- Monthly Sales Card -->
-            <div class="bg-white rounded-lg p-4 border border-slate-200">
+            <div class="bg-white rounded-lg p-4 border border-slate-200 border-l-4 border-l-blue-500">
                 <div class="flex items-start justify-between mb-2">
                     <div>
                         <p class="text-xs text-slate-500 mb-1">Monthly Sales</p>
@@ -48,13 +48,13 @@
             </div>
 
             <!-- Low Stock Card -->
-            <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 border border-yellow-200">
+            <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200 border-l-4 border-l-yellow-500">
                 <div class="flex items-start justify-between mb-2">
                     <div>
                         <p class="text-xs text-yellow-800 mb-1">Low Stock</p>
                         <h3 class="text-2xl font-bold text-yellow-900">{{ $lowStockCount ?? 15 }}</h3>
                     </div>
-                    <div class="text-xl">📦</div>
+                    <div class="text-2xl">📦</div>
                 </div>
                 <p class="text-xs text-yellow-700 flex items-center gap-1">
                     <i class="fas fa-exclamation-triangle text-[10px]"></i>
@@ -63,7 +63,7 @@
             </div>
 
             <!-- Expiring Soon Card -->
-            <div class="bg-gradient-to-br from-red-50 to-pink-50 rounded-lg p-4 border border-red-200">
+            <div class="bg-red-50 rounded-lg p-4 border border-red-200 border-l-4 border-l-red-500">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-xs text-red-800 mb-1">Expiring Soon</p>
@@ -72,14 +72,14 @@
                             <i class="fas fa-clock text-[10px]"></i> Dalam 7 hari
                         </p>
                     </div>
-                    <div class="text-3xl">🏆</div>
+                    <div class="text-2xl">⏳</div>
                 </div>
             </div>
         </div>
 
         <!-- Right Column: Sales Trend Chart -->
         <div class="lg:col-span-2">
-            <div class="bg-white rounded-lg p-4 border border-slate-200 h-full">
+            <div class="bg-white rounded-lg p-4 border border-slate-200">
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-sm font-bold text-slate-800">Sales Trend</h2>
                     <div class="relative">
@@ -92,7 +92,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="relative" style="height: calc(100% - 36px);">
+                <div style="height: 320px; position: relative;">
                     <canvas id="salesChartLarge"></canvas>
                 </div>
             </div>
