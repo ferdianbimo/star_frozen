@@ -1,0 +1,291 @@
+/* ===================================
+   STAR FROZEN - DESIGN SYSTEM V2.0
+   Clean & Modern Design Following Login Page Style
+   Primary Color: Blue (#4F46E5)
+   =================================== */
+
+/* ===================================
+   1. BORDER RADIUS - Clean & Subtle
+   =================================== */
+.rounded-card {
+    @apply rounded-xl;
+}
+
+.rounded-button {
+    @apply rounded-lg;
+}
+
+.rounded-input {
+    @apply rounded-lg;
+}
+
+.rounded-badge {
+    @apply rounded-full;
+}
+
+/* ===================================
+   2. SPACING - Generous & Breathable
+   =================================== */
+.spacing-page {
+    @apply p-6 lg:p-8;
+}
+
+.spacing-card {
+    @apply p-6;
+}
+
+.spacing-section {
+    @apply mb-8;
+}
+
+/* ===================================
+   3. SHADOWS - Subtle & Clean
+   =================================== */
+.shadow-card {
+    @apply shadow-sm hover:shadow-md transition-shadow duration-200;
+}
+
+.shadow-elevated {
+    @apply shadow-md;
+}
+
+.shadow-modal {
+    @apply shadow-xl;
+}
+
+/* ===================================
+   4. CARDS - Clean White Containers
+   =================================== */
+.card-base {
+    @apply bg-white rounded-card shadow-card border border-slate-100;
+}
+
+.card-interactive {
+    @apply card-base hover:border-blue-200 cursor-pointer transition-colors duration-200;
+}
+
+.card-stat {
+    @apply card-base spacing-card;
+}
+
+.card-section {
+    @apply card-base spacing-card spacing-section;
+}
+
+/* ===================================
+   5. ICON CONTAINERS - Flat & Clean
+   =================================== */
+.icon-container-sm {
+    @apply w-10 h-10 flex items-center justify-center rounded-lg;
+}
+
+.icon-container-md {
+    @apply w-12 h-12 flex items-center justify-center rounded-lg;
+}
+
+.icon-container-lg {
+    @apply w-14 h-14 flex items-center justify-center rounded-xl;
+}
+
+.icon-container-xl {
+    @apply w-16 h-16 flex items-center justify-center rounded-xl;
+}
+
+/* Icon Colors - Flat Design */
+.icon-primary {
+    @apply bg-blue-500 text-white;
+}
+
+.icon-success {
+    @apply bg-green-500 text-white;
+}
+
+.icon-warning {
+    @apply bg-amber-500 text-white;
+}
+
+.icon-danger {
+    @apply bg-red-500 text-white;
+}
+
+.icon-info {
+    @apply bg-cyan-500 text-white;
+}
+
+.icon-slate {
+    @apply bg-slate-400 text-white;
+}
+
+/* ===================================
+   6. PAGE HEADERS - Clean & Simple
+   =================================== */
+.page-header {
+    @apply card-base spacing-section;
+}
+
+.page-header-content {
+    @apply flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-100;
+}
+
+/* ===================================
+   7. STAT CARDS - Minimal Design
+   =================================== */
+.stat-container {
+    @apply flex items-start justify-between;
+}
+
+.stat-label {
+    @apply text-sm text-slate-500 font-medium mb-2;
+}
+
+.stat-value {
+    @apply text-2xl font-bold text-slate-800;
+}
+
+.stat-badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium;
+}
+
+.stat-badge-success {
+    @apply stat-badge bg-green-50 text-green-600;
+}
+
+.stat-badge-danger {
+    @apply stat-badge bg-red-50 text-red-600;
+}
+
+.stat-badge-warning {
+    @apply stat-badge bg-amber-50 text-amber-600;
+}
+
+.stat-badge-info {
+    @apply stat-badge bg-blue-50 text-blue-600;
+}
+
+/* ===================================
+   8. TABLES - Clean Design
+   =================================== */
+.table-container {
+    @apply overflow-hidden rounded-lg border border-slate-100;
+}
+
+.table-header {
+    @apply bg-slate-50 border-b border-slate-100;
+}
+
+/* ===================================
+   9. FORMS - Clean Inputs
+   =================================== */
+.form-section {
+    @apply card-section;
+}
+
+.form-label {
+    @apply block text-sm font-medium text-slate-700 mb-2;
+}
+
+.form-input {
+    @apply w-full px-4 py-2.5 border border-slate-200 rounded-input text-sm text-slate-700
+           placeholder:text-slate-400
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+           transition-colors duration-200;
+}
+
+.form-select {
+    @apply form-input appearance-none cursor-pointer;
+}
+
+/* ===================================
+   10. BADGES - Clean & Flat
+   =================================== */
+.badge {
+    @apply inline-flex items-center px-3 py-1 rounded-badge text-sm font-medium;
+}
+
+.badge-primary {
+    @apply badge bg-blue-50 text-blue-600;
+}
+
+.badge-success {
+    @apply badge bg-green-50 text-green-600;
+}
+
+.badge-warning {
+    @apply badge bg-amber-50 text-amber-600;
+}
+
+.badge-danger {
+    @apply badge bg-red-50 text-red-600;
+}
+
+.badge-slate {
+    @apply badge bg-slate-100 text-slate-600;
+}
+
+/* ===================================
+   11. GRIDS - Responsive Layouts
+   =================================== */
+.grid-stats-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6;
+}
+
+.grid-stats-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6;
+}
+
+.grid-stats-6 {
+    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4;
+}
+
+.grid-cards-2 {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
+
+.grid-cards-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+/* ===================================
+   12. TRANSITIONS - Smooth & Fast
+   =================================== */
+.transition-default {
+    @apply transition-all duration-200;
+}
+
+.transition-fast {
+    @apply transition-all duration-150;
+}
+
+.transition-slow {
+    @apply transition-all duration-300;
+}
+
+/* ===================================
+   13. TYPOGRAPHY - Clean & Readable
+   =================================== */
+.page-title {
+    @apply text-2xl md:text-3xl font-bold text-slate-800;
+}
+
+.page-subtitle {
+    @apply text-sm text-slate-500 mt-1;
+}
+
+.section-title {
+    @apply text-lg font-semibold text-slate-800;
+}
+
+.card-title {
+    @apply text-base font-semibold text-slate-800;
+}
+
+/* ===================================
+   14. DIVIDERS - Subtle Separators
+   =================================== */
+.divider {
+    @apply border-t border-slate-100;
+}
+
+.divider-vertical {
+    @apply border-l border-slate-100;
+}

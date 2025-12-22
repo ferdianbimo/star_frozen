@@ -3,112 +3,65 @@
 @section('title','Log Aktivitas')
 
 @section('content')
-<div class="p-4 lg:p-6">
-    <!-- Activity Logs Header -->
-    <div class="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 rounded-2xl shadow-xl mb-6 overflow-hidden">
-        <div class="relative px-6 py-8">
-            <div class="absolute inset-0 bg-gradient-to-r from-indigo-600/10 to-purple-600/10"></div>
-            <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                        <i class="fas fa-clipboard-list text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-white">Log Aktivitas</h1>
-                        <p class="text-slate-400 mt-1">Pantau semua aktivitas sistem secara realtime</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <span class="inline-flex items-center px-3 py-1.5 bg-green-500/20 border border-green-500/30 text-green-400 rounded-xl text-sm font-medium">
-                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-                        Live
-                    </span>
-                    <button onclick="location.reload()" class="bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 flex items-center gap-2 border border-white/20">
-                        <i class="fas fa-sync-alt"></i>
-                        Refresh
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="spacing-page">
+    <x-page-header
+        icon="fa-clipboard-list"
+        title="Log Aktivitas"
+        subtitle="Pantau semua aktivitas sistem secara realtime"
+        iconColor="primary">
+        <x-slot name="actions">
+            <span class="inline-flex items-center px-3 py-1.5 bg-green-500/20 border border-green-500/30 text-green-400 rounded-badge text-sm font-medium">
+                <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                Live
+            </span>
+            <button onclick="location.reload()" class="btn-outline btn-md">
+                <i class="fas fa-sync-alt"></i>
+                Refresh
+            </button>
+        </x-slot>
+    </x-page-header>
 
     <!-- Summary Stats -->
-    <div class="grid grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-4 mb-6">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 lg:p-5 hover:shadow-lg transition-all duration-300">
-            <div class="flex items-center gap-2 lg:gap-3 mb-2">
-                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-list text-white text-xs lg:text-sm"></i>
-                </div>
-            </div>
-            <div class="text-xs lg:text-sm text-slate-500 font-medium">Total</div>
-            <div class="text-lg lg:text-2xl font-bold text-slate-800">{{ $logs->total() }}</div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 lg:p-5 hover:shadow-lg transition-all duration-300">
-            <div class="flex items-center gap-2 lg:gap-3 mb-2">
-                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-sign-in-alt text-white text-xs lg:text-sm"></i>
-                </div>
-            </div>
-            <div class="text-xs lg:text-sm text-slate-500 font-medium">Login</div>
-            <div class="text-lg lg:text-2xl font-bold text-teal-600">
-                {{ \App\Models\ActivityLog::where('action', 'login')->whereDate('created_at', today())->count() }}
-            </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 lg:p-5 hover:shadow-lg transition-all duration-300">
-            <div class="flex items-center gap-2 lg:gap-3 mb-2">
-                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-shopping-cart text-white text-xs lg:text-sm"></i>
-                </div>
-            </div>
-            <div class="text-xs lg:text-sm text-slate-500 font-medium">Transaksi</div>
-            <div class="text-lg lg:text-2xl font-bold text-purple-600">
-                {{ \App\Models\ActivityLog::where('action', 'checkout')->whereDate('created_at', today())->count() }}
-            </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 lg:p-5 hover:shadow-lg transition-all duration-300">
-            <div class="flex items-center gap-2 lg:gap-3 mb-2">
-                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-arrow-down text-white text-xs lg:text-sm"></i>
-                </div>
-            </div>
-            <div class="text-xs lg:text-sm text-slate-500 font-medium">Stok Masuk</div>
-            <div class="text-lg lg:text-2xl font-bold text-green-600">
-                {{ \App\Models\ActivityLog::where('action', 'stock_in')->whereDate('created_at', today())->count() }}
-            </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 lg:p-5 hover:shadow-lg transition-all duration-300">
-            <div class="flex items-center gap-2 lg:gap-3 mb-2">
-                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-arrow-up text-white text-xs lg:text-sm"></i>
-                </div>
-            </div>
-            <div class="text-xs lg:text-sm text-slate-500 font-medium">Stok Keluar</div>
-            <div class="text-lg lg:text-2xl font-bold text-orange-600">
-                {{ \App\Models\ActivityLog::where('action', 'stock_out')->whereDate('created_at', today())->count() }}
-            </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 lg:p-5 hover:shadow-lg transition-all duration-300">
-            <div class="flex items-center gap-2 lg:gap-3 mb-2">
-                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-edit text-white text-xs lg:text-sm"></i>
-                </div>
-            </div>
-            <div class="text-xs lg:text-sm text-slate-500 font-medium">Perubahan</div>
-            <div class="text-lg lg:text-2xl font-bold text-blue-600">
-                {{ \App\Models\ActivityLog::whereIn('action', ['create', 'update', 'delete'])->whereDate('created_at', today())->count() }}
-            </div>
-        </div>
+    <div class="grid-stats-6 spacing-section">
+        <x-stat-card
+            icon="fa-list"
+            iconColor="slate"
+            label="Total"
+            :value="$logs->total()" />
+
+        <x-stat-card
+            icon="fa-sign-in-alt"
+            iconColor="info"
+            label="Login"
+            :value="\App\Models\ActivityLog::where('action', 'login')->whereDate('created_at', today())->count()" />
+
+        <x-stat-card
+            icon="fa-shopping-cart"
+            iconColor="primary"
+            label="Transaksi"
+            :value="\App\Models\ActivityLog::where('action', 'checkout')->whereDate('created_at', today())->count()" />
+
+        <x-stat-card
+            icon="fa-arrow-down"
+            iconColor="success"
+            label="Stok Masuk"
+            :value="\App\Models\ActivityLog::where('action', 'stock_in')->whereDate('created_at', today())->count()" />
+
+        <x-stat-card
+            icon="fa-arrow-up"
+            iconColor="warning"
+            label="Stok Keluar"
+            :value="\App\Models\ActivityLog::where('action', 'stock_out')->whereDate('created_at', today())->count()" />
+
+        <x-stat-card
+            icon="fa-edit"
+            iconColor="primary"
+            label="Perubahan"
+            :value="\App\Models\ActivityLog::whereIn('action', ['create', 'update', 'delete'])->whereDate('created_at', today())->count()" />
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-6">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <i class="fas fa-filter text-white text-xs"></i>
-            </div>
-            <h3 class="font-semibold text-slate-800">Filter Log</h3>
-        </div>
-        <form method="GET" action="{{ route('manager.activity-logs.index') }}" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <x-section-card icon="fa-filter" iconColor="primary" title="Filter Log">\n        <form method="GET" action="{{ route('manager.activity-logs.index') }}" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div class="relative">
                 <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Modul</label>
                 <div class="relative">
@@ -167,36 +120,36 @@
             <div class="relative">
                 <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Dari Tanggal</label>
                 <div class="relative">
-                    <input type="date" name="date_from" value="{{ request('date_from') }}" 
+                    <input type="date" name="date_from" value="{{ request('date_from') }}"
                         class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all hover:border-slate-300">
                 </div>
             </div>
             <div class="relative">
                 <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Sampai Tanggal</label>
                 <div class="relative">
-                    <input type="date" name="date_to" value="{{ request('date_to') }}" 
+                    <input type="date" name="date_to" value="{{ request('date_to') }}"
                         class="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all hover:border-slate-300">
                 </div>
             </div>
             <div class="flex items-end gap-2">
-                <button type="submit" class="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 text-sm flex items-center justify-center gap-2">
+                <button type="submit" class="btn-primary btn-md flex-1">
                     <i class="fas fa-search"></i>
                     <span>Cari</span>
                 </button>
                 @if(request()->hasAny(['module', 'action', 'user_id', 'date_from', 'date_to']))
-                <a href="{{ route('manager.activity-logs.index') }}" class="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-semibold hover:bg-slate-200 transition-all duration-200 text-sm" title="Reset Filter">
+                <a href="{{ route('manager.activity-logs.index') }}" class="btn-outline btn-md" title="Reset Filter">
                     <i class="fas fa-undo"></i>
                 </a>
                 @endif
             </div>
         </form>
-    </div>
+    </x-section-card>
 
     <!-- Activity Logs Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="overflow-x-auto">
+    <x-section-card icon="fa-list" iconColor="primary" title="Riwayat Aktivitas">
+        <div class="table-container">
             <table class="min-w-full">
-                <thead class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                <thead class="table-header">
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Waktu</th>
                         <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">User</th>
@@ -221,7 +174,7 @@
                             'export' => ['bg' => 'bg-gradient-to-r from-amber-500 to-yellow-500', 'text' => 'text-white', 'label' => 'Export'],
                         ];
                         $action = $actionConfig[$log->action] ?? ['bg' => 'bg-slate-200', 'text' => 'text-slate-700', 'label' => ucfirst($log->action)];
-                        
+
                         $moduleConfig = [
                             'inventory' => ['icon' => 'fa-boxes-stacked', 'color' => 'text-indigo-600', 'bg' => 'bg-indigo-50'],
                             'pos' => ['icon' => 'fa-cash-register', 'color' => 'text-purple-600', 'bg' => 'bg-purple-50'],
@@ -277,7 +230,7 @@
                         </td>
                         <td class="px-6 py-4 text-center">
                             @if($log->old_values || $log->new_values || $log->metadata)
-                                <button onclick="showLogDetail({{ $log->id }})" 
+                                <button onclick="showLogDetail({{ $log->id }})"
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-semibold transition-colors">
                                     <i class="fas fa-eye"></i>
                                     Detail
@@ -310,7 +263,7 @@
             {{ $logs->links() }}
         </div>
         @endif
-    </div>
+    </x-section-card>
 
     <!-- Log Detail Modal -->
     <div id="logDetailModal" class="fixed inset-0 z-50 hidden">

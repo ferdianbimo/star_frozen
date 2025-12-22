@@ -273,7 +273,10 @@
                     </div>
                     <div class="mt-6 flex justify-end gap-3">
                         <button type="button" onclick="closeModal('addUserModal')" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium transition-colors">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/30 transition-all">Create</button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2" id="createUserBtn">
+                            <i class="fas fa-spinner fa-spin hidden" id="createUserLoading"></i>
+                            <span id="createUserText">Create</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -372,7 +375,10 @@
                     </div>
                     <div class="mt-6 flex justify-end gap-3">
                         <button type="button" onclick="closeModal('editUserModal-{{ $user->id }}')" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium transition-colors">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-medium hover:shadow-lg hover:shadow-amber-500/30 transition-all">Save</button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white font-medium hover:shadow-lg hover:shadow-amber-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 edit-user-submit-btn">
+                            <i class="fas fa-spinner fa-spin hidden edit-user-loading"></i>
+                            <span class="edit-user-text">Save</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -415,7 +421,10 @@
                     </div>
                     <div class="mt-6 flex justify-end gap-3">
                         <button type="button" onclick="closeModal('editRoleModal-{{ $role->id }}')" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium transition-colors">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium hover:shadow-lg hover:shadow-emerald-500/30 transition-all">Save</button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-medium hover:shadow-lg hover:shadow-emerald-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 edit-role-submit-btn">
+                            <i class="fas fa-spinner fa-spin hidden edit-role-loading"></i>
+                            <span class="edit-role-text">Save</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -452,6 +461,37 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
+        // Form submission loading states
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create user form
+            document.querySelector('#addUserModal form').addEventListener('submit', function() {
+                const btn = document.getElementById('createUserBtn');
+                const loading = document.getElementById('createUserLoading');
+                const text = document.getElementById('createUserText');
+                btn.disabled = true;
+                loading.classList.remove('hidden');
+                text.textContent = 'Creating...';
+            });
+
+            // Edit user forms
+            document.querySelectorAll('.edit-user-submit-btn').forEach(btn => {
+                btn.closest('form').addEventListener('submit', function() {
+                    btn.disabled = true;
+                    btn.querySelector('.edit-user-loading').classList.remove('hidden');
+                    btn.querySelector('.edit-user-text').textContent = 'Saving...';
+                });
+            });
+
+            // Edit role forms
+            document.querySelectorAll('.edit-role-submit-btn').forEach(btn => {
+                btn.closest('form').addEventListener('submit', function() {
+                    btn.disabled = true;
+                    btn.querySelector('.edit-role-loading').classList.remove('hidden');
+                    btn.querySelector('.edit-role-text').textContent = 'Saving...';
+                });
+            });
+        });
     </script>
 
 @if($errors->any())

@@ -14,25 +14,25 @@
                 <h1 class="text-2xl font-bold">Star Frozen POS</h1>
                 <p class="text-sm text-blue-200">Manager Dashboard</p>
             </div>
-            
+
             <nav class="flex-1">
                 <a href="{{ route('manager.dashboard') }}" class="block py-2 px-4 hover:bg-blue-700 text-white">
                     <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
                 </a>
-                
+
                 <a href="{{ route('manager.inventory.index') }}" class="block py-2 px-4 bg-blue-900 text-white">
                     <i class="fas fa-boxes mr-2"></i> Inventory
                 </a>
-                
+
                 <a href="{{ route('manager.finance.index') }}" class="block py-2 px-4 hover:bg-blue-700 text-white">
                     <i class="fas fa-dollar-sign mr-2"></i> Keuangan
                 </a>
-                
+
                 <a href="{{ route('manager.access.index') }}" class="block py-2 px-4 hover:bg-blue-700 text-white">
                     <i class="fas fa-user-lock mr-2"></i> Hak Akses
                 </a>
             </nav>
-            
+
             <div class="px-4 py-2 mt-auto border-t border-blue-700">
                 <div class="flex items-center mb-2">
                     <span class="rounded-full bg-blue-600 w-8 h-8 flex items-center justify-center mr-2">
@@ -66,17 +66,17 @@
                         <h3 class="text-xl font-bold mb-4">Form Stok Masuk</h3>
                         <form method="POST" action="{{ route('manager.inventory.store-stock-in') }}">
                             @csrf
-                            
+
                             <div class="mb-4">
                                 <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">
                                     Produk <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
-                                    <select name="product_id" id="product_id" required 
-                                        class="custom-select w-full appearance-none border-2 border-slate-200 rounded-xl px-4 py-3 pr-10 bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all cursor-pointer hover:border-slate-300 @error('product_id') border-red-500 @enderror">
+                                    <select name="product_id" id="product_id" required
+                                        class="custom-select w-full appearance-none border-2 rounded-xl px-4 py-3 pr-10 bg-white focus:ring-4 transition-all cursor-pointer hover:border-slate-300 {{ $errors->has('product_id') ? 'border-red-500 focus:border-red-500 focus:ring-red-500/10' : 'border-slate-200 focus:border-blue-500 focus:ring-blue-500/10' }}">
                                         <option value="">Pilih Produk</option>
                                         @foreach($products as $product)
-                                            <option value="{{ $product->id }}" 
+                                            <option value="{{ $product->id }}"
                                                     data-stock="{{ $product->effective_stock }}"
                                                     data-unit="{{ $product->unit }}"
                                                     {{ old('product_id') == $product->id ? 'selected' : '' }}>
@@ -88,9 +88,7 @@
                                         <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
                                     </div>
                                 </div>
-                                @error('product_id')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
+                                <x-form-error field="product_id" />
                             </div>
 
                             <div class="mb-4" id="current-stock-info" style="display: none;">
@@ -101,32 +99,32 @@
                                 </div>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-bold mb-2">
-                                    Jumlah <span class="text-red-500">*</span>
-                                </label>
-                                <input type="number" name="quantity" min="1" required
-                                    value="{{ old('quantity') }}"
-                                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('quantity') border-red-500 @enderror">
-                                @error('quantity')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            <x-form-input
+                                name="quantity"
+                                label="Jumlah"
+                                type="number"
+                                :required="true"
+                                :value="old('quantity')"
+                                min="1"
+                                placeholder="Masukkan jumlah stok"
+                            />
 
                             <div class="mb-6">
-                                <label class="block text-gray-700 text-sm font-bold mb-2">
+                                <label class="block text-slate-700 text-sm font-medium mb-2">
                                     Catatan
                                 </label>
                                 <textarea name="notes" rows="3"
-                                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    class="w-full border-2 border-slate-200 rounded-xl px-4 py-2.5 bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all hover:border-slate-300 resize-none"
                                     placeholder="Catatan tambahan (opsional)">{{ old('notes') }}</textarea>
                             </div>
 
                             <div class="flex space-x-3">
-                                <button type="submit" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 font-bold">
-                                    Simpan Stok Masuk
+                                <button type="submit" class="btn-success btn-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2" id="stockInSubmitBtn">
+                                    <i class="fas fa-spinner fa-spin hidden" id="stockInLoading"></i>
+                                    <i class="fas fa-save" id="stockInSaveIcon"></i>
+                                    <span id="stockInSubmitText">Simpan Stok Masuk</span>
                                 </button>
-                                <a href="{{ route('manager.inventory.index') }}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded hover:bg-gray-400">
+                                <a href="{{ route('manager.inventory.index') }}" class="btn-secondary btn-lg inline-flex items-center">
                                     Batal
                                 </a>
                             </div>
@@ -162,7 +160,7 @@
             const selectedOption = this.options[this.selectedIndex];
             const stock = selectedOption.getAttribute('data-stock');
             const unit = selectedOption.getAttribute('data-unit');
-            
+
             if (this.value) {
                 document.getElementById('current-stock-info').style.display = 'block';
                 document.getElementById('current-stock').textContent = stock;
@@ -171,6 +169,17 @@
                 document.getElementById('current-stock-info').style.display = 'none';
             }
         });
-    </script>
+        // Form submission loading state
+        document.querySelector('form[action*=\"store-stock-in\"]').addEventListener('submit', function() {
+            const submitBtn = document.getElementById('stockInSubmitBtn');
+            const loadingIcon = document.getElementById('stockInLoading');
+            const saveIcon = document.getElementById('stockInSaveIcon');
+            const submitText = document.getElementById('stockInSubmitText');
+
+            submitBtn.disabled = true;
+            loadingIcon.classList.remove('hidden');
+            saveIcon.classList.add('hidden');
+            submitText.textContent = 'Menyimpan...';
+        });    </script>
 </body>
 </html>

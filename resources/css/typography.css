@@ -1,0 +1,130 @@
+/* ===================================
+   STAR FROZEN - TYPOGRAPHY SYSTEM
+   =================================== */
+
+/*
+   Typography Scale - Konsisten di semua breakpoints
+   Menggunakan clamp() untuk responsive typography yang smooth
+*/
+
+/* HEADINGS */
+.heading-xl {
+    @apply text-2xl md:text-3xl lg:text-4xl font-bold;
+}
+
+.heading-lg {
+    @apply text-xl md:text-2xl lg:text-3xl font-bold;
+}
+
+.heading-md {
+    @apply text-lg md:text-xl lg:text-2xl font-bold;
+}
+
+.heading-sm {
+    @apply text-base md:text-lg lg:text-xl font-bold;
+}
+
+.heading-xs {
+    @apply text-sm md:text-base lg:text-lg font-bold;
+}
+
+/* BODY TEXT */
+.text-body-lg {
+    @apply text-base md:text-lg font-normal;
+}
+
+.text-body {
+    @apply text-sm md:text-base font-normal;
+}
+
+.text-body-sm {
+    @apply text-xs md:text-sm font-normal;
+}
+
+/* LABELS & CAPTIONS */
+.text-label {
+    @apply text-sm font-medium text-slate-700;
+}
+
+.text-label-sm {
+    @apply text-xs font-semibold text-slate-500 uppercase tracking-wider;
+}
+
+.text-caption {
+    @apply text-xs text-slate-500;
+}
+
+/* STATS & METRICS */
+.text-stat {
+    @apply text-xl md:text-2xl lg:text-3xl font-bold;
+}
+
+.text-stat-label {
+    @apply text-xs md:text-sm text-slate-500 font-medium;
+}
+
+/* FONT WEIGHTS - Standardisasi */
+.font-regular {
+    @apply font-normal;
+}
+
+.font-medium-weight {
+    @apply font-medium;
+}
+
+.font-semibold-weight {
+    @apply font-semibold;
+}
+
+.font-bold-weight {
+    @apply font-bold;
+}
+
+/* LINE HEIGHTS */
+.leading-tight-custom {
+    @apply leading-tight;
+}
+
+.leading-normal-custom {
+    @apply leading-normal;
+}
+
+.leading-relaxed-custom {
+    @apply leading-relaxed;
+}
+
+/* USAGE GUIDE:
+
+Dashboard/Page Headers:
+- .heading-xl - Main page title
+- .heading-lg - Section headers
+- .heading-md - Subsection headers
+
+Cards/Components:
+- .heading-sm - Card titles
+- .heading-xs - Small component headers
+
+Body Content:
+- .text-body-lg - Large body text (important content)
+- .text-body - Standard body text
+- .text-body-sm - Small body text (metadata, timestamps)
+
+Forms:
+- .text-label - Input labels
+- .text-label-sm - Small labels, form hints
+- .text-caption - Help text, error messages
+
+Stats Cards:
+- .text-stat - Big numbers
+- .text-stat-label - Stat descriptions
+
+Example Usage:
+<h1 class="heading-xl">Dashboard Manager</h1>
+<h2 class="heading-lg">Laporan Keuangan</h2>
+<p class="text-body">Content goes here...</p>
+<label class="text-label">Email Address</label>
+<span class="text-caption">This field is required</span>
+<div class="text-stat">Rp 1.250.000</div>
+<p class="text-stat-label">Total Sales Today</p>
+
+*/

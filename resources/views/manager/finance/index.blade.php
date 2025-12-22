@@ -3,51 +3,41 @@
 @section('title','Laporan Keuangan')
 
 @section('content')
-    <!-- Finance Header -->
-    <div class="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 rounded-2xl shadow-xl mb-8 overflow-hidden">
-        <div class="relative px-6 py-8">
-            <div class="absolute inset-0 bg-gradient-to-r from-emerald-600/10 to-blue-600/10"></div>
-            <div class="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                        <i class="fas fa-wallet text-2xl text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-2xl md:text-3xl font-bold text-white">Laporan Keuangan</h1>
-                        <p class="text-slate-400 mt-1">{{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-                    <a href="{{ route('manager.dashboard') }}" class="bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 px-3 sm:px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 flex items-center gap-2 border border-white/20">
-                        <i class="fas fa-arrow-left"></i>
-                        <span class="hidden sm:inline">Kembali</span>
-                    </a>
-                    <a href="{{ route('manager.finance.income') }}" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 sm:px-4 py-2 rounded-xl font-medium text-sm shadow-lg shadow-green-500/30 transition-all duration-200 flex items-center gap-2">
-                        <i class="fas fa-chart-line"></i>
-                        <span class="hidden sm:inline">History</span> Pemasukan
-                    </a>
-                    <a href="{{ route('manager.finance.expenses') }}" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-3 sm:px-4 py-2 rounded-xl font-medium text-sm shadow-lg shadow-blue-500/30 transition-all duration-200 flex items-center gap-2">
-                        <i class="fas fa-receipt"></i>
-                        <span class="hidden sm:inline">Kelola</span> Pengeluaran
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="spacing-page">
+    <x-page-header
+        icon="fa-wallet"
+        title="Laporan Keuangan"
+        subtitle="{{ now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}"
+        iconColor="success">
+        <x-slot name="actions">
+            <a href="{{ route('manager.dashboard') }}" class="btn-outline btn-md">
+                <i class="fas fa-arrow-left"></i>
+                <span class="hidden sm:inline">Kembali</span>
+            </a>
+            <a href="{{ route('manager.finance.income') }}" class="btn-success btn-md">
+                <i class="fas fa-chart-line"></i>
+                <span class="hidden sm:inline">History</span> Pemasukan
+            </a>
+            <a href="{{ route('manager.finance.expenses') }}" class="btn-primary btn-md">
+                <i class="fas fa-receipt"></i>
+                <span class="hidden sm:inline">Kelola</span> Pengeluaran
+            </a>
+        </x-slot>
+    </x-page-header>
 
     <!-- Info Badge - Data dari Stock Logs -->
-    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-6 flex items-center gap-4">
-        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+    <div class="badge-info-lg spacing-section flex items-center gap-4">
+        <div class="icon-container-md icon-info">
+            <i class="fas fa-info-circle"></i>
         </div>
         <div>
             <p class="text-sm font-semibold text-blue-800">Data Otomatis dari Stok Keluar</p>
             <p class="text-xs text-blue-600">Setiap transaksi POS dan stok keluar inventory akan langsung terupdate dalam 30 detik</p>
         </div>
     </div>
-    
+
     <!-- Filter Period -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 mb-6">
+    <div class="card-section spacing-section">
         <form method="GET" action="{{ route('manager.finance.index') }}" class="flex flex-col lg:flex-row items-stretch lg:items-end gap-3 lg:gap-4">
             <div class="flex-1 w-full">
                 <label class="block text-sm font-semibold text-slate-700 mb-2">
@@ -55,14 +45,14 @@
                     Periode Laporan
                 </label>
                 <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                    <input type="date" name="start_date" value="{{ $startDate }}" 
+                    <input type="date" name="start_date" value="{{ $startDate }}"
                            class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                     <span class="text-slate-400 self-center font-medium hidden sm:block">sampai</span>
-                    <input type="date" name="end_date" value="{{ $endDate }}" 
+                    <input type="date" name="end_date" value="{{ $endDate }}"
                            class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                 </div>
             </div>
-            <button type="submit" class="w-full lg:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-blue-500/30 transition-all duration-200 flex items-center justify-center gap-2">
+            <button type="submit" class="btn-primary btn-md w-full lg:w-auto">
                 <i class="fas fa-filter"></i>
                 Terapkan Filter
             </button>
@@ -70,93 +60,59 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8">
-        <!-- Total Income -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 hover:shadow-lg transition-all duration-300 group">
-            <div class="flex items-center justify-between mb-3 lg:mb-4">
-                <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <i class="fas fa-arrow-down text-white text-sm lg:text-lg"></i>
-                </div>
-                @if($incomePercentage >= 0)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                        <i class="fas fa-arrow-up text-[10px]"></i> {{ number_format($incomePercentage, 1) }}%
-                    </span>
-                @else
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                        <i class="fas fa-arrow-down text-[10px]"></i> {{ number_format(abs($incomePercentage), 1) }}%
-                    </span>
-                @endif
-            </div>
-            <p class="text-xs lg:text-sm text-slate-500 font-medium">Total Pemasukan</p>
-            <h3 class="text-lg lg:text-2xl font-bold text-slate-800 mt-1">Rp {{ number_format($totalIncome, 0, ',', '.') }}</h3>
-            <p class="text-xs text-slate-400 mt-1 hidden sm:block">vs periode lalu</p>
-        </div>
+    <div class="grid-stats-4 spacing-section">
+        <x-stat-card
+            icon="fa-arrow-down"
+            iconColor="success"
+            label="Total Pemasukan"
+            :value="'Rp ' . number_format($totalIncome, 0, ',', '.')"
+            :trend="$incomePercentage >= 0 ? 'up' : 'down'"
+            :percentage="number_format(abs($incomePercentage), 1)">
+            <x-slot name="footer">
+                <p class="text-xs text-slate-400">vs periode lalu</p>
+            </x-slot>
+        </x-stat-card>
 
-        <!-- Total Expenses -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 hover:shadow-lg transition-all duration-300 group">
-            <div class="flex items-center justify-between mb-3 lg:mb-4">
-                <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-xl flex items-center justify-center shadow-lg shadow-red-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <i class="fas fa-arrow-up text-white text-sm lg:text-lg"></i>
-                </div>
-                @if($expensePercentage >= 0)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                        <i class="fas fa-arrow-up text-[10px]"></i> {{ number_format($expensePercentage, 1) }}%
-                    </span>
-                @else
-                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                        <i class="fas fa-arrow-down text-[10px]"></i> {{ number_format(abs($expensePercentage), 1) }}%
-                    </span>
-                @endif
-            </div>
-            <p class="text-xs lg:text-sm text-slate-500 font-medium">Total Pengeluaran</p>
-            <h3 class="text-lg lg:text-2xl font-bold text-slate-800 mt-1">Rp {{ number_format($totalExpenses, 0, ',', '.') }}</h3>
-            <p class="text-xs text-slate-400 mt-1 hidden sm:block">vs periode lalu</p>
-        </div>
+        <x-stat-card
+            icon="fa-arrow-up"
+            iconColor="danger"
+            label="Total Pengeluaran"
+            :value="'Rp ' . number_format($totalExpenses, 0, ',', '.')"
+            :trend="$expensePercentage >= 0 ? 'up' : 'down'"
+            :percentage="number_format(abs($expensePercentage), 1)">
+            <x-slot name="footer">
+                <p class="text-xs text-slate-400">vs periode lalu</p>
+            </x-slot>
+        </x-stat-card>
 
-        <!-- Net Profit -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 hover:shadow-lg transition-all duration-300 group">
-            <div class="flex items-center justify-between mb-3 lg:mb-4">
-                <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <i class="fas fa-chart-pie text-white text-sm lg:text-lg"></i>
-                </div>
-            </div>
-            <p class="text-xs lg:text-sm text-slate-500 font-medium">Laba Bersih</p>
-            <h3 class="text-lg lg:text-2xl font-bold {{ $netProfit >= 0 ? 'text-green-600' : 'text-red-600' }} mt-1">
-                Rp {{ number_format($netProfit, 0, ',', '.') }}
-            </h3>
-            <p class="text-xs text-slate-400 mt-1 hidden sm:block">Pemasukan - Pengeluaran</p>
-        </div>
+        <x-stat-card
+            icon="fa-chart-pie"
+            iconColor="primary"
+            label="Laba Bersih"
+            :value="'Rp ' . number_format($netProfit, 0, ',', '.')">
+            <x-slot name="footer">
+                <p class="text-xs text-slate-400">Pemasukan - Pengeluaran</p>
+            </x-slot>
+        </x-stat-card>
 
-        <!-- Profit Percentage -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 lg:p-6 hover:shadow-lg transition-all duration-300 group">
-            <div class="flex items-center justify-between mb-3 lg:mb-4">
-                <div class="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform duration-300">
-                    <i class="fas fa-percentage text-white text-sm lg:text-lg"></i>
-                </div>
-            </div>
-            <p class="text-xs lg:text-sm text-slate-500 font-medium">Perubahan Laba</p>
-            <h3 class="text-lg lg:text-2xl font-bold mt-1">
-                @if($profitPercentage >= 0)
-                    <span class="text-green-600">+{{ number_format($profitPercentage, 1) }}%</span>
-                @else
-                    <span class="text-red-600">{{ number_format($profitPercentage, 1) }}%</span>
-                @endif
-            </h3>
-            <p class="text-xs text-slate-400 mt-1 hidden sm:block">Dari periode sebelumnya</p>
-        </div>
+        <x-stat-card
+            icon="fa-percentage"
+            iconColor="warning"
+            label="Perubahan Laba"
+            :value="($profitPercentage >= 0 ? '+' : '') . number_format($profitPercentage, 1) . '%'">
+            <x-slot name="footer">
+                <p class="text-xs text-slate-400">Dari periode sebelumnya</p>
+            </x-slot>
+        </x-stat-card>
     </div>
 
     <!-- Charts and Tables -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 spacing-section">
         <!-- Income vs Expense Chart -->
-        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-chart-area text-white"></i>
-                </div>
-                <h2 class="text-lg font-bold text-slate-800">Tren Pemasukan vs Pengeluaran (7 Hari Terakhir)</h2>
-            </div>
-            <canvas id="financeChart" height="80"></canvas>
+        <div class="lg:col-span-2">
+            <x-section-card icon="fa-chart-area" iconColor="primary" title="Tren Pemasukan vs Pengeluaran (7 Hari Terakhir)">
+                <canvas id="financeChart" height="80"></canvas>
+            </x-section-card>
         </div>
 
         <!-- Top Products by Revenue -->
@@ -196,21 +152,15 @@
     </div>
 
     <!-- Recent Sales Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-                    <i class="fas fa-receipt text-white"></i>
-                </div>
-                <h2 class="text-lg font-bold text-slate-800">Transaksi Penjualan Terbaru</h2>
-            </div>
-            <a href="{{ route('manager.finance.income') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1">
+    <x-section-card icon="fa-receipt" iconColor="primary" title="Transaksi Penjualan Terbaru">
+        <x-slot name="actions">
+            <a href="{{ route('manager.finance.income') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1 transition-default">
                 Lihat Semua <i class="fas fa-arrow-right text-xs"></i>
             </a>
-        </div>
-        <div class="overflow-x-auto">
+        </x-slot>
+        <div class="table-container">
             <table class="min-w-full">
-                <thead class="bg-slate-50 border-b border-slate-200">
+                <thead class="table-header">
                     <tr>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Waktu</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Produk</th>
@@ -222,26 +172,26 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($recentSales as $sale)
-                    <tr class="hover:bg-slate-50 transition-colors">
-                                    <td class="px-4 py-3 text-sm text-gray-900">
-                                        {{ $sale->created_at->format('d/m/Y') }}<br>
-                                        <span class="text-xs text-gray-500">{{ $sale->created_at->format('H:i') }}</span>
-                                    </td>
-                                    <td class="px-4 py-3 text-sm text-gray-900">{{ $sale->product->name ?? 'N/A' }}</td>
-                                    <td class="px-4 py-3 text-sm text-center text-gray-900">{{ abs($sale->change) }}</td>
-                                    <td class="px-4 py-3 text-sm text-right text-gray-900">Rp {{ number_format($sale->unit_price, 0, ',', '.') }}</td>
-                                    <td class="px-4 py-3 text-sm text-right font-semibold text-green-600">Rp {{ number_format($sale->total_value, 0, ',', '.') }}</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900">{{ $sale->user->name ?? 'System' }}</td>
-                                </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="text-center py-8 text-gray-400">Tidak ada transaksi dalam periode ini</td>
-                                </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                    <tr class="hover:bg-slate-50 transition-default">
+                        <td class="px-4 py-3 text-sm text-gray-900">
+                            {{ $sale->created_at->format('d/m/Y') }}<br>
+                            <span class="text-xs text-gray-500">{{ $sale->created_at->format('H:i') }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ $sale->product->name ?? 'N/A' }}</td>
+                        <td class="px-4 py-3 text-sm text-center text-gray-900">{{ abs($sale->change) }}</td>
+                        <td class="px-4 py-3 text-sm text-right text-gray-900">Rp {{ number_format($sale->unit_price, 0, ',', '.') }}</td>
+                        <td class="px-4 py-3 text-sm text-right font-semibold text-green-600">Rp {{ number_format($sale->total_value, 0, ',', '.') }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">{{ $sale->user->name ?? 'System' }}</td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-gray-400">Tidak ada transaksi dalam periode ini</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </x-section-card>
             </div>
         </main>
     </div>
@@ -253,7 +203,7 @@
     <script>
         const ctx = document.getElementById('financeChart').getContext('2d');
         const chartData = @json($chartData);
-        
+
         new Chart(ctx, {
             type: 'bar',
             data: {
@@ -304,14 +254,15 @@
                 }
             }
         });
-        
+
         // Auto-refresh untuk update data otomatis setiap 30 detik
         setInterval(function() {
             console.log('Memeriksa update data keuangan...');
             // Reload halaman untuk mendapatkan data terbaru
             location.reload();
         }, 30000); // 30 detik
-        
+
         console.log('Auto-refresh aktif: Data akan diperbarui setiap 30 detik');
     </script>
 @endpush
+</div>

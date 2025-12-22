@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Cashier') - Star Frozen POS</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         /* Custom sidebar scrollbar */
         .sidebar-scroll::-webkit-scrollbar {
@@ -76,6 +75,36 @@
         input[type="date"]::-webkit-calendar-picker-indicator:hover {
             opacity: 1;
         }
+        /* Custom scrollbar for tables and containers */
+        .scrollbar-thin::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
     @stack('styles')
 </head>
@@ -111,7 +140,7 @@
             <!-- Navigation -->
             <nav class="flex-1 px-3 py-4 overflow-y-auto sidebar-scroll">
                 <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-3">Menu Utama</div>
-                
+
                 <a href="{{ route('cashier.dashboard') }}" class="nav-link group flex items-center px-4 py-3 rounded-xl mb-1 {{ request()->routeIs('cashier.dashboard') ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' }}">
                     <div class="w-9 h-9 rounded-lg {{ request()->routeIs('cashier.dashboard') ? 'bg-white/20' : 'bg-slate-700/50 group-hover:bg-slate-600/50' }} flex items-center justify-center mr-3 transition-colors">
                         <i class="fas fa-home {{ request()->routeIs('cashier.dashboard') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
@@ -203,7 +232,7 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            
+
             if (sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.remove('-translate-x-full');
                 overlay.classList.remove('hidden');

@@ -85,7 +85,7 @@
             </div>
             <h3 class="text-lg font-semibold text-slate-800">Filter & Pencarian</h3>
         </div>
-        
+
         <form method="GET">
             <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
                 <div>
@@ -96,7 +96,7 @@
                         <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
                             <i class="fas fa-search text-slate-400 text-sm"></i>
                         </div>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari..." 
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari..."
                                class="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all hover:border-slate-300">
                     </div>
                 </div>
@@ -120,14 +120,14 @@
                     <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">
                         Dari Tanggal
                     </label>
-                    <input type="date" name="start_date" value="{{ request('start_date') }}" 
+                    <input type="date" name="start_date" value="{{ request('start_date') }}"
                            class="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all hover:border-slate-300">
                 </div>
                 <div>
                     <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">
                         Sampai Tanggal
                     </label>
-                    <input type="date" name="end_date" value="{{ request('end_date') }}" 
+                    <input type="date" name="end_date" value="{{ request('end_date') }}"
                            class="w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all hover:border-slate-300">
                 </div>
                 <div class="flex items-end">
@@ -137,7 +137,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <!-- Export Buttons -->
             <div class="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
                 <button type="submit" name="export" value="pdf" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-red-500/30 hover:shadow-red-500/40">
@@ -173,7 +173,7 @@
                 </span>
             </div>
         </div>
-        
+
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-100">
                 <thead class="bg-slate-50">
@@ -296,11 +296,11 @@
                     </button>
                 </div>
             </div>
-            
+
             <form id="expenseForm" method="POST" class="p-6">
                 @csrf
                 <input type="hidden" id="methodField" name="_method" value="POST">
-                
+
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-600 mb-2">
@@ -309,7 +309,7 @@
                         </label>
                         <div class="flex gap-2">
                             <div class="relative flex-1">
-                                <select name="category" id="category" required 
+                                <select name="category" id="category" required
                                     class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all appearance-none cursor-pointer">
                                     <option value="">Pilih Kategori</option>
                                     @foreach($categories as $cat)
@@ -330,8 +330,8 @@
                             <i class="fas fa-align-left mr-1 text-slate-400"></i>
                             Deskripsi
                         </label>
-                        <textarea name="description" id="description" required rows="3" 
-                                  class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all resize-none" 
+                        <textarea name="description" id="description" required rows="3"
+                                  class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all resize-none"
                                   placeholder="Detail pengeluaran..."></textarea>
                     </div>
                     <div>
@@ -339,8 +339,8 @@
                             <i class="fas fa-money-bill mr-1 text-slate-400"></i>
                             Jumlah (Rp)
                         </label>
-                        <input type="number" name="amount" id="amount" required min="0" step="0.01" 
-                               class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all" 
+                        <input type="number" name="amount" id="amount" required min="0" step="0.01"
+                               class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all"
                                placeholder="0">
                     </div>
                     <div>
@@ -348,15 +348,16 @@
                             <i class="fas fa-calendar mr-1 text-slate-400"></i>
                             Tanggal
                         </label>
-                        <input type="date" name="expense_date" id="expense_date" required 
+                        <input type="date" name="expense_date" id="expense_date" required
                                class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all">
                     </div>
                 </div>
-                
+
                 <div class="flex gap-3 mt-6">
-                    <button type="submit" class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i>
-                        Simpan
+                    <button type="submit" id="expenseSubmitBtn" class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-spinner fa-spin hidden" id="expenseLoadingIcon"></i>
+                        <i class="fas fa-save" id="expenseSaveIcon"></i>
+                        <span id="expenseSubmitText">Simpan</span>
                     </button>
                     <button type="button" onclick="closeModal()" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-medium transition-all">
                         Batal
@@ -384,14 +385,14 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="p-6">
                 <!-- Add Category Form -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate-600 mb-2">Tambah Kategori Baru</label>
                     <div class="flex gap-2">
-                        <input type="text" id="newCategoryName" 
-                               class="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all" 
+                        <input type="text" id="newCategoryName"
+                               class="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50 focus:bg-white transition-all"
                                placeholder="Nama kategori baru...">
                         <button type="button" onclick="addCategory()" class="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all">
                             <i class="fas fa-plus"></i>
@@ -409,7 +410,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="bg-slate-50 px-6 py-4 flex justify-end">
                 <button type="button" onclick="closeCategoryModal()" class="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-medium transition-all">
                     Tutup
@@ -419,7 +420,7 @@
     </div>
 
     <!-- Edit Category Modal -->
-    <div id="editCategoryModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div id="editCategoryModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
             <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 flex items-center justify-between">
                 <h3 class="text-lg font-semibold text-white flex items-center gap-2">
@@ -430,15 +431,15 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
+
             <div class="p-6">
                 <input type="hidden" id="editCategoryId">
                 <label class="block text-sm font-medium text-slate-600 mb-2">Nama Kategori</label>
-                <input type="text" id="editCategoryName" 
-                       class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-slate-50 focus:bg-white transition-all" 
+                <input type="text" id="editCategoryName"
+                       class="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-slate-50 focus:bg-white transition-all"
                        placeholder="Nama kategori...">
             </div>
-            
+
             <div class="bg-slate-50 px-6 py-4 flex gap-3 justify-end">
                 <button type="button" onclick="closeEditCategoryModal()" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl font-medium transition-all">
                     Batal
@@ -479,6 +480,23 @@
         document.getElementById('expenseModal').classList.add('hidden');
     }
 
+    // ESC key handlers for all modals
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const expenseModal = document.getElementById('expenseModal');
+            const categoryModal = document.getElementById('categoryModal');
+            const editCategoryModal = document.getElementById('editCategoryModal');
+
+            if (expenseModal && !expenseModal.classList.contains('hidden')) {
+                closeModal();
+            } else if (editCategoryModal && !editCategoryModal.classList.contains('hidden')) {
+                closeEditCategoryModal();
+            } else if (categoryModal && !categoryModal.classList.contains('hidden')) {
+                closeCategoryModal();
+            }
+        }
+    });
+
     function deleteExpense(id) {
         confirmAction('Yakin ingin menghapus pengeluaran ini?', function() {
             const form = document.getElementById('deleteForm');
@@ -490,7 +508,7 @@
             cancelText: 'Batal'
         });
     }
-    
+
     // Close modal on backdrop click
     document.getElementById('expenseModal').addEventListener('click', function(e) {
         if (e.target === this) {
@@ -527,22 +545,22 @@
         try {
             const response = await fetch('{{ route("manager.finance.expense-categories.index") }}');
             const categories = await response.json();
-            
+
             const container = document.getElementById('categoryList');
             if (categories.length === 0) {
                 container.innerHTML = '<div class="px-4 py-6 text-center text-slate-400 text-sm">Belum ada kategori</div>';
                 return;
             }
-            
+
             container.innerHTML = categories.map(cat => `
                 <div class="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors">
                     <span class="text-slate-700">${cat.name}</span>
                     <div class="flex gap-2">
-                        <button type="button" onclick="openEditCategoryModal(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')" 
+                        <button type="button" onclick="openEditCategoryModal(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')"
                                 class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Edit">
                             <i class="fas fa-edit text-sm"></i>
                         </button>
-                        <button type="button" onclick="deleteCategory(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')" 
+                        <button type="button" onclick="deleteCategory(${cat.id}, '${cat.name.replace(/'/g, "\\'")}')"
                                 class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
                             <i class="fas fa-trash text-sm"></i>
                         </button>
@@ -652,13 +670,13 @@
         try {
             const response = await fetch('{{ route("manager.finance.expense-categories.index") }}');
             const categories = await response.json();
-            
+
             const select = document.getElementById('category');
             const currentValue = select.value;
-            
-            select.innerHTML = '<option value="">Pilih Kategori</option>' + 
+
+            select.innerHTML = '<option value="">Pilih Kategori</option>' +
                 categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
-            
+
             // Restore selected value if still exists
             if (categories.some(c => c.name === currentValue)) {
                 select.value = currentValue;
@@ -678,6 +696,35 @@
     document.getElementById('editCategoryModal').addEventListener('click', function(e) {
         if (e.target === this) {
             closeEditCategoryModal();
+        }
+    });
+
+    // Form submission loading states
+    document.getElementById('expenseForm').addEventListener('submit', function() {
+        const submitBtn = document.getElementById('expenseSubmitBtn');
+        const loadingIcon = document.getElementById('expenseLoadingIcon');
+        const saveIcon = document.getElementById('expenseSaveIcon');
+        const submitText = document.getElementById('expenseSubmitText');
+
+        submitBtn.disabled = true;
+        loadingIcon.classList.remove('hidden');
+        saveIcon.classList.add('hidden');
+        submitText.textContent = 'Menyimpan...';
+    });
+
+    document.getElementById('categoryForm').addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type=\"submit\"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class=\"fas fa-spinner fa-spin mr-2\"></i>Menyimpan...';
+        }
+    });
+
+    document.getElementById('editCategoryForm').addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type=\"submit\"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class=\"fas fa-spinner fa-spin mr-2\"></i>Menyimpan...';
         }
     });
 </script>

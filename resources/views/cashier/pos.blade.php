@@ -47,8 +47,8 @@
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
                     <!-- Left: products -->
-                    <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 lg:p-5 overflow-auto order-2 lg:order-1 max-h-[60vh] lg:max-h-[80vh] min-h-[300px]">
-                        
+                    <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-100 shadow-sm p-4 lg:p-5 overflow-auto order-2 lg:order-1 min-h-[300px] max-h-[calc(100vh-300px)] lg:max-h-[calc(100vh-200px)]">
+
 
                         <div id="products" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
                             @foreach($products as $product)
@@ -56,7 +56,11 @@
                                     <div class="flex flex-col items-center">
                                         <div class="w-20 h-20 lg:w-28 lg:h-28 bg-white rounded-xl border border-slate-100 flex items-center justify-center mb-2 lg:mb-3 overflow-hidden">
                                             @if($product->image)
-                                                <img src="{{ \Illuminate\Support\Facades\Storage::url($product->image) }}" alt="{{ $product->name }}" class="max-h-20 lg:max-h-28 object-contain">
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::url($product->image) }}"
+                                                     alt="{{ $product->name }}"
+                                                     loading="lazy"
+                                                     class="max-h-20 lg:max-h-28 object-contain"
+                                                     onerror="this.parentElement.innerHTML='<i class=\'fas fa-box-open text-3xl text-slate-400\'></i>'">
                                             @else
                                                 <div class="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
                                                     <i class="fas fa-box-open text-3xl text-slate-400"></i>
@@ -66,7 +70,7 @@
                                         <div class="w-full text-left">
                                             <h3 class="font-semibold text-slate-700 text-sm mb-1 line-clamp-2">{{ $product->name }}</h3>
                                             <div class="text-blue-600 font-bold">Rp {{ number_format($product->price,0,',','.') }}</div>
-                                            @php 
+                                            @php
                                                 $availableBatches = $product->batches()->available()->notExpired();
                                                 $batchStock = $availableBatches->sum('quantity');
                                                 $batchCount = $availableBatches->count();
@@ -127,8 +131,8 @@
                                     </div>
                                 @else
                                     @foreach($cart as $cartKey => $item)
-                                        @php 
-                                            $line = $item['price'] * $item['quantity']; 
+                                        @php
+                                            $line = $item['price'] * $item['quantity'];
                                             $subtotal += $line;
                                             $cartProduct = \App\Models\Product::find($item['id']);
                                             $cartImage = $cartProduct ? $cartProduct->image : null;
@@ -140,7 +144,11 @@
                                             <div class="flex items-start">
                                                 <div class="w-12 h-12 bg-slate-100 rounded-lg mr-3 flex items-center justify-center overflow-hidden">
                                                     @if($cartImage)
-                                                        <img src="{{ \Illuminate\Support\Facades\Storage::url($cartImage) }}" alt="" class="max-h-10 object-contain">
+                                                        <img src="{{ \Illuminate\Support\Facades\Storage::url($cartImage) }}"
+                                                             alt=""
+                                                             loading="lazy"
+                                                             class="max-h-10 object-contain"
+                                                             onerror="this.parentElement.innerHTML='<i class=\'fas fa-box text-slate-400\'></i>'">
                                                     @else
                                                         <i class="fas fa-box text-slate-400"></i>
                                                     @endif
@@ -389,12 +397,12 @@
         document.getElementById('selectedUnitPrice').textContent = 'Rp 0';
         currentSelectedUnit = 'pcs';
         currentUnitPrice = 0;
-        
+
         // Show modal
         const modal = document.getElementById('batchModal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-        
+
         // Load product data (units and batches)
         loadProductData(productId);
     }
@@ -408,21 +416,29 @@
         currentUnits = [];
     }
 
+    // ESC key handler for batch modal
+    document.addEventListener('keydown', function(e) {
+        const batchModal = document.getElementById('batchModal');
+        if(e.key === 'Escape' && batchModal && !batchModal.classList.contains('hidden')) {
+            closeBatchModal();
+        }
+    });
+
     async function loadProductData(productId) {
         const batchList = document.getElementById('batchList');
         const unitSelection = document.getElementById('unitSelection');
         batchList.innerHTML = '<div class="text-center text-gray-500 py-4">Loading...</div>';
         unitSelection.innerHTML = '<div class="col-span-3 text-center text-gray-500 py-2">Loading...</div>';
-        
+
         try {
             const response = await fetch(`{{ url('/cashier/api/products') }}/${productId}/batches`);
             const data = await response.json();
             currentBatches = data.batches || [];
             currentUnits = data.units || [{type: 'pcs', label: 'Pcs', price: data.default_price || 0}];
-            
+
             // Render units
             renderUnits(currentUnits);
-            
+
             if (currentBatches.length === 0) {
                 batchList.innerHTML = `
                     <div class="text-center py-8">
@@ -447,12 +463,12 @@
 
     function renderUnits(units) {
         const unitSelection = document.getElementById('unitSelection');
-        
+
         if (units.length === 0) {
             unitSelection.innerHTML = '<div class="col-span-3 text-center text-gray-500 py-2">Pcs saja</div>';
             return;
         }
-        
+
         // Color mapping for each unit type
         const colors = {
             'pcs': { bg: 'blue-50', border: 'blue-500', text: 'blue-800' },
@@ -461,15 +477,15 @@
             'box': { bg: 'amber-50', border: 'amber-500', text: 'amber-800' },
             'karton': { bg: 'rose-50', border: 'rose-500', text: 'rose-800' }
         };
-        
+
         let html = '';
         units.forEach((unit, index) => {
             const isFirst = index === 0;
             const color = colors[unit.type] || colors['pcs'];
             const contents = unit.contents || '';
-            
+
             html += `
-                <button type="button" onclick="selectUnit('${unit.type}', ${unit.price}, '${unit.label}')" 
+                <button type="button" onclick="selectUnit('${unit.type}', ${unit.price}, '${unit.label}')"
                         class="unit-btn p-3 rounded-xl border-2 transition-all text-center ${isFirst ? 'border-' + color.border + ' bg-' + color.bg : 'border-slate-200 hover:border-' + color.border}"
                         data-unit="${unit.type}">
                     <div class="font-bold text-sm text-slate-800">${unit.label}</div>
@@ -478,9 +494,9 @@
                 </button>
             `;
         });
-        
+
         unitSelection.innerHTML = html;
-        
+
         // Auto-select first unit
         if (units.length > 0) {
             selectUnit(units[0].type, units[0].price, units[0].label);
@@ -492,7 +508,7 @@
         currentUnitPrice = price;
         document.getElementById('selectedUnitType').value = unitType;
         document.getElementById('selectedUnitPrice').textContent = 'Rp ' + formatNumber(price);
-        
+
         // Update button styles
         document.querySelectorAll('.unit-btn').forEach(btn => {
             if (btn.dataset.unit === unitType) {
@@ -503,7 +519,7 @@
                 btn.classList.add('border-slate-200');
             }
         });
-        
+
         // Confirm button remains disabled until batch is selected
         // (batch is now required for all transactions)
     }
@@ -519,22 +535,22 @@
 
     function renderBatches(batches) {
         const batchList = document.getElementById('batchList');
-        
+
         if (batches.length === 0) {
             batchList.innerHTML = '<div class="text-center text-gray-500 py-4">Tidak ada batch tersedia</div>';
             return;
         }
-        
+
         let html = '';
         batches.forEach(batch => {
-            const expClass = batch.is_expired ? 'bg-red-50 border-red-200' : 
+            const expClass = batch.is_expired ? 'bg-red-50 border-red-200' :
                             (batch.is_expiring_soon ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200');
-            const expText = batch.is_expired ? 'text-red-600' : 
+            const expText = batch.is_expired ? 'text-red-600' :
                            (batch.is_expiring_soon ? 'text-orange-600' : 'text-green-600');
-            
+
             html += `
-                <div class="batch-item p-3 rounded-lg border cursor-pointer hover:bg-blue-50 transition-colors ${expClass}" 
-                     data-batch-id="${batch.id}" 
+                <div class="batch-item p-3 rounded-lg border cursor-pointer hover:bg-blue-50 transition-colors ${expClass}"
+                     data-batch-id="${batch.id}"
                      data-batch-code="${batch.batch_code}"
                      data-batch-qty="${batch.quantity}"
                      onclick="selectBatch(${batch.id}, '${batch.batch_code}', ${batch.quantity})">
@@ -555,7 +571,7 @@
                 </div>
             `;
         });
-        
+
         batchList.innerHTML = html;
     }
 
@@ -564,13 +580,13 @@
         document.querySelectorAll('.batch-item').forEach(item => {
             item.classList.remove('ring-2', 'ring-blue-500');
         });
-        
+
         // Add selection to clicked item
         const selectedItem = document.querySelector(`.batch-item[data-batch-id="${batchId}"]`);
         if (selectedItem) {
             selectedItem.classList.add('ring-2', 'ring-blue-500');
         }
-        
+
         document.getElementById('selectedBatchId').value = batchId;
         document.getElementById('selectedBatchCode').textContent = batchCode;
         document.getElementById('batchQuantity').max = maxQty;
@@ -582,48 +598,48 @@
         const batchId = document.getElementById('selectedBatchId').value;
         const quantity = document.getElementById('batchQuantity').value;
         const unitType = document.getElementById('selectedUnitType').value;
-        
+
         // Validate batch is selected
         if (!batchId) {
             alert('Silakan pilih batch terlebih dahulu');
             return;
         }
-        
+
         // Submit form
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '{{ route("cashier.pos.add") }}';
-        
+
         const csrfInput = document.createElement('input');
         csrfInput.type = 'hidden';
         csrfInput.name = '_token';
         csrfInput.value = '{{ csrf_token() }}';
         form.appendChild(csrfInput);
-        
+
         const productInput = document.createElement('input');
         productInput.type = 'hidden';
         productInput.name = 'product_id';
         productInput.value = productId;
         form.appendChild(productInput);
-        
+
         const batchInput = document.createElement('input');
         batchInput.type = 'hidden';
         batchInput.name = 'batch_id';
         batchInput.value = batchId;
         form.appendChild(batchInput);
-        
+
         const qtyInput = document.createElement('input');
         qtyInput.type = 'hidden';
         qtyInput.name = 'quantity';
         qtyInput.value = quantity;
         form.appendChild(qtyInput);
-        
+
         const unitInput = document.createElement('input');
         unitInput.type = 'hidden';
         unitInput.name = 'unit_type';
         unitInput.value = unitType;
         form.appendChild(unitInput);
-        
+
         document.body.appendChild(form);
         form.submit();
     }
@@ -817,9 +833,9 @@
             const paidError = document.getElementById('paidError');
             if(paid < vals.total){
                 const lacking = Math.round(vals.total - paid);
-                if(paidError) { 
-                    paidError.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Uang kurang: ' + formatRp(lacking) + '</span>'; 
-                    paidError.style.display = 'flex'; 
+                if(paidError) {
+                    paidError.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>Uang kurang: ' + formatRp(lacking) + '</span>';
+                    paidError.style.display = 'flex';
                 }
                 if(confirmBtn) confirmBtn.disabled = true;
             } else {
@@ -864,7 +880,7 @@
             const paymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || 'cash';
             const paidInputWrapper = document.getElementById('paidInputWrapper');
             const changeWrapper = document.getElementById('changeWrapper');
-            
+
             if(paymentMethod !== 'cash'){
                 if(paidInputWrapper) paidInputWrapper.style.display = 'none';
                 if(changeWrapper) changeWrapper.style.display = 'none';
@@ -884,6 +900,13 @@
         if(closeBtn) closeBtn.addEventListener('click', hideModal);
         if(cancelBtn) cancelBtn.addEventListener('click', hideModal);
         if(paidInput) paidInput.addEventListener('input', updateChange);
+
+        // ESC key handler for checkout modal
+        document.addEventListener('keydown', function(e) {
+            if(e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+                hideModal();
+            }
+        });
 
         if(confirmBtn){
             confirmBtn.addEventListener('click', function(e){
@@ -932,6 +955,7 @@
         }
 
         // Realtime clock for header
+        let clockInterval;
         (function(){
             const el = document.getElementById('realtimeClock');
             function updateClock(){
@@ -940,8 +964,13 @@
                 el.innerText = now.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
             }
             updateClock();
-            setInterval(updateClock, 1000);
+            clockInterval = setInterval(updateClock, 1000);
         })();
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if(clockInterval) clearInterval(clockInterval);
+        });
     });
 </script>
 @endpush

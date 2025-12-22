@@ -1,0 +1,324 @@
+/* ===================================
+   STAR FROZEN - DESIGN SYSTEM
+   Comprehensive Design System for Consistency
+   =================================== */
+
+/* ===================================
+   1. BORDER RADIUS SYSTEM
+   =================================== */
+.rounded-card {
+    @apply rounded-2xl;
+}
+
+.rounded-button {
+    @apply rounded-xl;
+}
+
+.rounded-input {
+    @apply rounded-xl;
+}
+
+.rounded-badge {
+    @apply rounded-full;
+}
+
+.rounded-icon-container {
+    @apply rounded-xl;
+}
+
+/* ===================================
+   2. SPACING SYSTEM
+   Clean & Generous Spacing
+   =================================== */
+.spacing-page {
+    @apply p-6 lg:p-8;
+}
+
+.spacing-header {
+    @apply px-6 py-5;
+}
+
+.spacing-card {
+    @apply p-6;
+}
+
+.spacing-card-sm {
+    @apply p-4;
+}
+
+.spacing-section {
+    @apply mb-8;
+}
+
+/* ===================================
+   3. ICON CONTAINER SIZES
+   =================================== */
+.icon-container-sm {
+    @apply w-8 h-8 rounded-xl flex items-center justify-center;
+}
+
+.icon-container-md {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center;
+}
+
+.icon-container-lg {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center;
+}
+
+.icon-container-xl {
+    @apply w-14 h-14 rounded-2xl flex items-center justify-center;
+}
+
+/* Icon container with gradient and shadow */
+.icon-primary {
+    @apply bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30;
+}
+
+.icon-success {
+    @apply bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30;
+}
+
+.icon-warning {
+    @apply bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/30;
+}
+
+.icon-danger {
+    @apply bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/30;
+}
+
+.icon-info {
+    @apply bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30;
+}
+
+/* ===================================
+   4. SHADOW HIERARCHY
+   Subtle & Clean Shadows
+   =================================== */
+.shadow-card {
+    @apply shadow-sm;
+}
+
+.shadow-elevated {
+    @apply shadow-md;
+}
+
+.shadow-modal {
+    @apply shadow-xl;
+}
+
+.shadow-header {
+    @apply shadow-sm;
+}
+
+/* Hover shadows */
+.hover-shadow-card {
+    @apply hover:shadow-lg transition-shadow duration-300;
+}
+
+/* ===================================
+   5. CARD COMPONENTS
+   =================================== */
+.card-base {
+    @apply bg-white rounded-card shadow-card;
+}
+
+.card-interactive {
+    @apply card-base hover-shadow-card transition-all duration-300;
+}
+
+.card-stat {
+    @apply card-interactive spacing-card;
+}
+
+.card-section {
+    @apply card-base spacing-card;
+}
+
+/* ===================================
+   6. PAGE HEADER
+   =================================== */
+.page-header {
+    @apply bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 rounded-card shadow-header spacing-header spacing-section overflow-hidden relative;
+}
+
+.page-header-overlay {
+    @apply absolute inset-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10;
+}
+
+/* ===================================
+   7. STAT CARD STYLES
+   =================================== */
+.stat-label {
+    @apply text-sm text-slate-500 font-medium;
+}
+
+.stat-value {
+    @apply text-2xl lg:text-3xl font-bold text-slate-800 mt-1;
+}
+
+.stat-badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-badge text-xs font-semibold;
+}
+
+.stat-badge-success {
+    @apply stat-badge bg-green-100 text-green-700;
+}
+
+.stat-badge-danger {
+    @apply stat-badge bg-red-100 text-red-700;
+}
+
+.stat-badge-warning {
+    @apply stat-badge bg-amber-100 text-amber-700;
+}
+
+.stat-badge-info {
+    @apply stat-badge bg-blue-100 text-blue-700;
+}
+
+/* ===================================
+   8. TABLE STYLES
+   =================================== */
+.table-container {
+    @apply card-base overflow-hidden;
+}
+
+.table-header {
+    @apply px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white;
+}
+
+/* ===================================
+   9. FORM STYLES
+   =================================== */
+.form-section {
+    @apply card-base spacing-card spacing-section;
+}
+
+.form-label {
+    @apply text-label mb-2;
+}
+
+/* ===================================
+   10. BADGE & TAG STYLES
+   =================================== */
+.badge {
+    @apply inline-flex items-center px-3 py-1 rounded-badge text-sm font-medium;
+}
+
+.badge-primary {
+    @apply badge bg-blue-100 text-blue-700;
+}
+
+.badge-success {
+    @apply badge bg-emerald-100 text-emerald-700;
+}
+
+.badge-warning {
+    @apply badge bg-amber-100 text-amber-700;
+}
+
+.badge-danger {
+    @apply badge bg-red-100 text-red-700;
+}
+
+.badge-slate {
+    @apply badge bg-slate-100 text-slate-700;
+}
+
+/* Badge size variants */
+.badge-lg {
+    @apply px-5 py-3 text-base;
+}
+
+/* Info banner badge */
+.badge-info-lg {
+    @apply bg-blue-50 border border-blue-200 rounded-card p-5;
+}
+
+/* ===================================
+   11. LAYOUT GRIDS
+   =================================== */
+.grid-stats-2 {
+    @apply grid grid-cols-2 gap-4 lg:gap-6;
+}
+
+.grid-stats-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6;
+}
+
+.grid-stats-6 {
+    @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 lg:gap-6;
+}
+
+.grid-cards-2 {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-6;
+}
+
+.grid-cards-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+/* ===================================
+   12. TRANSITIONS
+   =================================== */
+.transition-default {
+    @apply transition-all duration-300;
+}
+
+.transition-fast {
+    @apply transition-all duration-200;
+}
+
+.transition-slow {
+    @apply transition-all duration-500;
+}
+
+/* ===================================
+   13. TEXT UTILITIES
+   =================================== */
+.page-title {
+    @apply heading-xl text-white;
+}
+
+.page-subtitle {
+    @apply text-slate-400 mt-1 text-sm md:text-base;
+}
+
+.section-title {
+    @apply heading-md text-slate-800;
+}
+
+.card-title {
+    @apply heading-sm text-slate-800;
+}
+
+/* ===================================
+   USAGE GUIDE:
+
+   Page Structure:
+   <div class="spacing-page">
+     <div class="page-header">
+       <h1 class="page-title">Dashboard</h1>
+       <p class="page-subtitle">Overview</p>
+     </div>
+
+     <div class="grid-stats-4 spacing-section">
+       <div class="card-stat">...</div>
+     </div>
+   </div>
+
+   Icons:
+   <div class="icon-container-lg icon-primary">
+     <i class="fas fa-icon text-white"></i>
+   </div>
+
+   Buttons:
+   <button class="btn-primary btn-md">Click</button>
+
+   Cards:
+   <div class="card-section">
+     <h3 class="card-title">Title</h3>
+     <p class="text-body">Content</p>
+   </div>
+
+   =================================== */
