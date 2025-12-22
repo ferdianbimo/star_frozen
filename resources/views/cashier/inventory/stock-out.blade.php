@@ -64,17 +64,18 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
+                    {{-- @var \App\Models\StockLog $log --}}
                     @forelse($logs ?? [] as $index => $log)
                     <tr class="hover:bg-slate-50">
                         <td class="px-4 py-3 text-sm text-slate-700">{{ $index + 1 }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ optional($log->created_at)->format('d/m/Y H:i') ?? '-' }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ $log->transaction_id ?? '-' }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-700">{{ $log->product ? $log->product->name : '-' }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ abs($log->change ?? 0) }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $log->unit_type ?? 'pcs' }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-700">Rp {{ number_format($log->price ?? 0, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">Rp {{ number_format(($log->price ?? 0) * abs($log->change ?? 0), 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $log->note ?? 'Penjualan' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-600">{{ isset($log->created_at) && $log->created_at ? $log->created_at->format('d/m/Y H:i') : '-' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ isset($log->transaction_id) ? $log->transaction_id : '-' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-700">{{ isset($log->product) && $log->product ? $log->product->name : '-' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ isset($log->change) ? abs($log->change) : 0 }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-600">{{ isset($log->unit_type) ? $log->unit_type : 'pcs' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-700">Rp {{ isset($log->price) ? number_format($log->price, 0, ',', '.') : '0' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">Rp {{ isset($log->price, $log->change) ? number_format($log->price * abs($log->change), 0, ',', '.') : '0' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-600">{{ isset($log->note) ? $log->note : 'Penjualan' }}</td>
                     </tr>
                     @empty
                     <tr>

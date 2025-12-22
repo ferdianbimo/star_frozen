@@ -70,23 +70,24 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
+                    {{-- @var \App\Models\Product $product --}}
                     @forelse($products ?? [] as $index => $product)
                     <tr class="hover:bg-slate-50">
                         <td class="px-4 py-3 text-sm text-slate-700">{{ $index + 1 }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ $product->name }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $product->category ?? '-' }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-700">Rp {{ number_format($product->purchase_price ?? 0, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-700">Rp {{ number_format($product->price ?? 0, 0, ',', '.') }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ $product->stock ?? 0 }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $product->unit ?? 'pcs' }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ optional($product->created_at)->format('d/m/Y') ?? '-' }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ optional($product->expiry_date)->format('d/m/Y') ?? '-' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ isset($product->name) ? $product->name : '-' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-600">{{ isset($product->category) ? $product->category : '-' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-700">Rp {{ isset($product->purchase_price) ? number_format($product->purchase_price, 0, ',', '.') : '0' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-700">Rp {{ isset($product->price) ? number_format($product->price, 0, ',', '.') : '0' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-700 font-medium">{{ isset($product->stock) ? $product->stock : 0 }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-600">{{ isset($product->unit) ? $product->unit : 'pcs' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-600">{{ isset($product->created_at) && $product->created_at ? $product->created_at->format('d/m/Y') : '-' }}</td>
+                        <td class="px-4 py-3 text-sm text-slate-600">{{ isset($product->expiry_date) && $product->expiry_date ? $product->expiry_date->format('d/m/Y') : '-' }}</td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2">
                                 <button onclick='openEditModal(@json($product))' class="text-blue-600 hover:text-blue-700">
                                     <i class="fas fa-edit text-sm"></i>
                                 </button>
-                                <button onclick="deleteProduct({{ $product->id }})" class="text-red-600 hover:text-red-700">
+                                <button onclick="deleteProduct({{ isset($product->id) ? $product->id : 0 }})" class="text-red-600 hover:text-red-700">
                                     <i class="fas fa-trash text-sm"></i>
                                 </button>
                             </div>

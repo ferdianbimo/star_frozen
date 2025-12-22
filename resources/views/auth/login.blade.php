@@ -56,7 +56,7 @@
                         id="email"
                         value="{{ old('email', 'manager@starfrozen.com') }}"
                         placeholder="StarAdmin"
-                        class="w-full px-4 py-3 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('email') border-red-500 @enderror"
+                        class="w-full px-4 py-3 border rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('email') border-red-500 @else border-slate-200 @enderror"
                         required
                         autofocus>
                     @error('email')
@@ -73,7 +73,7 @@
                             name="password"
                             id="password"
                             placeholder="************"
-                            class="w-full px-4 py-3 pr-12 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('password') border-red-500 @enderror"
+                            class="w-full px-4 py-3 pr-12 border rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all @error('password') border-red-500 @else border-slate-200 @enderror"
                             required>
                         <button
                             type="button"

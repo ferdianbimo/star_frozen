@@ -73,7 +73,7 @@ class CashierInventoryController extends Controller
                 $query->orderBy('name');
         }
 
-        $products = $query->paginate(8)->withQueryString();
+        $products = $query->paginate(8)->appends(request()->query());
 
         // get categories for filter
         $categories = Product::select('category')->distinct()->whereNotNull('category')->pluck('category');
@@ -155,17 +155,17 @@ class CashierInventoryController extends Controller
         $data['sell_renteng'] = $request->has('sell_renteng');
         $data['sell_box'] = $request->has('sell_box');
         $data['sell_karton'] = $request->has('sell_karton');
-        
+
         // Set default price from price_pcs if main price not set
         if (empty($data['price']) && !empty($data['price_pcs'])) {
             $data['price'] = $data['price_pcs'];
         }
-        
+
         // Set default purchase_price from purchase_price_pcs if not set
         if (empty($data['purchase_price']) && !empty($data['purchase_price_pcs'])) {
             $data['purchase_price'] = $data['purchase_price_pcs'];
         }
-        
+
         // Default stock to 0
         $data['stock'] = $data['stock'] ?? 0;
 
@@ -231,12 +231,12 @@ class CashierInventoryController extends Controller
         $data['sell_renteng'] = $request->has('sell_renteng');
         $data['sell_box'] = $request->has('sell_box');
         $data['sell_karton'] = $request->has('sell_karton');
-        
+
         // Set default price from price_pcs if main price not set
         if (empty($data['price']) && !empty($data['price_pcs'])) {
             $data['price'] = $data['price_pcs'];
         }
-        
+
         // Set default purchase_price from purchase_price_pcs if not set
         if (!empty($data['purchase_price_pcs'])) {
             $data['purchase_price'] = $data['purchase_price_pcs'];
@@ -315,7 +315,7 @@ class CashierInventoryController extends Controller
         $transactionType = 'manual';
         $unitPrice = 0;
         $totalValue = 0;
-        
+
         if ($validated['stock_change'] < 0) {
             // Stock out (penjualan)
             $transactionType = 'sale';
@@ -365,7 +365,7 @@ class CashierInventoryController extends Controller
         $products = Product::where('stock', '<=', 'low_stock_threshold')
             ->orderBy('stock')
             ->paginate(10);
-        
+
         return view('cashier.inventory.low-stock', compact('products'));
     }
 
@@ -377,12 +377,12 @@ class CashierInventoryController extends Controller
     {
         $search = $request->input('search');
         $sort = $request->input('sort', 'tanggal_terbaru');
-        
+
         $query = StockLog::with('product', 'user')
             ->where('change', '<', 0)
             ->where('user_id', auth()->id()) // Filter by current user
             ->where('transaction_type', 'sale'); // Only from POS transactions
-        
+
         // Search filter
         if ($search) {
             $query->whereHas('product', function($q) use ($search) {
@@ -391,7 +391,7 @@ class CashierInventoryController extends Controller
                   ->orWhere('category', 'like', '%' . $search . '%');
             });
         }
-        
+
         // Sorting
         $sortMapping = [
             'tanggal_terbaru' => ['created_at', 'desc'],
@@ -399,14 +399,14 @@ class CashierInventoryController extends Controller
             'jumlah_banyak' => ['change', 'asc'], // change is negative, so asc = most items
             'jumlah_sedikit' => ['change', 'desc'],
         ];
-        
+
         if (isset($sortMapping[$sort])) {
             $query->orderBy($sortMapping[$sort][0], $sortMapping[$sort][1]);
         } else {
             $query->orderBy('created_at', 'desc');
         }
 
-        $stockLogs = $query->paginate(8)->withQueryString();
+        $stockLogs = $query->paginate(8)->appends(request()->query());
 
         return view('cashier.inventory.stock-out', [
             'logs' => $stockLogs,
@@ -428,7 +428,7 @@ class CashierInventoryController extends Controller
             ->where('user_id', auth()->id()) // Filter by current user session
             ->where('transaction_type', 'sale') // Only from POS transactions
             ->orderBy('created_at', 'desc');
-            
+
         if ($sinceId) {
             // fetch logs newer than given id (assuming id grows with time)
             $query->where('id', '>', (int)$sinceId);
@@ -463,13 +463,13 @@ class CashierInventoryController extends Controller
     public function stockIn()
     {
         $products = Product::where('is_active', true)->orderBy('name')->get();
-        
+
         // Get recent batch entries
         $recentBatches = ProductBatch::with('product', 'receivedBy')
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
-        
+
         return view('cashier.inventory.stock-in', compact('products', 'recentBatches'));
     }
 
@@ -489,15 +489,15 @@ class CashierInventoryController extends Controller
         ]);
 
         $product = Product::findOrFail($validated['product_id']);
-        
+
         // Convert quantity to pcs (base unit)
         $incomingUnit = $validated['incoming_unit'] ?? 'pcs';
         $incomingQuantity = $validated['quantity'];
         $quantityInPcs = $product->convertToBaseUnit($incomingQuantity, $incomingUnit);
-        
+
         // Generate batch code
         $batchCode = ProductBatch::generateBatchCode($product->id);
-        
+
         // Create the batch (quantity stored in pcs)
         $batch = ProductBatch::create([
             'product_id' => $product->id,
@@ -559,7 +559,7 @@ class CashierInventoryController extends Controller
             ->orderByRaw('CASE WHEN expiration_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('expiration_date', 'asc')
             ->paginate(10);
-        
+
         return view('cashier.inventory.batches', compact('product', 'batches'));
     }
 
@@ -586,10 +586,10 @@ class CashierInventoryController extends Controller
                     'purchase_price' => $batch->purchase_price,
                 ];
             });
-        
+
         // Get available units for this product
         $units = $product->available_units;
-        
+
         // If no units configured, default to pcs only
         if (empty($units)) {
             $units = [
@@ -600,7 +600,7 @@ class CashierInventoryController extends Controller
                 ]
             ];
         }
-        
+
         return response()->json([
             'product_id' => $product->id,
             'product_name' => $product->name,
