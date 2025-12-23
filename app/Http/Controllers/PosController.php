@@ -129,29 +129,29 @@ class PosController extends Controller
         $qty = isset($data['quantity']) ? (int)$data['quantity'] : 1;
         $batchId = $data['batch_id'];
         $unitType = $data['unit_type'] ?? 'pcs';
-        
+
         // Get price for selected unit
         $unitPrice = $product->getPriceForUnit($unitType);
-        
+
         // Calculate quantity in base unit (pcs) for stock validation
         $qtyInPcs = $product->convertToBaseUnit($qty, $unitType);
-        
+
         // Validate batch belongs to product and has enough stock
         $batch = ProductBatch::where('id', $batchId)
                     ->where('product_id', $product->id)
                     ->where('is_active', true)
                     ->first();
-        
+
         if (!$batch) {
             return Redirect::back()->with('error', 'Batch tidak valid atau tidak aktif');
         }
-        
+
         if ($batch->quantity < $qtyInPcs) {
             return Redirect::back()->with('error', 'Stok batch tidak mencukupi');
         }
 
         $cart = $this->getCart();
-        
+
         // Create unique cart key based on product_id, batch_id, and unit_type (batch is always required)
         $cartKey = "{$product->id}_{$batchId}_{$unitType}";
 
@@ -228,10 +228,10 @@ class PosController extends Controller
         $batchId = $data['batch_id'];
         $unitType = $data['unit_type'] ?? 'pcs';
         $newQty = (int) $data['quantity'];
-        
+
         // Determine cart key - always includes batch_id since it's required
         $cartKey = $data['cart_key'] ?? "{$productId}_{$batchId}_{$unitType}";
-        
+
         $oldQty = isset($cart[$cartKey]) ? (int) $cart[$cartKey]['quantity'] : 0;
 
         if ($newQty <= 0) {
@@ -301,11 +301,44 @@ class PosController extends Controller
     public function checkout(Request $request): RedirectResponse
     {
         \Log::info('Checkout started', ['request_data' => $request->all()]);
-        
+
+        // Try to get cart from session first, fallback to request items
         $cart = $this->getCart();
 
+        // If session cart is empty, check if items were sent from JavaScript
+        if (empty($cart) && $request->has('items')) {
+            $itemsJson = $request->input('items');
+            $items = json_decode($itemsJson, true);
+
+            \Log::info('Using cart from request', ['items' => $items]);
+
+            if (!empty($items) && is_array($items)) {
+                // Convert JavaScript cart format to session cart format
+                foreach ($items as $item) {
+                    // Ensure batch_id is present
+                    if (empty($item['batch_id'])) {
+                        \Log::warning('Item without batch_id', ['item' => $item]);
+                        return Redirect::back()->with('error', "Produk {$item['name']} tidak memiliki batch aktif. Silakan refresh halaman.");
+                    }
+
+                    $cartKey = $item['id'] . '_' . $item['batch_id'] . '_pcs';
+                    $cart[$cartKey] = [
+                        'id' => $item['id'],
+                        'batch_id' => $item['batch_id'],
+                        'name' => $item['name'],
+                        'price' => $item['price'],
+                        'quantity' => $item['quantity'],
+                        'unit_type' => 'pcs'
+                    ];
+                }
+            }
+        }
+
         if (empty($cart)) {
-            \Log::warning('Checkout failed: Cart is empty');
+            \Log::warning('Checkout failed: Cart is empty', [
+                'session_cart' => $this->getCart(),
+                'request_items' => $request->input('items')
+            ]);
             return Redirect::back()->with('error', 'Cart is empty');
         }
 
@@ -332,15 +365,15 @@ class PosController extends Controller
             if (empty($item['batch_id'])) {
                 return Redirect::back()->with('error', "Batch harus dipilih untuk {$item['name']}");
             }
-            
+
             $product = Product::find($item['id']);
             $unitType = $item['unit_type'] ?? 'pcs';
             $qtyInPcs = $product->convertToBaseUnit($item['quantity'], $unitType);
-            
+
             if (!$product || $product->effective_stock < $qtyInPcs) {
                 return Redirect::back()->with('error', "Stok tidak mencukupi untuk {$item['name']}");
             }
-            
+
             // Validate batch stock
             $batch = ProductBatch::find($item['batch_id']);
             if (!$batch || !$batch->is_active) {
@@ -356,14 +389,14 @@ class PosController extends Controller
             // Create transaction in database
             $invoiceNumber = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(6));
             $totalProfit = 0;
-            
+
             // Calculate total profit
             foreach ($cart as $item) {
                 $product = Product::find($item['id']);
                 if (!$product) {
                     throw new \Exception("Product not found: {$item['name']}");
                 }
-                
+
                 // Use batch purchase price if available
                 $cost = $product->purchase_price ?? 0;
                 if (!empty($item['batch_id'])) {
@@ -372,14 +405,14 @@ class PosController extends Controller
                         $cost = $batch->purchase_price;
                     }
                 }
-                
+
                 // Calculate profit based on unit sold
                 $unitType = $item['unit_type'] ?? 'pcs';
                 $qtyInPcs = $product->convertToBaseUnit($item['quantity'], $unitType);
                 $itemProfit = ($item['price'] * $item['quantity']) - ($cost * $qtyInPcs);
                 $totalProfit += $itemProfit;
             }
-            
+
             \Log::info('Creating transaction', [
                 'invoice' => $invoiceNumber,
                 'user_id' => Auth::id(),
@@ -388,7 +421,7 @@ class PosController extends Controller
                 'payment_method' => $paymentMethod,
                 'payment_amount' => $paymentAmount
             ]);
-            
+
             // Determine checkout_time (device-provided) or fallback to server now
             $checkoutTime = $request->input('checkout_time') ?? now()->toDateTimeString();
 
@@ -417,15 +450,15 @@ class PosController extends Controller
                 $product = Product::find($item['id']);
                 $unitType = $item['unit_type'] ?? 'pcs';
                 $qtyInPcs = $product->convertToBaseUnit($item['quantity'], $unitType);
-                
+
                 $previous = $product->stock;
                 $product->decrement('stock', $qtyInPcs);
                 $product->save();
-                
+
                 $batchId = $item['batch_id'] ?? null;
                 $batch = null;
                 $itemCost = ($product->purchase_price ?? 0);
-                
+
                 // Reduce batch stock if batch is specified
                 if ($batchId) {
                     $batch = ProductBatch::find($batchId);
@@ -439,7 +472,7 @@ class PosController extends Controller
                 $itemSubtotal = $item['price'] * $item['quantity'];
                 $itemCostTotal = $itemCost * $qtyInPcs;
                 $itemProfit = $itemSubtotal - $itemCostTotal;
-                
+
                 TransactionItem::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->id,
@@ -534,6 +567,56 @@ class PosController extends Controller
     */
 
     /**
+     * Preview receipt dari data cart JavaScript (tanpa save ke database).
+     *
+     * @param  Request $request Request dengan data items, discount, tax, payment
+     * @return View             View receipt untuk preview/print
+     */
+    public function previewReceipt(Request $request): View
+    {
+        $itemsJson = $request->input('items');
+        $items = json_decode($itemsJson, true);
+
+        $subtotal = 0;
+        foreach ($items as $item) {
+            $subtotal += $item['price'] * $item['quantity'];
+        }
+
+        $discountPct = (float) $request->input('discount', 0);
+        $taxPct = (float) $request->input('tax', 0);
+        $paymentMethod = $request->input('payment_method', 'cash');
+        $paymentAmount = (float) $request->input('paid_amount', 0);
+
+        $discountAmount = (int) round($subtotal * ($discountPct / 100));
+        $taxable = max(0, $subtotal - $discountAmount);
+        $taxAmount = (int) round($taxable * ($taxPct / 100));
+        $total = (int) round($taxable + $taxAmount);
+        $changeAmount = max(0, $paymentAmount - $total);
+
+        $transactionData = [
+            'invoice_number' => 'PREVIEW-' . date('YmdHis'),
+            'cashier_id' => Auth::id(),
+            'items' => $items,
+            'subtotal' => $subtotal,
+            'discount_pct' => $discountPct,
+            'discount_amount' => $discountAmount,
+            'tax_pct' => $taxPct,
+            'tax_amount' => $taxAmount,
+            'payment_method' => $paymentMethod,
+            'payment_amount' => $paymentAmount,
+            'change_amount' => $changeAmount,
+            'total' => $total,
+            'created_at' => now()->toDateTimeString(),
+            'checkout_time' => now()->toDateTimeString()
+        ];
+
+        return view('cashier.receipt', [
+            'transaction' => $transactionData,
+            'cashier' => auth()->user()
+        ]);
+    }
+
+    /**
      * Menampilkan struk/receipt transaksi.
      *
      * @param  int|string $transaction ID transaksi
@@ -544,13 +627,13 @@ class PosController extends Controller
     public function receipt($transaction): View
     {
         $tx = session('last_transaction');
-        
+
         \Log::info('Receipt requested', [
             'transaction_param' => $transaction,
             'session_id' => $tx['id'] ?? null,
             'has_session' => !empty($tx)
         ]);
-        
+
         if (!$tx || (int)$tx['id'] !== (int)$transaction) {
             \Log::warning('Receipt not found', [
                 'requested_id' => $transaction,

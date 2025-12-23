@@ -72,6 +72,7 @@ Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->
     Route::post('/pos/remove', [\App\Http\Controllers\PosController::class, 'removeFromCart'])->name('pos.remove');
     Route::post('/pos/update', [\App\Http\Controllers\PosController::class, 'updateCart'])->name('pos.update');
     Route::post('/pos/checkout', [\App\Http\Controllers\PosController::class, 'checkout'])->name('pos.checkout');
+    Route::post('/pos/preview-receipt', [\App\Http\Controllers\PosController::class, 'previewReceipt'])->name('pos.preview-receipt');
     Route::get('/pos/receipt/{transaction}', [\App\Http\Controllers\PosController::class, 'receipt'])->name('pos.receipt');
     // New transaction: clear last transaction and cart, redirect to POS
     Route::get('/pos/new', [\App\Http\Controllers\PosController::class, 'newTransaction'])->name('pos.new');

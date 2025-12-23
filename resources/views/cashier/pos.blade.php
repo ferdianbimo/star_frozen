@@ -284,8 +284,10 @@
             <button
                 type="button"
                 onclick="confirmCheckout()"
-                class="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors">
-                Print
+                id="printBtn"
+                class="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                <i class="fas fa-print"></i>
+                Print Receipt
             </button>
         </div>
     </div>
@@ -358,7 +360,7 @@ function updateCart(productId, quantity) {
             name: product.name,
             price: product.price,
             quantity: quantity,
-            batch_id: product.batch_id
+            batch_id: product.batch_id || null
         };
     } else {
         delete cart[productId];
@@ -517,8 +519,17 @@ function confirmCheckout() {
     document.getElementById('itemsInput').value = JSON.stringify(items);
     document.getElementById('paidAmountInput').value = paidAmount;
 
-    // Submit form
-    document.getElementById('checkoutForm').submit();
+    // Show loading state
+    const printBtn = document.getElementById('printBtn');
+    printBtn.disabled = true;
+    printBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+    // Change form action to preview receipt (simple display without database save)
+    const form = document.getElementById('checkoutForm');
+    form.action = '{{ route("cashier.pos.preview-receipt") }}';
+
+    // Submit form - will redirect to receipt page for preview/print
+    form.submit();
 }
 
 // Listen to payment method changes

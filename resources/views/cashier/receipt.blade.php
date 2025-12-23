@@ -40,7 +40,7 @@
             <div style="margin-top:6px;">
                 <div>INVOICE: {{ $transaction['invoice_number'] }}</div>
                 <div>
-                    TANGGAL: 
+                    TANGGAL:
                     @if(!empty($transaction['checkout_time']))
                         @php
                             // Expecting format 'YYYY-MM-DD HH:MM:SS' from device; format to 'd/m/Y H:i' without timezone conversion
@@ -168,5 +168,20 @@
             .no-print { display: none !important; }
         }
     </style>
+
+    <script>
+        // Auto-open print dialog when page loads (optional - comment out if not needed)
+        // window.addEventListener('load', function() {
+        //     setTimeout(() => window.print(), 500);
+        // });
+
+        // Keyboard shortcut: Ctrl+P or Cmd+P
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                window.print();
+            }
+        });
+    </script>
 </body>
 </html>
