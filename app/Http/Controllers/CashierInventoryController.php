@@ -610,4 +610,93 @@ class CashierInventoryController extends Controller
             'batches' => $batches,
         ]);
     }
+
+    /**
+     * Update a product batch.
+     */
+    public function updateBatch(Request $request, ProductBatch $batch)
+    {
+        $validated = $request->validate([
+            'batch_code' => 'nullable|string|max:255',
+            'quantity' => 'required|integer|min:0',
+            'purchase_price' => 'nullable|numeric|min:0',
+            'date_received' => 'required|date',
+            'expiration_date' => 'nullable|date|after:date_received',
+            'notes' => 'nullable|string',
+        ]);
+
+        $oldQuantity = $batch->quantity;
+        $batch->update($validated);
+
+        // Log the quantity change if it changed
+        if ($oldQuantity != $validated['quantity']) {
+            $difference = $validated['quantity'] - $oldQuantity;
+            $type = $difference > 0 ? 'purchase' : 'sale';
+            
+            StockLog::create([
+                'product_id' => $batch->product_id,
+                'batch_id' => $batch->id,
+                'user_id' => auth()->id(),
+                'previous_stock' => $oldQuantity,
+                'new_stock' => $validated['quantity'],
+                'change' => $difference,
+                'unit_price' => $validated['purchase_price'] ?? 0,
+                'total_value' => abs($difference) * ($validated['purchase_price'] ?? 0),
+                'transaction_type' => $type,
+                'note' => 'Batch updated: ' . ($validated['notes'] ?? 'Quantity adjustment'),
+            ]);
+
+            // Log activity
+            ActivityLogService::log(
+                'batch_updated',
+                'batch',
+                "Batch {$batch->batch_code} updated - Quantity changed from {$oldQuantity} to {$validated['quantity']}",
+                $batch
+            );
+        }
+
+        return redirect()
+            ->route('cashier.inventory.batches', $batch->product_id)
+            ->with('success', 'Batch berhasil diperbarui!');
+    }
+
+    /**
+     * Delete a product batch.
+     */
+    public function destroyBatch(ProductBatch $batch)
+    {
+        $productId = $batch->product_id;
+        $batchCode = $batch->batch_code;
+        $quantity = $batch->quantity;
+
+        // If batch has stock, create a stock log for the deletion
+        if ($quantity > 0) {
+            StockLog::create([
+                'product_id' => $productId,
+                'batch_id' => $batch->id,
+                'user_id' => auth()->id(),
+                'previous_stock' => $quantity,
+                'new_stock' => 0,
+                'change' => -$quantity,
+                'unit_price' => 0,
+                'total_value' => 0,
+                'transaction_type' => 'stock_out',
+                'note' => "Batch {$batchCode} deleted with remaining stock of {$quantity} units",
+            ]);
+        }
+
+        // Log the deletion
+        ActivityLogService::log(
+            'batch_deleted',
+            'batch',
+            "Batch {$batchCode} deleted from product ID {$productId}" . ($quantity > 0 ? " (had {$quantity} units remaining)" : ""),
+            $batch
+        );
+
+        $batch->delete();
+
+        return redirect()
+            ->route('cashier.inventory.batches', $productId)
+            ->with('success', "Batch {$batchCode} berhasil dihapus!" . ($quantity > 0 ? " ({$quantity} unit stok telah dihapus)" : ""));
+    }
 }

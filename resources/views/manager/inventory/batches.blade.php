@@ -19,6 +19,13 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
+                <a href="{{ route('manager.inventory.batch-deletion-history') }}" 
+                   class="px-5 py-2.5 bg-red-500/20 backdrop-blur-sm border border-red-500/30 text-red-400 rounded-xl hover:bg-red-500/30 transition-all flex items-center font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    History Hapus
+                </a>
                 <span class="inline-flex items-center px-4 py-2 bg-indigo-500/20 text-indigo-400 rounded-xl text-sm font-medium border border-indigo-500/30">
                     <span class="w-2 h-2 bg-indigo-400 rounded-full mr-2 animate-pulse"></span>
                     Batch Management

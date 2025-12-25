@@ -140,13 +140,6 @@
                     </div>
                     <span class="text-sm font-medium">Log Aktivitas</span>
                 </a>
-
-                <a href="{{ route('manager.receipt-settings.index') }}" class="nav-link group flex items-center px-4 py-3 rounded-xl mb-1 {{ request()->routeIs('manager.receipt-settings.*') ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white' }}">
-                    <div class="w-9 h-9 rounded-lg {{ request()->routeIs('manager.receipt-settings.*') ? 'bg-white/20' : 'bg-slate-700/50 group-hover:bg-slate-600/50' }} flex items-center justify-center mr-3 transition-colors">
-                        <i class="fas fa-receipt {{ request()->routeIs('manager.receipt-settings.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}"></i>
-                    </div>
-                    <span class="text-sm font-medium">Pengaturan Struk</span>
-                </a>
             </nav>
 
             <!-- User Section -->

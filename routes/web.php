@@ -31,6 +31,7 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')
     Route::get('/inventory', [\App\Http\Controllers\ManagerInventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/stock-out', [\App\Http\Controllers\ManagerInventoryController::class, 'stockOut'])->name('inventory.stock-out');
     Route::get('/inventory/batches', [\App\Http\Controllers\ManagerInventoryController::class, 'batches'])->name('inventory.batches');
+    Route::get('/inventory/batch-deletion-history', [\App\Http\Controllers\ManagerInventoryController::class, 'batchDeletionHistory'])->name('inventory.batch-deletion-history');
     
     // Activity Logs (separate feature)
     Route::get('/activity-logs', [\App\Http\Controllers\ManagerInventoryController::class, 'activityLogs'])->name('activity-logs.index');
@@ -53,12 +54,6 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->name('manager.')
     Route::get('/access', [\App\Http\Controllers\AccessController::class, 'index'])->name('access.index');
     Route::resource('users', \App\Http\Controllers\UserController::class);
     Route::resource('roles', \App\Http\Controllers\RoleController::class)->only(['edit', 'update', 'destroy']);
-    
-    // Receipt Settings (CMS Struk)
-    Route::get('/receipt-settings', [\App\Http\Controllers\ReceiptSettingController::class, 'index'])->name('receipt-settings.index');
-    Route::put('/receipt-settings', [\App\Http\Controllers\ReceiptSettingController::class, 'update'])->name('receipt-settings.update');
-    Route::delete('/receipt-settings/logo', [\App\Http\Controllers\ReceiptSettingController::class, 'removeLogo'])->name('receipt-settings.remove-logo');
-    Route::get('/receipt-settings/preview', [\App\Http\Controllers\ReceiptSettingController::class, 'preview'])->name('receipt-settings.preview');
 });
 
 // Cashier Routes
@@ -96,6 +91,8 @@ Route::prefix('cashier')->middleware(['auth', 'role:kasir'])->name('cashier.')->
     Route::get('/inventory/batch/stock-in', [\App\Http\Controllers\CashierInventoryController::class, 'stockIn'])->name('inventory.batch.stock-in');
     Route::post('/inventory/batch/store', [\App\Http\Controllers\CashierInventoryController::class, 'storeBatch'])->name('inventory.batch.store');
     Route::get('/inventory/{product}/batches', [\App\Http\Controllers\CashierInventoryController::class, 'productBatches'])->name('inventory.batches');
+    Route::put('/inventory/batch/{batch}', [\App\Http\Controllers\CashierInventoryController::class, 'updateBatch'])->name('inventory.batch.update');
+    Route::delete('/inventory/batch/{batch}', [\App\Http\Controllers\CashierInventoryController::class, 'destroyBatch'])->name('inventory.batch.destroy');
     
     // API for POS batch selection
     Route::get('/api/products/{product}/batches', [\App\Http\Controllers\CashierInventoryController::class, 'getProductBatches'])->name('api.product.batches');

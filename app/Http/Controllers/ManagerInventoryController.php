@@ -346,4 +346,71 @@ class ManagerInventoryController extends Controller
         
         return view('manager.activity-logs.index', compact('logs', 'modules', 'actions', 'users'));
     }
+
+    /**
+     * Menampilkan history penghapusan batch.
+     *
+     * Menampilkan daftar batch yang telah dihapus oleh kasir dengan informasi:
+     * - Produk yang dihapus
+     * - Kode batch
+     * - Jumlah stok yang dihapus
+     * - User yang menghapus
+     * - Waktu penghapusan
+     * - Alasan/catatan
+     *
+     * @param  Request $request Request dengan parameter filter dan search
+     * @return View
+     */
+    public function batchDeletionHistory(Request $request): View
+    {
+        $query = ActivityLog::with(['user'])
+                    ->where('action', 'batch_deleted')
+                    ->where('module', 'batch');
+        
+        // Search by batch code or product name
+        if ($request->has('search') && $request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('description', 'like', '%' . $request->search . '%');
+            });
+        }
+        
+        // Filter by user (kasir)
+        if ($request->has('user_id') && $request->user_id) {
+            $query->where('user_id', $request->user_id);
+        }
+        
+        // Filter by date range
+        if ($request->has('date_from') && $request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->has('date_to') && $request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+        
+        $deletions = $query->orderBy('created_at', 'desc')
+                          ->paginate(20)
+                          ->withQueryString();
+        
+        // Get list of users (kasir) for filter
+        $users = \App\Models\User::select('id', 'name')
+                    ->orderBy('name')
+                    ->get();
+        
+        // Get statistics
+        $stats = [
+            'total_deletions' => ActivityLog::where('action', 'batch_deleted')
+                                            ->where('module', 'batch')
+                                            ->count(),
+            'today_deletions' => ActivityLog::where('action', 'batch_deleted')
+                                            ->where('module', 'batch')
+                                            ->whereDate('created_at', today())
+                                            ->count(),
+            'this_week_deletions' => ActivityLog::where('action', 'batch_deleted')
+                                                ->where('module', 'batch')
+                                                ->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])
+                                                ->count(),
+        ];
+        
+        return view('manager.inventory.batch-deletion-history', compact('deletions', 'users', 'stats'));
+    }
 }

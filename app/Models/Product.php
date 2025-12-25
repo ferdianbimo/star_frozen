@@ -183,14 +183,14 @@ class Product extends Model
     /**
      * Mendapatkan total stok dari semua batch yang tersedia.
      *
-     * Menghitung akumulasi stok dari batch yang aktif, masih memiliki
-     * stok, dan belum kadaluarsa.
+     * Menghitung akumulasi stok dari batch yang aktif dan masih memiliki stok,
+     * termasuk batch yang sudah kadaluarsa.
      *
      * @return int Total stok tersedia
      */
     public function getTotalBatchStockAttribute(): int
     {
-        return $this->batches()->available()->notExpired()->sum('quantity');
+        return $this->batches()->available()->sum('quantity');
     }
 
     /**
