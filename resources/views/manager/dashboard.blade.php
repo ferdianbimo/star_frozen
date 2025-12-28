@@ -160,6 +160,7 @@
                         <thead>
                             <tr class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                                 <th class="pb-3 px-2">Produk</th>
+                                <th class="pb-3 px-2">Batch</th>
                                 <th class="pb-3 px-2">Kadaluarsa</th>
                                 <th class="pb-3 px-2 text-right">Sisa Hari</th>
                             </tr>
@@ -169,6 +170,14 @@
                                 <tr class="hover:bg-slate-50 transition-colors">
                                     <td class="py-3 px-2">
                                         <span class="font-medium text-slate-700">{{ $p->name }}</span>
+                                        @if(isset($p->batch_quantity))
+                                            <span class="block text-xs text-slate-400 mt-0.5">Stok: {{ $p->batch_quantity }} pcs</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-3 px-2">
+                                        @if(isset($p->batch_code))
+                                            <span class="text-xs font-mono text-slate-600 bg-slate-100 px-2 py-1 rounded">{{ $p->batch_code }}</span>
+                                        @endif
                                     </td>
                                     <td class="py-3 px-2 text-slate-500 text-sm">{{ optional($p->expiry_date)->format('d/m/Y') }}</td>
                                     <td class="py-3 px-2 text-right">

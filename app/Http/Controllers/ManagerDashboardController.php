@@ -111,50 +111,39 @@ class ManagerDashboardController extends Controller
             ->limit(5)
             ->get();
         
-        // Expiring Soon: prefer `expiration_date` when available, otherwise fallback to created_at + 6 months
+        // Expiring Soon - ambil dari product_batches yang akan kadaluarsa dalam 7 hari
         $now = now();
         $oneWeekFromNow = now()->addDays(7);
-        $hasExpirationColumn = Schema::hasColumn('products', 'expiration_date');
-
-        if ($hasExpirationColumn) {
-            // Produk yang kadaluarsa dalam 7 hari ke depan
-            $expiringCount = Product::whereNotNull('expiration_date')
-                ->where('expiration_date', '>=', $now->toDateString())
-                ->where('expiration_date', '<=', $oneWeekFromNow->toDateString())
-                ->count();
-
-            $expiringProducts = Product::whereNotNull('expiration_date')
-                ->where('expiration_date', '>=', $now->toDateString())
-                ->where('expiration_date', '<=', $oneWeekFromNow->toDateString())
-                ->orderBy('expiration_date', 'asc')
-                ->limit(5)
-                ->get()
-                ->map(function($p) {
-                    $now = now();
-                    $expiryDate = Carbon::parse($p->expiration_date);
-                    $p->expiry_date = $expiryDate;
-                    $p->remaining_days = $now->diffInDays($expiryDate, false);
-                    return $p;
-                });
-        } else {
-            // Fallback: gunakan created_at + 6 bulan
-            $expiringCount = Product::whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) >= ?", [$now->toDateString()])
-                ->whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) <= ?", [$oneWeekFromNow->toDateString()])
-                ->count();
-
-            $expiringProducts = Product::whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) >= ?", [$now->toDateString()])
-                ->whereRaw("DATE_ADD(created_at, INTERVAL 6 MONTH) <= ?", [$oneWeekFromNow->toDateString()])
-                ->orderByRaw('DATE_ADD(created_at, INTERVAL 6 MONTH) ASC')
-                ->limit(5)
-                ->get()
-                ->map(function($p) {
-                    $now = now();
-                    $expiryDate = $p->created_at->copy()->addMonths(6);
-                    $p->expiry_date = $expiryDate;
-                    $p->remaining_days = $now->diffInDays($expiryDate, false);
-                    return $p;
-                });
-        }
+        
+        // Ambil batch yang akan kadaluarsa dalam 7 hari (tidak termasuk yang sudah kadaluarsa)
+        $expiringBatches = \App\Models\ProductBatch::with('product')
+            ->whereNotNull('expiration_date')
+            ->where('expiration_date', '>=', $now->toDateString())
+            ->where('expiration_date', '<=', $oneWeekFromNow->toDateString())
+            ->where('quantity', '>', 0)
+            ->where('is_active', true)
+            ->orderBy('expiration_date', 'asc')
+            ->get();
+        
+        $expiringCount = $expiringBatches->count();
+        
+        // Group by product dan ambil batch terdekat per produk
+        $expiringProducts = $expiringBatches->groupBy('product_id')
+            ->map(function($batches) use ($now) {
+                $batch = $batches->first(); // Batch terdekat
+                $product = $batch->product;
+                $expiryDate = Carbon::parse($batch->expiration_date);
+                
+                $product->expiry_date = $expiryDate;
+                $product->remaining_days = $now->diffInDays($expiryDate, false);
+                $product->batch_code = $batch->batch_code;
+                $product->batch_quantity = $batch->quantity;
+                
+                return $product;
+            })
+            ->sortBy('expiry_date')
+            ->take(5)
+            ->values();
         
         // Sales Trend (Last X days based on period) - dari StockLog
         $salesTrend = [];
