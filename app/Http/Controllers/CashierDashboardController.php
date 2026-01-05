@@ -192,11 +192,27 @@ class CashierDashboardController extends Controller
             ->take(5)
             ->values();
 
-        // Stock almost out list
-        $stockAlmostOut = Product::where('stock', '>=', 0)
+        // Stock almost out list with batch details - only non-expired batches
+        $stockAlmostOut = Product::with(['batches' => function($query) {
+                $query->where('quantity', '>', 0)
+                      ->where('is_active', true)
+                      ->where(function($q) {
+                          // Only include batches that are NOT expired
+                          $q->whereNull('expiration_date')
+                            ->orWhere('expiration_date', '>=', now()->toDateString());
+                      })
+                      ->orderBy('expiration_date', 'asc');
+            }])
+            ->where('stock', '>=', 0)
             ->where('stock', '<=', 10)
             ->orderBy('stock', 'asc')
-            ->get();
+            ->get()
+            ->map(function($product) {
+                // Attach batch information to product
+                $product->active_batches = $product->batches;
+                $product->batch_count = $product->batches->count();
+                return $product;
+            });
 
         // Recent Transactions
         $recentTransactions = Transaction::withCount(['items as items_count' => function ($q) {

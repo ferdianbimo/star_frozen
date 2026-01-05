@@ -263,11 +263,22 @@ class ProductBatch extends Model
     public static function generateBatchCode(int $productId): string
     {
         $date = now()->format('Ymd');
-        $count = self::where('product_id', $productId)
-                     ->whereDate('created_at', now()->toDateString())
-                     ->count() + 1;
         
-        return sprintf('B%s-%d-%03d', $date, $productId, $count);
+        // Ambil batch terakhir untuk produk ini pada hari ini
+        $lastBatch = self::where('product_id', $productId)
+                         ->where('batch_code', 'like', "B{$date}-{$productId}-%")
+                         ->orderBy('batch_code', 'desc')
+                         ->first();
+        
+        if ($lastBatch) {
+            // Extract nomor sequence dari batch terakhir
+            preg_match('/B\d+-\d+-(\d+)$/', $lastBatch->batch_code, $matches);
+            $sequence = isset($matches[1]) ? intval($matches[1]) + 1 : 1;
+        } else {
+            $sequence = 1;
+        }
+        
+        return sprintf('B%s-%d-%03d', $date, $productId, $sequence);
     }
 
     /*

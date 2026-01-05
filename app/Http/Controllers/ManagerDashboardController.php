@@ -174,11 +174,27 @@ class ManagerDashboardController extends Controller
             ];
         }
         
-        // Stock Almost Out (Stok Hampir Habis) - include stock 0
-        $stockAlmostOut = Product::where('stock', '>=', 0)
+        // Stock Almost Out (Stok Hampir Habis) - only show non-expired batches
+        $stockAlmostOut = Product::with(['batches' => function($query) {
+                $query->where('quantity', '>', 0)
+                      ->where('is_active', true)
+                      ->where(function($q) {
+                          // Only include batches that are NOT expired
+                          $q->whereNull('expiration_date')
+                            ->orWhere('expiration_date', '>=', now()->toDateString());
+                      })
+                      ->orderBy('expiration_date', 'asc');
+            }])
+            ->where('stock', '>=', 0)
             ->where('stock', '<=', 10)
             ->orderBy('stock', 'asc')
-            ->get();
+            ->get()
+            ->map(function($product) {
+                // Attach batch information to product
+                $product->active_batches = $product->batches;
+                $product->batch_count = $product->batches->count();
+                return $product;
+            });
         
         // Financial Data - Real-time dari Stock Logs
         $todayIncome = StockLog::where('transaction_type', 'sale')

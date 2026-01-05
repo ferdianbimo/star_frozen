@@ -214,44 +214,83 @@
                     </div>
                 </div>
             </div>
-            <div class="p-4 max-h-64 overflow-y-auto scrollbar-custom">
+            <div class="p-4 max-h-96 overflow-y-auto scrollbar-custom">
                 @if(isset($stockAlmostOut) && $stockAlmostOut->count())
-                    <table class="w-full">
-                        <thead>
-                            <tr class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                <th class="pb-3 px-2">Produk</th>
-                                <th class="pb-3 px-2">Stok</th>
-                                <th class="pb-3 px-2 text-right">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            @foreach($stockAlmostOut as $p)
-                                <tr class="hover:bg-slate-50 transition-colors {{ $p->stock == 0 ? 'bg-red-50/50' : '' }}">
-                                    <td class="py-3 px-2">
-                                        <span class="font-medium {{ $p->stock == 0 ? 'text-red-700' : 'text-slate-700' }}">{{ $p->name }}</span>
-                                    </td>
-                                    <td class="py-3 px-2">
-                                        <span class="font-semibold {{ $p->stock == 0 ? 'text-red-700' : 'text-slate-600' }}">{{ $p->stock }}</span>
-                                    </td>
-                                    <td class="py-3 px-2 text-right">
+                    <div class="space-y-4">
+                        @foreach($stockAlmostOut as $p)
+                            <div class="border border-slate-200 rounded-xl p-4 hover:border-amber-300 hover:bg-amber-50/30 transition-all {{ $p->stock == 0 ? 'bg-red-50 border-red-200' : '' }}">
+                                <!-- Product Header -->
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex-1">
+                                        <h5 class="font-bold {{ $p->stock == 0 ? 'text-red-700' : 'text-slate-800' }}">{{ $p->name }}</h5>
+                                        @if($p->batch_count > 0)
+                                            <span class="text-xs text-slate-500 mt-1 block">{{ $p->batch_count }} batch tersedia</span>
+                                        @endif
+                                    </div>
+                                    <div>
                                         @if($p->stock == 0)
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                                                <i class="fas fa-times-circle text-[10px]"></i> Habis
+                                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                                                <i class="fas fa-times-circle"></i> Habis
                                             </span>
                                         @elseif($p->stock <= 5)
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
-                                                <i class="fas fa-exclamation-circle text-[10px]"></i> Kritis
+                                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">
+                                                <i class="fas fa-exclamation-circle"></i> Kritis
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                                                <i class="fas fa-exclamation-triangle text-[10px]"></i> Rendah
+                                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                                                <i class="fas fa-exclamation-triangle"></i> Rendah
                                             </span>
                                         @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                    </div>
+                                </div>
+
+                                <!-- Batch Details -->
+                                @if($p->active_batches && $p->active_batches->count() > 0)
+                                    <div class="bg-white rounded-lg p-3 border border-slate-100">
+                                        <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                            <i class="fas fa-layer-group"></i>
+                                            Detail Batch
+                                        </div>
+                                        <div class="space-y-2">
+                                            @foreach($p->active_batches as $batch)
+                                                <div class="flex items-center justify-between py-2 border-b border-slate-100 last:border-b-0">
+                                                    <div class="flex items-center gap-3">
+                                                        <span class="text-xs font-mono font-semibold bg-slate-100 text-slate-700 px-2 py-1 rounded">
+                                                            {{ $batch->batch_code }}
+                                                        </span>
+                                                        <span class="text-sm text-slate-600">
+                                                            {{ $batch->quantity }} pcs
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        @if($batch->expiration_date)
+                                                            @php
+                                                                $expiryDate = \Carbon\Carbon::parse($batch->expiration_date);
+                                                                $daysLeft = now()->diffInDays($expiryDate, false);
+                                                            @endphp
+                                                            <div class="text-xs text-slate-500">
+                                                                Exp: {{ $expiryDate->format('d/m/Y') }}
+                                                            </div>
+                                                            @if($daysLeft <= 7 && $daysLeft > 0)
+                                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 mt-1">
+                                                                    <i class="fas fa-clock text-[9px]"></i>
+                                                                    {{ $daysLeft }} hari
+                                                                </span>
+                                                            @endif
+                                                        @else
+                                                            <span class="text-xs text-slate-400">No expiry</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="text-xs text-slate-400 italic">Tidak ada batch aktif</div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
                 @else
                     <div class="flex flex-col items-center justify-center py-8 text-center">
                         <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-3">
